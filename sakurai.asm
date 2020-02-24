@@ -90,6 +90,7 @@ Main:
 	call MemoryClean ; (ds:di, cx)
 
 	; Modules initialization
+	call TimerInit
 	call RenderInit
 
 	; Copy bkg as a test
@@ -104,20 +105,192 @@ Main:
 	mov cx, BKG_DATA_SIZE
 	call MemoryCopy ; (es:si -src-, ds:di -dest-, cx)
 
-	;;;; GAME LOOP HERE
+	; Main loop
+	mov ax, seg_data ; From here no call should change this (TODO)
+	mov ds, ax
+
+	mov cx, (str_main_loop_end - str_main_loop)
+	mov dx, str_main_loop
+	call PrintLog ; (ds:dx, cx)
+
+	;;;; MAIN LOOP HERE
+
+		mov ax, 3000    ; Three seconds
+		call TimerSleep ; (ax, ds -implicit-)
 
 		; Read from stdin (Int 21/AH=07h)
 		; http://www.ctyme.com/intr/rb-2560.htm
-		mov ah, 0x07
-		int 0x21
+		; mov ah, 0x07
+		; int 0x21
 
-	;;;; GAME LOOP HERE
+	;;;; MAIN LOOP HERE
 
 	; Bye!
 	call RenderStop
+	call TimerStop
 
 	mov al, EXIT_SUCCESS
 	call Exit ; (al)
+
+
+;==============================
+TimerInit:
+; http://retired.beyondlogic.org/interrupts/interupt.htm#2
+; http://www.osdever.net/bkerndev/Docs/pit.htm
+; http://www.intel-assembler.it/portale/5/Programming-the-Intel-8253-8354-pit/howto-program-intel-pit-8253-8254.asp
+
+	push ax
+	push bx
+	push cx
+	push dx
+	push ds
+	push es ; TODO, pusha?
+
+	mov ax, seg_data ; The messages and previous vector lives here
+	mov ds, ax
+
+	mov cx, (str_timer_init_end - str_timer_init)
+	mov dx, str_timer_init
+	call PrintLog ; (ds:dx, cx)
+
+	; Get current vector (Int 21/AH=35h)
+	; http://www.ctyme.com/intr/rb-2740.htm
+	mov ah, 0x35
+	mov al, 0x08 ; Interrupt number
+	int 0x21
+
+	mov [timer_previous_vector_sector], es
+	mov [timer_previous_vector_offset], bx
+
+	; Set new vector (Int 21/AH=25h)
+	; http://www.ctyme.com/intr/rb-2602.htm
+	mov ax, seg_code
+	mov ds, ax
+	mov dx, _TimerVector
+
+	mov al, 0x08 ; Interrupt number
+	mov ah, 0x25
+	int 0x21
+
+	; Set mode
+	; https://en.wikipedia.org/wiki/Intel_8253
+	; http://stanislavs.org/helppc/ports.html
+	; http://stanislavs.org/helppc/8253.html
+	mov dx, 0x43 ; Mode Control Register
+	mov al, 00110110b ; Mode
+	        ; bits 7-6: '00' = Counter 0
+	        ; bits 5-4: '11' = Write low byte then high byte
+	        ; bits 3-1: '011' = Square wave generator
+	        ;                   (the clock reset itself without cpu indication)
+	        ; bit 0: '0' = Binary counter
+	out dx, al
+
+	; Set frequency
+	mov dx, 0x40 ; Counter 0
+	mov ax, 1193 ; PIT frequency / 1000... an aproximation
+	out dx, al
+	mov al, ah
+	out dx, al
+
+	; Bye!
+	pop es
+	pop ds
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
+
+;==============================
+_TimerVector:
+
+	push ax
+	push dx
+	push ds
+
+	mov ax, seg_data ; The milisecond counter lives here
+	mov ds, ax
+
+	inc word [timer_miliseconds]
+
+	; Notify PIC to end this interruption? (TODO)
+	; http://stanislavs.org/helppc/8259.html
+	mov dx, 0x20
+	mov al, 0x20
+	out dx, al
+
+	; Bye!
+	pop ds
+	pop dx
+	pop ax
+	iret
+
+
+;==============================
+TimerStop:
+	push ax
+	push dx
+	push cx
+	push ds
+
+	mov ax, seg_data ; To retrieve previous vector
+	mov ds, ax
+
+	mov cx, (str_timer_stop_end - str_timer_stop)
+	mov dx, str_timer_stop
+	call PrintLog ; (ds:dx, cx)
+
+	; Restore previous vector (Int 21/AH=25h)
+	; http://www.ctyme.com/intr/rb-2602.htm
+	mov dx, [timer_previous_vector_offset] ; Protip: next one changes ds
+	mov ax, [timer_previous_vector_sector]
+	mov ds, ax
+	mov al, 0x08 ; Interrupt number
+	mov ah, 0x25
+	int 0x21
+
+	; Restore default mode, frequency (18.2)
+	mov dx, 0x43      ; Mode Control Register
+	mov al, 00110110b ; This is the default mode? (FIXME)
+	out dx, al
+
+	mov dx, 0x40 ; Counter 0
+	mov ax, 0    ; Default is 'no divisor'
+	out dx, al
+	mov al, ah
+	out dx, al
+
+	; Bye!
+	pop ds
+	pop cx
+	pop dx
+	pop ax
+	ret
+
+
+;==============================
+TimerSleep:
+; ax - Miliseconds to sleep
+; ds - Implicit
+
+	add ax, [timer_miliseconds]
+
+TimerSleep_loop:
+	nop
+	nop
+	nop
+	nop
+
+	hlt ; Sleep until the PIC wakeup us (the CPU)
+	    ; This should happend at new keyboard input or
+	    ; by the timer counter
+
+	cmp [timer_miliseconds], ax
+	jb TimerSleep_loop ; Jump if Below
+
+	; Bye!
+	ret
 
 
 ;==============================
@@ -169,15 +342,15 @@ RenderInit:
 	mov dx, 0x03C9 ; VGA video DAC
 
 RenderInit_palette_loop:
-	mov al, [palette_data + bx]
+	mov al, [render_palette_data + bx]
 	out dx, al
 	inc bx
 
-	mov al, [palette_data + bx]
+	mov al, [render_palette_data + bx]
 	out dx, al
 	inc bx
 
-	mov al, [palette_data + bx]
+	mov al, [render_palette_data + bx]
 	out dx, al
 	inc bx
 
@@ -207,12 +380,17 @@ RenderStop:
 	mov ax, seg_data ; To retrieve previous mode
 	mov ds, ax
 
+	mov cx, (str_render_stop_end - str_render_stop)
+	mov dx, str_render_stop
+	call PrintLog ; (ds:dx, cx)
+
 	; Set previous mode (Int 10/AH=00h)
 	; http://www.ctyme.com/intr/rb-0069.htm
 	mov ah, 0x00
 	mov al, [render_previous_mode]
 	int 0x10
 
+	; Bye!
 	pop ds
 	pop ax
 	ret
@@ -225,7 +403,7 @@ MemoryCopy:
 ; es:si - Source
 ; cx    - Size
 
-	push eax ; 386 thing
+	push eax
 	push ebx
 
 	; Modulo operation
@@ -255,6 +433,7 @@ MemoryCopy_4_loop:
 	sub cx, 4
 	jnz MemoryCopy_4_loop
 
+	; Bye!
 	pop ebx
 	pop eax
 	ret
@@ -266,7 +445,7 @@ MemoryClean:
 ; ds:di - Destination
 ; cx    - Size
 
-	push eax ; 386 thing
+	push eax
 
 	; Modulo operation
 	mov ax, cx
@@ -294,6 +473,7 @@ MemoryClean_4_loop:
 	sub cx, 4
 	jnz MemoryClean_4_loop
 
+	; Bye!
 	pop eax
 	ret
 
@@ -381,6 +561,7 @@ PrintOut:
 	mov ah, 0x09
 	int 0x21
 
+	; Bye!
 	pop ax
 	ret
 
@@ -401,8 +582,13 @@ segment seg_data
 	str_test1: db "Haaiii!", "$" ; Used as "beep" - "boop"
 	str_test2: db "Eehhh?!", "$"
 
+	; Timer
+	timer_previous_vector_sector: dw 0x0000
+	timer_previous_vector_offset: dw 0x0000
+	timer_miliseconds: dw 0x0000
+
 	; Render
-	palette_data: file "./assets/palette.dat"
+	render_palette_data: file "./assets/palette.dat"
 	render_previous_mode: db 0x00
 
 	; Console
@@ -418,6 +604,18 @@ segment seg_data
 
 	str_render_init: db "Initializating render module...", UNIX_NL
 	str_render_init_end:
+
+	str_render_stop: db "Stopping render module...", UNIX_NL
+	str_render_stop_end:
+
+	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL
+	str_main_loop_end:
+
+	str_timer_init: db "Initializating timer module...", UNIX_NL
+	str_timer_init_end:
+
+	str_timer_stop: db "Stopping timer module...", UNIX_NL
+	str_timer_stop_end:
 
 	str_log_filename: db "sakurai.log", 0x00
 

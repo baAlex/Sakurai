@@ -1,4 +1,18 @@
 
+Functions
+---------
+
+### TimerInit
+- void
+
+### TimerStop
+- void
+
+### TimerSleep
+- `ax` Miliseconds to sleep
+- Requires `ds` pointing to `seg_data`
+- Call after timer Initialization
+
 ### RenderInit
 - void
 
