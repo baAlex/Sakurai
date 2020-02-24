@@ -1,0 +1,14 @@
+/sakurai.exe
+/sakurai.log
+/SAKURAI.EXE
+/SAKURAI.LOG
+
+/.ninja_log
+/.ninja_deps
+
+/build/
+/build-debug/
+/build-release/
+/objects/
+/dev/
+/.vscode/
