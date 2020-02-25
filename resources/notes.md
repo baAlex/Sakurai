@@ -2,21 +2,27 @@
 Functions
 ---------
 
-### TimerInit
+### TimeInit
 - void
 
-### TimerStop
+### TimeStop
 - void
 
-### TimerSleep
+### TimeSleep
 - `ax` Miliseconds to sleep
 - Requires `ds` pointing to `seg_data`
-- Call after timer Initialization
+- Call after time Initialization
 
-### TimerGet
+### TimeGet
 - Returns in `ax` the miliseconds since initialization
 - Requires `ds` pointing to `seg_data`
-- Call after timer Initialization
+- Call after time Initialization
+
+### InputInit
+- void
+
+### InputStop
+- void
 
 ### RenderInit
 - void

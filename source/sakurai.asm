@@ -90,12 +90,17 @@ Main:
 	; call MemoryClean ; (ds:di, cx)
 
 	; Modules initialization
-	call TimerInit
+	call TimeInit
+	call InputInit
 	call RenderInit
 
-	; Copy bkg as a test, mesuring it
-	call TimerGet ; (ax = return, ds implicit)
-	mov bx, ax    ; Start time
+	; Mesure how much took a copy of an entry
+	; segment into the VGA buffer
+	mov ax, seg_data
+	mov ds, ax
+
+	call TimeGet ; (ax = return, ds implicit)
+	mov bx, ax   ; Start time
 
 		mov ax, seg_bkg_data
 		mov es, ax
@@ -108,10 +113,14 @@ Main:
 		mov cx, BKG_DATA_SIZE
 		call MemoryCopy ; (es:si = source, ds:di = destination, cx)
 
-	mov ax, seg_data ; TimerGet() requires it
+	mov ax, seg_data ; TimeGet() requires it
 	mov ds, ax
+	call TimeGet ; (ax = return, ds implicit)
 
-	call TimerGet ; (ax = return, ds implicit)
+	mov cx, (str_copy_speed_end - str_copy_speed)
+	mov dx, str_copy_speed
+	call PrintLogString ; (ds:dx, cx)
+
 	sub ax, bx
 	call PrintLogNumber ; (ax)
 
@@ -127,7 +136,7 @@ Main_loop:
 	;;;; MAIN LOOP HERE
 
 		mov ax, 3000    ; Three seconds
-		call TimerSleep ; (ax, ds implicit)
+		call TimeSleep ; (ax, ds implicit)
 
 		; Read from stdin (Int 21/AH=07h)
 		; http://www.ctyme.com/intr/rb-2560.htm
@@ -138,14 +147,15 @@ Main_loop:
 
 	; Bye!
 	call RenderStop
-	call TimerStop
+	call InputStop
+	call TimeStop
 
 	mov al, EXIT_SUCCESS
 	call Exit ; (al)
 
 
 ;==============================
-TimerInit:
+TimeInit:
 ; http://retired.beyondlogic.org/interrupts/interupt.htm#2
 ; http://www.osdever.net/bkerndev/Docs/pit.htm
 ; http://www.intel-assembler.it/portale/5/Programming-the-Intel-8253-8354-pit/howto-program-intel-pit-8253-8254.asp
@@ -160,8 +170,8 @@ TimerInit:
 	mov ax, seg_data ; The messages and previous vector lives here
 	mov ds, ax
 
-	mov cx, (str_timer_init_end - str_timer_init)
-	mov dx, str_timer_init
+	mov cx, (str_time_init_end - str_time_init)
+	mov dx, str_time_init
 	call PrintLogString ; (ds:dx, cx)
 
 	; Get current vector (Int 21/AH=35h)
@@ -170,14 +180,29 @@ TimerInit:
 	mov al, 0x08 ; Interrupt number
 	int 0x21
 
-	mov [timer_previous_vector_sector], es
-	mov [timer_previous_vector_offset], bx
+	mov [time_previous_vector_sector], es
+	mov [time_previous_vector_offset], bx
+
+	; Print it
+	mov cx, (str_segment_end - str_segment)
+	mov dx, str_segment
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, es
+	call PrintLogNumber
+
+	mov cx, (str_offset_end - str_offset)
+	mov dx, str_offset
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, bx
+	call PrintLogNumber
 
 	; Set new vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
 	mov ax, seg_code
 	mov ds, ax
-	mov dx, _TimerVector
+	mov dx, _TimeVector
 
 	mov al, 0x08 ; Interrupt number
 	mov ah, 0x25
@@ -214,8 +239,7 @@ TimerInit:
 
 
 ;==============================
-_TimerVector:
-
+_TimeVector:
 	push ax
 	push dx
 	push ds
@@ -223,7 +247,7 @@ _TimerVector:
 	mov ax, seg_data ; The milisecond counter lives here
 	mov ds, ax
 
-	inc word [timer_miliseconds]
+	inc word [time_miliseconds]
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
@@ -239,7 +263,7 @@ _TimerVector:
 
 
 ;==============================
-TimerStop:
+TimeStop:
 	push ax
 	push dx
 	push cx
@@ -248,14 +272,29 @@ TimerStop:
 	mov ax, seg_data ; To retrieve previous vector
 	mov ds, ax
 
-	mov cx, (str_timer_stop_end - str_timer_stop)
-	mov dx, str_timer_stop
+	mov cx, (str_time_stop_end - str_time_stop)
+	mov dx, str_time_stop
 	call PrintLogString ; (ds:dx, cx)
+
+	; Print previous vector
+	mov cx, (str_segment_end - str_segment)
+	mov dx, str_segment
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, [time_previous_vector_sector]
+	call PrintLogNumber
+
+	mov cx, (str_offset_end - str_offset)
+	mov dx, str_offset
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, [time_previous_vector_offset]
+	call PrintLogNumber
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
-	mov dx, [timer_previous_vector_offset] ; Protip: next one changes ds
-	mov ax, [timer_previous_vector_sector]
+	mov dx, [time_previous_vector_offset] ; Protip: next one changes ds
+	mov ax, [time_previous_vector_sector]
 	mov ds, ax
 	mov al, 0x08 ; Interrupt number
 	mov ah, 0x25
@@ -281,13 +320,13 @@ TimerStop:
 
 
 ;==============================
-TimerSleep:
+TimeSleep:
 ; ax - Miliseconds to sleep
 ; ds - Implicit
 
-	add ax, [timer_miliseconds]
+	add ax, [time_miliseconds]
 
-TimerSleep_loop:
+TimeSleep_loop:
 	nop
 	nop
 	nop
@@ -295,21 +334,160 @@ TimerSleep_loop:
 
 	hlt ; Sleep until the PIC wakeup us (the CPU)
 	    ; This should happend at new keyboard input or
-	    ; by the timer counter
+	    ; by the time counter
 
-	cmp [timer_miliseconds], ax
-	jb TimerSleep_loop ; Jump if Below
+	cmp [time_miliseconds], ax
+	jb TimeSleep_loop ; Jump if Below
 
 	; Bye!
 	ret
 
 
 ;==============================
-TimerGet:
+TimeGet:
 ; ax - Returns miliseconds since initialization
 ; ds - Implicit
 
-	mov ax, [timer_miliseconds]
+	mov ax, [time_miliseconds]
+	ret
+
+
+;==============================
+InputInit:
+; http://retired.beyondlogic.org/interrupts/interupt.htm#2
+; http://www.ctyme.com/intr/rb-5956.htm
+
+	push ax
+	push bx
+	push cx
+	push dx
+	push ds
+	push es ; TODO, pusha?
+
+	mov ax, seg_data ; The messages and previous vector lives here
+	mov ds, ax
+
+	mov cx, (str_input_init_end - str_input_init)
+	mov dx, str_input_init
+	call PrintLogString ; (ds:dx, cx)
+
+	; Get current vector (Int 21/AH=35h)
+	; http://www.ctyme.com/intr/rb-2740.htm
+	mov ah, 0x35
+	mov al, 0x09 ; Interrupt number
+	int 0x21
+
+	mov [input_previous_vector_sector], es
+	mov [input_previous_vector_offset], bx
+
+	; Print it
+	mov cx, (str_segment_end - str_segment)
+	mov dx, str_segment
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, es
+	call PrintLogNumber
+
+	mov cx, (str_offset_end - str_offset)
+	mov dx, str_offset
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, bx
+	call PrintLogNumber
+
+	; Set new vector (Int 21/AH=25h)
+	; http://www.ctyme.com/intr/rb-2602.htm
+	mov ax, seg_code
+	mov ds, ax
+	mov dx, _InputVector
+
+	mov al, 0x09 ; Interrupt number
+	mov ah, 0x25
+	int 0x21
+
+	; Bye!
+	pop es
+	pop ds
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
+
+;==============================
+_InputVector:
+; https://stackoverflow.com/a/40963633
+; http://www.ctyme.com/intr/rb-0045.htm#Table6
+
+	push ax
+	push dx
+	push ds
+
+	mov ax, seg_data ; The keys state counter lives here
+	mov ds, ax
+
+	; Retrieve input in AL
+	mov dx, 0x60 ; PROTIP: call at least once after the
+	in al, dx    ; custom vector is set. Or grab a cup of
+	             ; coffee to see how DOS bugs (DOSBox at least)
+
+	; Notify PIC to end this interruption? (TODO)
+	; http://stanislavs.org/helppc/8259.html
+	mov dx, 0x20
+	mov al, 0x20
+	out dx, al
+
+	; Bye!
+	pop ds
+	pop dx
+	pop ax
+	iret
+
+
+;==============================
+InputStop:
+	push ax
+	push dx
+	push cx
+	push ds
+
+	mov ax, seg_data ; To retrieve previous vector
+	mov ds, ax
+
+	mov cx, (str_input_stop_end - str_input_stop)
+	mov dx, str_input_stop
+	call PrintLogString ; (ds:dx, cx)
+
+	; Print previous vector
+	mov cx, (str_segment_end - str_segment)
+	mov dx, str_segment
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, [input_previous_vector_sector]
+	call PrintLogNumber
+
+	mov cx, (str_offset_end - str_offset)
+	mov dx, str_offset
+	call PrintLogString ; (ds:dx, cx)
+
+	mov ax, [input_previous_vector_offset]
+	call PrintLogNumber
+
+	; Restore previous vector (Int 21/AH=25h)
+	; http://www.ctyme.com/intr/rb-2602.htm
+	mov dx, [input_previous_vector_offset] ; Protip: next one changes ds
+	mov ax, [input_previous_vector_sector]
+	mov ds, ax
+	mov al, 0x09 ; Interrupt number
+	mov ah, 0x25
+	int 0x21
+
+	; Bye!
+	pop ds
+	pop cx
+	pop dx
+	pop ax
 	ret
 
 
@@ -680,10 +858,14 @@ segment seg_data
 	hex_table: db "0", "1", "2", "3", "4", "5", "6", "7"
 	           db "8", "9", "A", "B", "C", "D", "E", "F"
 
-	; Timer
-	timer_previous_vector_sector: dw 0x0000
-	timer_previous_vector_offset: dw 0x0000
-	timer_miliseconds: dw 0x0000
+	; Time
+	time_previous_vector_sector: dw 0x0000
+	time_previous_vector_offset: dw 0x0000
+	time_miliseconds: dw 0x0000
+
+	; Input
+	input_previous_vector_sector: dw 0x0000
+	input_previous_vector_offset: dw 0x0000
 
 	; Render
 	render_palette_data: file "./assets/palette.dat"
@@ -699,20 +881,35 @@ segment seg_data
 	str_hello: db "Sakurai v0.1", UNIX_NL
 	str_hello_end:
 
+	str_time_init: db "Initializating time module...", UNIX_NL
+	str_time_init_end:
+
+	str_input_init: db "Initializating input module...", UNIX_NL
+	str_input_init_end:
+
 	str_render_init: db "Initializating render module...", UNIX_NL
 	str_render_init_end:
 
-	str_render_stop: db "Stopping render module...", UNIX_NL
-	str_render_stop_end:
+	str_copy_speed: db "Copy speed is (ms): "
+	str_copy_speed_end:
 
 	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL
 	str_main_loop_end:
 
-	str_timer_init: db "Initializating timer module...", UNIX_NL
-	str_timer_init_end:
+	str_render_stop: db "Stopping render module...", UNIX_NL
+	str_render_stop_end:
 
-	str_timer_stop: db "Stopping timer module...", UNIX_NL
-	str_timer_stop_end:
+	str_input_stop: db "Stopping input module...", UNIX_NL
+	str_input_stop_end:
+
+	str_time_stop: db "Stopping time module...", UNIX_NL
+	str_time_stop_end:
+
+	str_segment: db " - Vector segment: "
+	str_segment_end:
+
+	str_offset: db " - Vector offset: "
+	str_offset_end:
 
 	str_log_filename: db "sakurai.log", 0x00
 
