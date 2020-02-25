@@ -428,30 +428,42 @@ MemoryCopy:
 
 	; Modulo operation
 	mov ax, cx
-	and ax, 3 ; Works with modulos power of 2
+	and ax, 15 ; Works with modulos power of 2
 
-	jz MemoryCopy_4_loop ; Lucky, no remainder
+	jz near MemoryCopy_16 ; Lucky, no remainder
 
 	; Copy the remainder in steps of 1 byte
 	sub cx, ax ; ax = remainder value
 
 MemoryCopy_1_loop:
-	mov ah, [es:si]  ; Remainder isn't bigger than 4,
-	mov [ds:di], ah  ; so lets recycle his high byte
+	mov ah, [es:si] ; Remainder isn't bigger than 16,
+	mov [ds:di], ah ; so lets recycle his high byte
 	inc di
 	inc si
 	dec al
-	jnz MemoryCopy_1_loop
+	jnz near MemoryCopy_1_loop
 
-	; Copy in steps of 4 bytes
+MemoryCopy_16:
 
-MemoryCopy_4_loop:
-	mov ebx, [es: si]
+	; Copy in steps of 16 bytes
+	shr cx, 4 ; Because LOOP decrements by 1
+
+MemoryCopy_16_loop:
+	mov ebx, [es:si]
 	mov [ds:di], ebx
-	add di, 4
-	add si, 4
-	sub cx, 4
-	jnz MemoryCopy_4_loop
+
+	mov ebx, [es:si + 4]
+	mov [ds:di + 4], ebx
+
+	mov ebx, [es:si + 8]
+	mov [ds:di + 8], ebx
+
+	mov ebx, [es:si + 12]
+	mov [ds:di + 12], ebx
+
+	add di, 16
+	add si, 16
+	loop MemoryCopy_16_loop
 
 	; Bye!
 	pop ebx
