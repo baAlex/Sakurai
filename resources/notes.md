@@ -13,6 +13,11 @@ Functions
 - Requires `ds` pointing to `seg_data`
 - Call after timer Initialization
 
+### TimerGet
+- Returns in `ax` the miliseconds since initialization
+- Requires `ds` pointing to `seg_data`
+- Call after timer Initialization
+
 ### RenderInit
 - void
 
@@ -28,9 +33,12 @@ Functions
 - `ds:di` Destination
 - `cx`    Size
 
-### PrintLog
-- `ds:dx` Text to print
+### PrintLogString
+- `ds:dx` String to print
 - `cx`    Length
+
+### PrintLogNumber
+- `ax` Number to print
 
 ### PrintOut
 - `ds:dx` Text to print ('$' terminated)

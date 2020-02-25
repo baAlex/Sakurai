@@ -64,46 +64,56 @@ Main:
 
 	mov cx, (str_separator_end - str_separator)
 	mov dx, str_separator
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
 	mov cx, (str_hello_end - str_hello)
 	mov dx, str_hello
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
 	; Clean secondary data segments
-	mov ax, seg_buffer_data
-	mov ds, ax
-	mov di, buffer_data
-	mov cx, BUFFER_DATA_SIZE
-	call MemoryClean ; (ds:di, cx)
+	; mov ax, seg_buffer_data
+	; mov ds, ax
+	; mov di, buffer_data
+	; mov cx, BUFFER_DATA_SIZE
+	; call MemoryClean ; (ds:di, cx)
 
-	;mov ax, seg_bkg_data
-	;mov ds, ax
-	;mov di, bkg_data
-	;mov cx, BKG_DATA_SIZE
-	;call MemoryClean ; (ds:di, cx)
+	; mov ax, seg_bkg_data
+	; mov ds, ax
+	; mov di, bkg_data
+	; mov cx, BKG_DATA_SIZE
+	; call MemoryClean ; (ds:di, cx)
 
-	mov ax, seg_spr_data
-	mov ds, ax
-	mov di, spr_data
-	mov cx, SPR_DATA_SIZE
-	call MemoryClean ; (ds:di, cx)
+	; mov ax, seg_spr_data
+	; mov ds, ax
+	; mov di, spr_data
+	; mov cx, SPR_DATA_SIZE
+	; call MemoryClean ; (ds:di, cx)
 
 	; Modules initialization
 	call TimerInit
 	call RenderInit
 
-	; Copy bkg as a test
-	mov ax, seg_bkg_data
-	mov es, ax
-	mov si, bkg_data
+	; Copy bkg as a test, mesuring it
+	call TimerGet ; (ax = return, ds implicit)
+	mov bx, ax    ; Start time
 
-	mov ax, VGA_SEGMENT
+		mov ax, seg_bkg_data
+		mov es, ax
+		mov si, bkg_data
+
+		mov ax, VGA_SEGMENT
+		mov ds, ax
+		mov di, VGA_OFFSET
+
+		mov cx, BKG_DATA_SIZE
+		call MemoryCopy ; (es:si = source, ds:di = destination, cx)
+
+	mov ax, seg_data ; TimerGet() requires it
 	mov ds, ax
-	mov di, VGA_OFFSET
 
-	mov cx, BKG_DATA_SIZE
-	call MemoryCopy ; (es:si -src-, ds:di -dest-, cx)
+	call TimerGet ; (ax = return, ds implicit)
+	sub ax, bx
+	call PrintLogNumber ; (ax)
 
 	; Main loop
 	mov ax, seg_data ; From here no call should change this (TODO)
@@ -111,12 +121,13 @@ Main:
 
 	mov cx, (str_main_loop_end - str_main_loop)
 	mov dx, str_main_loop
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
+Main_loop:
 	;;;; MAIN LOOP HERE
 
 		mov ax, 3000    ; Three seconds
-		call TimerSleep ; (ax, ds -implicit-)
+		call TimerSleep ; (ax, ds implicit)
 
 		; Read from stdin (Int 21/AH=07h)
 		; http://www.ctyme.com/intr/rb-2560.htm
@@ -151,7 +162,7 @@ TimerInit:
 
 	mov cx, (str_timer_init_end - str_timer_init)
 	mov dx, str_timer_init
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
 	; Get current vector (Int 21/AH=35h)
 	; http://www.ctyme.com/intr/rb-2740.htm
@@ -239,7 +250,7 @@ TimerStop:
 
 	mov cx, (str_timer_stop_end - str_timer_stop)
 	mov dx, str_timer_stop
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -294,6 +305,15 @@ TimerSleep_loop:
 
 
 ;==============================
+TimerGet:
+; ax - Returns miliseconds since initialization
+; ds - Implicit
+
+	mov ax, [timer_miliseconds]
+	ret
+
+
+;==============================
 RenderInit:
 	push ax
 	push bx
@@ -305,7 +325,7 @@ RenderInit:
 
 	mov cx, (str_render_init_end - str_render_init)
 	mov dx, str_render_init
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
 	; Get current video mode (Int 10/AH=0Fh)
 	; http://www.ctyme.com/intr/rb-0108.htm
@@ -382,7 +402,7 @@ RenderStop:
 
 	mov cx, (str_render_stop_end - str_render_stop)
 	mov dx, str_render_stop
-	call PrintLog ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx, cx)
 
 	; Set previous mode (Int 10/AH=00h)
 	; http://www.ctyme.com/intr/rb-0069.htm
@@ -479,14 +499,18 @@ MemoryClean_4_loop:
 
 
 ;==============================
-PrintLog:
-; ds:dx - Text to print
+PrintLogString:
+; ds:dx - String to print
 ; cx    - Length
 
 	push ax
 	push bx
 	push cx
 	push dx
+	push ds
+
+	mov ax, seg_data ; Log filename lives here
+	mov ds, ax
 
 	; Open existing file (Int 21/AH=3Dh)
 	; http://www.ctyme.com/intr/rb-2779.htm
@@ -495,7 +519,7 @@ PrintLog:
 	mov dx, str_log_filename
 	int 0x21
 
-	jnc PrintLog_file_exists
+	jnc PrintLogString_file_exists
 
 	; Create file (Int 21/AH=3Ch)
 	; http://www.ctyme.com/intr/rb-2778.htm
@@ -504,9 +528,9 @@ PrintLog:
 	mov dx, str_log_filename
 	int 0x21
 
-	jc PrintLog_failure1
+	jc PrintLogString_failure1
 
-PrintLog_file_exists:
+PrintLogString_file_exists:
 
 	; Seek (Int 21/AH=42h)
 	; http://www.ctyme.com/intr/rb-2799.htm
@@ -517,16 +541,17 @@ PrintLog_file_exists:
 	mov dx, 0x0000 ; Origin (signed) LO
 	int 0x21
 
-	jc PrintLog_failure1
+	jc PrintLogString_failure1
 
 	; Write to file (Int 21/AH=40h)
 	; http://www.ctyme.com/intr/rb-2791.htm
 	mov ah, 0x40
+	pop ds
 	pop dx
 	pop cx
 	int 0x21 ; File handle still on BX
 
-	jc PrintLog_failure2
+	jc PrintLogString_failure2
 
 	; Close file (Int 21/AH=3Eh)
 	; http://www.ctyme.com/intr/rb-2782.htm
@@ -538,16 +563,74 @@ PrintLog_file_exists:
 	pop ax
 	ret
 
-PrintLog_failure1:
+PrintLogString_failure1:
+	pop ds
 	pop dx
 	pop cx
 
-PrintLog_failure2:
-	mov dx, str_io_error
-	call PrintOut ; (ds:dx)
-
+PrintLogString_failure2:
 	mov al, EXIT_FAILURE
 	call Exit ; (al)
+
+
+;==============================
+PrintLogNumber:
+; ax - Number to print
+
+	push bx
+	push cx
+	push dx
+	push ds
+
+	mov bx, seg_data ; HEX table
+	mov ds, bx
+
+	; Create the string termination
+	mov cx, 0x000A ; Unix NL + NULL
+	push cx        ; Push A
+
+	; Create the number string
+	mov bh, 0x00
+
+	mov bl, al ; Bits 0-3
+	and bl, 00001111b
+	mov ch, [hex_table + bx]
+
+	mov bl, al ; Bits 4-7
+	shr bl, 4
+	mov cl, [hex_table + bx]
+
+		push cx ; Push B
+
+	mov bl, ah ; Bits 8-11
+	and bl, 00001111b
+	mov ch, [hex_table + bx]
+
+	mov bl, ah ; Bits 12-15
+	shr bl, 4
+	mov cl, [hex_table + bx]
+
+		push cx ; Push C
+
+	; Point DS to SS, and DX to SP
+	mov ax, ss
+	mov ds, ax
+	mov dx, sp
+
+	; Print it
+	mov cx, 5 ; Length not counting NULL
+	call PrintLogString
+
+	pop cx ; Pushes' A, B and C
+	pop cx
+	pop cx
+
+	; Bye!
+	pop ds
+	pop dx
+	pop cx
+	pop bx
+	ret
 
 
 ;==============================
@@ -582,6 +665,9 @@ segment seg_data
 	str_test1: db "Haaiii!", "$" ; Used as "beep" - "boop"
 	str_test2: db "Eehhh?!", "$"
 
+	hex_table: db "0", "1", "2", "3", "4", "5", "6", "7"
+	           db "8", "9", "A", "B", "C", "D", "E", "F"
+
 	; Timer
 	timer_previous_vector_sector: dw 0x0000
 	timer_previous_vector_offset: dw 0x0000
@@ -592,7 +678,6 @@ segment seg_data
 	render_previous_mode: db 0x00
 
 	; Console
-	str_io_error: db "IO error", "$"
 	str_vga_error: db "You need a VGA adapter", "$"
 
 	; Log
