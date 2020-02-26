@@ -52,6 +52,8 @@ EXIT_FAILURE = 0x01
 
 UNIX_NL = 0x0A ; The log messages uses it
 
+INPUT_STATE_LEN = 84 ; Keys, the second keyboard iteration of IBM
+
 
 segment seg_code
 
@@ -133,17 +135,22 @@ Main:
 	call PrintLogString ; (ds:dx, cx)
 
 Main_loop:
-	;;;; MAIN LOOP HERE
 
-		mov ax, 3000    ; Three seconds
+		; After the previous frame we sleep
+		; (TODO, mesure how much took the previous
+		; frame to draw and sleep acordily)
+		mov ax, 41
 		call TimeSleep ; (ax, ds implicit)
 
-		; Read from stdin (Int 21/AH=07h)
-		; http://www.ctyme.com/intr/rb-2560.htm
-		; mov ah, 0x07
-		; int 0x21
+		; Check ESC key (0x01)
+		dec byte [input_state + 0x01]
+		jz Main_bye
 
-	;;;; MAIN LOOP HERE
+		; Next frame preparations
+		call InputClean ; (ds implicit)
+		jmp Main_loop
+
+Main_bye:
 
 	; Bye!
 	call RenderStop
@@ -419,18 +426,49 @@ InputInit:
 _InputVector:
 ; https://stackoverflow.com/a/40963633
 ; http://www.ctyme.com/intr/rb-0045.htm#Table6
+; TODO, the previous two references didn't use the
+;       following method? (?)
+
+; https://wiki.osdev.org/%228042%22_PS/2_Controller
+; « Using interrupts is easy. When IRQ1 occurs you just read
+; from IO Port 0x60 (there is no need to check bit 0 in the
+; Status Register first), send the EOI to the interrupt
+; controller and return from the interrupt handler. You know
+; that the data came from the first PS/2 device because you
+; received an IRQ1.» (OSDEV)
 
 	push ax
+	push bx
 	push dx
 	push ds
 
-	mov ax, seg_data ; The keys state counter lives here
+	mov ax, seg_data ; The keys state lives here
 	mov ds, ax
 
 	; Retrieve input in AL
 	mov dx, 0x60 ; PROTIP: call at least once after the
 	in al, dx    ; custom vector is set. Or grab a cup of
 	             ; coffee to see how DOS bugs (DOSBox at least)
+
+	; Determine if is an 'release' key, we discard them
+	; https://wiki.osdev.org/PS/2_Keyboard
+	cmp al, 0x80 ; 0x80 is the last 'press' key,
+	             ; anything higher is a 'release'
+	             ; (technically isn't the last, but...)
+
+	ja _InputVector_bye ; Jump if Above
+
+	; A keyboard with more than 84 keys
+	; Eewwww... we didn't do that here!
+	cmp al, INPUT_STATE_LEN
+	ja _InputVector_bye ; Jump if Above
+
+	; Set our input state
+	mov bh, 0x00
+	mov bl, al
+	mov byte [input_state + bx], 0x01 ; Press
+
+_InputVector_bye:
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
@@ -441,6 +479,7 @@ _InputVector:
 	; Bye!
 	pop ds
 	pop dx
+	pop bx
 	pop ax
 	iret
 
@@ -488,6 +527,20 @@ InputStop:
 	pop cx
 	pop dx
 	pop ax
+	ret
+
+
+;==============================
+InputClean:
+	push bx
+	mov bx, INPUT_STATE_LEN
+
+InputClean_loop:
+	mov byte [input_state + bx], 0x00 ; Release
+	dec bx
+	jnz InputClean_loop
+
+	pop bx
 	ret
 
 
@@ -866,6 +919,8 @@ segment seg_data
 	; Input
 	input_previous_vector_sector: dw 0x0000
 	input_previous_vector_offset: dw 0x0000
+
+	input_state: times INPUT_STATE_LEN db 0x00
 
 	; Render
 	render_palette_data: file "./assets/palette.dat"

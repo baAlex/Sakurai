@@ -24,6 +24,10 @@ Functions
 ### InputStop
 - void
 
+### InputClean
+- Requires `ds` pointing to `seg_data`
+- void
+
 ### RenderInit
 - void
 
