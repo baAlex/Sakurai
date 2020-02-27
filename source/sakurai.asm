@@ -37,25 +37,11 @@ entry seg_code:Main
 heap 0
 
 
-BUFFER_DATA_SIZE = 64000 ; Bytes
-BKG_DATA_SIZE = 64000    ; " (TODO, using a file)
-SPR_DATA_SIZE = 65025    ; "
-
-PALETTE_LEN = 255  ; Colors (in a file)
-PALETTE_SIZE = 768 ; Bytes (in a file)
-
-VGA_SEGMENT = 0xA000
-VGA_OFFSET = 0x0000
-
-EXIT_SUCCESS = 0x00
-EXIT_FAILURE = 0x01
-
-UNIX_NL = 0x0A ; The log messages uses it
-
-INPUT_STATE_LEN = 84 ; Keys, the second keyboard iteration of IBM
-
+include "sakurai.inc"
 
 segment seg_code
+	include "memory.asm"
+	include "utilities.asm"
 
 
 ;==============================
@@ -97,7 +83,7 @@ Main:
 	call RenderInit
 
 	; Mesure how much took a copy of an entry
-	; segment into the VGA buffer
+	; segment into the VGA memory
 	mov ax, seg_data
 	mov ds, ax
 
@@ -134,20 +120,54 @@ Main:
 	mov dx, str_main_loop
 	call PrintLogString ; (ds:dx, cx)
 
+	jmp Main_loop_no_sleep ; To avoid the first sleep
+
 Main_loop:
 
 		; After the previous frame we sleep
-		; (TODO, mesure how much took the previous
-		; frame to draw and sleep acordily)
-		mov ax, 41
+		cmp ax, 41             ; We did it before the 41 ms?
+		jae Main_loop_no_sleep ; No, we didn't
+
+		mov bl, 41
+		sub bl, al
+		mov al, bl
+
 		call TimeSleep ; (ax, ds implicit)
+
+Main_loop_no_sleep:
+
+		; Start time
+		call TimeGet ; (ax = return, ds implicit)
+		mov bx, ax
 
 		; Check ESC key (0x01)
 		dec byte [input_state + 0x01]
 		jz Main_bye
 
-		; Next frame preparations
+		; Game code
+		; <here>
 		call InputClean ; (ds implicit)
+
+		; Copy from buffer to VGA memory
+		push ds
+
+		; mov ax, seg_bkg_data ; TEMP
+		; mov es, ax
+		; mov si, bkg_data
+
+		mov ax, VGA_SEGMENT
+		mov ds, ax
+		; mov di, VGA_OFFSET
+
+		mov cx, BKG_DATA_SIZE
+		call MemoryCopy ; (es:si = source, ds:di = destination, cx)
+
+		pop ds
+
+		; End time
+		call TimeGet ; (ax = return, ds implicit)
+		sub ax, bx
+
 		jmp Main_loop
 
 Main_bye:
@@ -645,350 +665,3 @@ RenderStop:
 	pop ds
 	pop ax
 	ret
-
-
-;==============================
-MemoryCopy:
-; https://stackoverflow.com/a/8022107
-; ds:di - Destination
-; es:si - Source
-; cx    - Size
-
-	push eax
-	push ebx
-
-	; Modulo operation
-	mov ax, cx
-	and ax, 15 ; Works with modulos power of 2
-
-	jz near MemoryCopy_16 ; Lucky, no remainder
-
-	; Copy the remainder in steps of 1 byte
-	sub cx, ax ; ax = remainder value
-
-MemoryCopy_1_loop:
-	mov ah, [es:si] ; Remainder isn't bigger than 16,
-	mov [ds:di], ah ; so lets recycle his high byte
-	inc di
-	inc si
-	dec al
-	jnz near MemoryCopy_1_loop
-
-MemoryCopy_16:
-
-	; Copy in steps of 16 bytes
-	shr cx, 4 ; Because LOOP decrements by 1
-
-MemoryCopy_16_loop:
-	mov ebx, [es:si]
-	mov [ds:di], ebx
-
-	mov ebx, [es:si + 4]
-	mov [ds:di + 4], ebx
-
-	mov ebx, [es:si + 8]
-	mov [ds:di + 8], ebx
-
-	mov ebx, [es:si + 12]
-	mov [ds:di + 12], ebx
-
-	add di, 16
-	add si, 16
-	loop MemoryCopy_16_loop
-
-	; Bye!
-	pop ebx
-	pop eax
-	ret
-
-
-;==============================
-MemoryClean:
-; https://stackoverflow.com/a/8022107
-; ds:di - Destination
-; cx    - Size
-
-	push eax
-
-	; Modulo operation
-	mov ax, cx
-	and ax, 3 ; Works with modulos power of 2
-
-	jz MemoryClean_4 ; Lucky, no remainder
-
-	; Set the remainder in steps of 1 byte
-	sub cx, ax ; ax = remainder value
-
-MemoryClean_1_loop:
-	mov byte [di], 0x00
-	inc di
-	dec al
-	jnz MemoryClean_1_loop
-
-MemoryClean_4:
-
-	; Set in steps of 4 bytes
-	mov eax, 0x00000000
-
-MemoryClean_4_loop:
-	mov [di], eax
-	add di, 4
-	sub cx, 4
-	jnz MemoryClean_4_loop
-
-	; Bye!
-	pop eax
-	ret
-
-
-;==============================
-PrintLogString:
-; ds:dx - String to print
-; cx    - Length
-
-	push ax
-	push bx
-	push cx
-	push dx
-	push ds
-
-	mov ax, seg_data ; Log filename lives here
-	mov ds, ax
-
-	; Open existing file (Int 21/AH=3Dh)
-	; http://www.ctyme.com/intr/rb-2779.htm
-	mov ah, 0x3D
-	mov al, 0x01 ; Write mode
-	mov dx, str_log_filename
-	int 0x21
-
-	jnc PrintLogString_file_exists
-
-	; Create file (Int 21/AH=3Ch)
-	; http://www.ctyme.com/intr/rb-2778.htm
-	mov ah, 0x3C
-	mov cx, 0x0000 ; Attributes, all bits to zero
-	mov dx, str_log_filename
-	int 0x21
-
-	jc PrintLogString_failure1
-
-PrintLogString_file_exists:
-
-	; Seek (Int 21/AH=42h)
-	; http://www.ctyme.com/intr/rb-2799.htm
-	mov bx, ax ; File handle, both Open() and Create() returns it on AX
-	mov ah, 0x42
-	mov al, 0x02 ; From EOF
-	mov cx, 0x0000 ; Origin (signed) HI
-	mov dx, 0x0000 ; Origin (signed) LO
-	int 0x21
-
-	jc PrintLogString_failure1
-
-	; Write to file (Int 21/AH=40h)
-	; http://www.ctyme.com/intr/rb-2791.htm
-	mov ah, 0x40
-	pop ds
-	pop dx
-	pop cx
-	int 0x21 ; File handle still on BX
-
-	jc PrintLogString_failure2
-
-	; Close file (Int 21/AH=3Eh)
-	; http://www.ctyme.com/intr/rb-2782.htm
-	mov ah, 0x3E
-	int 0x21 ; File handle still on BX
-
-	; Bye!
-	pop bx
-	pop ax
-	ret
-
-PrintLogString_failure1:
-	pop ds
-	pop dx
-	pop cx
-
-PrintLogString_failure2:
-	mov al, EXIT_FAILURE
-	call Exit ; (al)
-
-
-;==============================
-PrintLogNumber:
-; ax - Number to print
-
-	push bx
-	push cx
-	push dx
-	push ds
-
-	mov bx, seg_data ; HEX table
-	mov ds, bx
-
-	; Create the string termination
-	mov cx, 0x000A ; Unix NL + NULL
-	push cx        ; Push A
-
-	; Create the number string
-	mov bh, 0x00
-
-	mov bl, al ; Bits 0-3
-	and bl, 00001111b
-	mov ch, [hex_table + bx]
-
-	mov bl, al ; Bits 4-7
-	shr bl, 4
-	mov cl, [hex_table + bx]
-
-		push cx ; Push B
-
-	mov bl, ah ; Bits 8-11
-	and bl, 00001111b
-	mov ch, [hex_table + bx]
-
-	mov bl, ah ; Bits 12-15
-	shr bl, 4
-	mov cl, [hex_table + bx]
-
-		push cx ; Push C
-
-	; Point DS to SS, and DX to SP
-	mov ax, ss
-	mov ds, ax
-	mov dx, sp
-
-	; Print it
-	mov cx, 5 ; Length not counting NULL
-	call PrintLogString
-
-	pop cx ; Pushes' A, B and C
-	pop cx
-	pop cx
-
-	; Bye!
-	pop ds
-	pop dx
-	pop cx
-	pop bx
-	ret
-
-
-;==============================
-PrintOut:
-; ds:dx - Text to print ('$' terminated)
-
-	push ax
-
-	; Print an error message to stdout (Int 21/AH=09h)
-	; http://www.ctyme.com/intr/rb-2562.htm
-	mov ah, 0x09
-	int 0x21
-
-	; Bye!
-	pop ax
-	ret
-
-
-;==============================
-Exit:
-; al - Exit status
-
-	; Terminate program (Int 21/AH=4Ch)
-	; http://www.ctyme.com/intr/rb-2974.htm
-	mov ah, 0x4C
-	int 0x21
-
-
-;==============================
-segment seg_data
-
-	str_test1: db "Haaiii!", "$" ; Used as "beep" - "boop"
-	str_test2: db "Eehhh?!", "$"
-
-	hex_table: db "0", "1", "2", "3", "4", "5", "6", "7"
-	           db "8", "9", "A", "B", "C", "D", "E", "F"
-
-	; Time
-	time_previous_vector_sector: dw 0x0000
-	time_previous_vector_offset: dw 0x0000
-	time_miliseconds: dw 0x0000
-
-	; Input
-	input_previous_vector_sector: dw 0x0000
-	input_previous_vector_offset: dw 0x0000
-
-	input_state: times INPUT_STATE_LEN db 0x00
-
-	; Render
-	render_palette_data: file "./assets/palette.dat"
-	render_previous_mode: db 0x00
-
-	; Console
-	str_vga_error: db "You need a VGA adapter", "$"
-
-	; Log
-	str_separator: db UNIX_NL, "===============================", UNIX_NL
-	str_separator_end:
-
-	str_hello: db "Sakurai v0.1", UNIX_NL
-	str_hello_end:
-
-	str_time_init: db "Initializating time module...", UNIX_NL
-	str_time_init_end:
-
-	str_input_init: db "Initializating input module...", UNIX_NL
-	str_input_init_end:
-
-	str_render_init: db "Initializating render module...", UNIX_NL
-	str_render_init_end:
-
-	str_copy_speed: db "Copy speed is (ms): "
-	str_copy_speed_end:
-
-	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL
-	str_main_loop_end:
-
-	str_render_stop: db "Stopping render module...", UNIX_NL
-	str_render_stop_end:
-
-	str_input_stop: db "Stopping input module...", UNIX_NL
-	str_input_stop_end:
-
-	str_time_stop: db "Stopping time module...", UNIX_NL
-	str_time_stop_end:
-
-	str_segment: db " - Vector segment: "
-	str_segment_end:
-
-	str_offset: db " - Vector offset: "
-	str_offset_end:
-
-	str_log_filename: db "sakurai.log", 0x00
-
-
-;==============================
-segment seg_buffer_data
-
-	db "Haaiii!!!", "$" ; Strategically positionated at the begining...
-	db "Eehhh?!!!", "$"
-	buffer_data: times BUFFER_DATA_SIZE db 0x00
-
-
-;==============================
-segment seg_bkg_data
-
-	db "Haaiii!!!!!", "$" ; -of every segment
-	db "Eehhh?!!!!!", "$"
-	;bkg_data: times BKG_DATA_SIZE db 0x00
-	bkg_data: file "./assets/test.dat"
-
-
-;==============================
-segment seg_spr_data
-
-	db "Haaiii!!!!!!!", "$"
-	db "Eehhh?!!!!!!!", "$"
-	spr_data: times SPR_DATA_SIZE db 0x00
