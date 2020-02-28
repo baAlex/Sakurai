@@ -30,21 +30,6 @@ segment seg_data
 	hex_table: db "0", "1", "2", "3", "4", "5", "6", "7"
 	           db "8", "9", "A", "B", "C", "D", "E", "F"
 
-	; Time
-	time_previous_vector_sector: dw 0x0000
-	time_previous_vector_offset: dw 0x0000
-	time_miliseconds: dw 0x0000
-
-	; Input
-	input_previous_vector_sector: dw 0x0000
-	input_previous_vector_offset: dw 0x0000
-
-	input_state: times INPUT_STATE_LEN db 0x00
-
-	; Render
-	render_palette_data: file "./assets/palette.dat"
-	render_previous_mode: db 0x00
-
 	; Console
 	str_vga_error: db "You need a VGA adapter", "$"
 
@@ -87,20 +72,56 @@ segment seg_data
 
 	str_log_filename: db "sakurai.log", 0x00
 
+	; Time
+	time_previous_vector_sector: dw 0x0000
+	time_previous_vector_offset: dw 0x0000
+	time_miliseconds: dw 0x0000
+
+	; Input
+	input_previous_vector_sector: dw 0x0000
+	input_previous_vector_offset: dw 0x0000
+
+	input_state: times INPUT_STATE_LEN db 0x00
+
+	; Render
+	render_palette_data: file "./assets/palette.dat"
+	render_previous_mode: db 0x00
+
+
+;==============================
+segment seg_game_data
+; https://en.wikipedia.org/wiki/Program_Segment_Prefix
+
+	fake_psp: times 32 dw 0x00
+	game_data: file "./game.com"
+
+GameFrame:
+	push ax
+	push ds
+
+	mov ax, (game_data-256) ; True PSP length
+	mov ds, ax
+
+	call game_data ; Near call
+
+	pop ds
+	pop ax
+	retf ; Far return (the CPU sets CS acordily)
+
 
 ;==============================
 segment seg_buffer_data
 
-	db "Haaiii!!!", "$" ; Strategically positionated at the begining...
-	db "Eehhh?!!!", "$"
+	;db "Haaiii!!!", "$" ; Strategically positionated at the begining...
+	;db "Eehhh?!!!", "$"
 	buffer_data: times BUFFER_DATA_SIZE db 0x00
 
 
 ;==============================
 segment seg_bkg_data
 
-	db "Haaiii!!!!!", "$" ; -of every segment
-	db "Eehhh?!!!!!", "$"
+	;db "Haaiii!!!!!", "$" ; -of every segment
+	;db "Eehhh?!!!!!", "$"
 	;bkg_data: times BKG_DATA_SIZE db 0x00
 	bkg_data: file "./assets/test.dat"
 
@@ -108,6 +129,6 @@ segment seg_bkg_data
 ;==============================
 segment seg_spr_data
 
-	db "Haaiii!!!!!!!", "$"
-	db "Eehhh?!!!!!!!", "$"
+	;db "Haaiii!!!!!!!", "$"
+	;db "Eehhh?!!!!!!!", "$"
 	spr_data: times SPR_DATA_SIZE db 0x00

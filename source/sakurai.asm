@@ -37,8 +37,6 @@ entry seg_code:Main
 heap 0
 
 
-include "sakurai.inc"
-
 segment seg_code
 	include "memory.asm"
 	include "utilities.asm"
@@ -145,7 +143,8 @@ Main_loop_no_sleep:
 		jz Main_bye
 
 		; Game code
-		; <here>
+		; We do a call into spooky far lands
+		call seg_game_data:GameFrame ; Far call
 		call InputClean ; (ds implicit)
 
 		; Copy from buffer to VGA memory
@@ -481,7 +480,7 @@ _InputVector:
 	; A keyboard with more than 84 keys
 	; Eewwww... we didn't do that here!
 	cmp al, INPUT_STATE_LEN
-	ja _InputVector_bye ; Jump if Above
+	jae _InputVector_bye ; Jump if Above
 
 	; Set our input state
 	mov bh, 0x00
@@ -553,7 +552,7 @@ InputStop:
 ;==============================
 InputClean:
 	push bx
-	mov bx, INPUT_STATE_LEN
+	mov bx, (INPUT_STATE_LEN-1)
 
 InputClean_loop:
 	mov byte [input_state + bx], 0x00 ; Release
@@ -608,7 +607,7 @@ RenderInit:
 	mov al, 0x00   ; Color index
 	out dx, al
 
-	mov ah, PALETTE_LEN
+	mov ah, (PALETTE_LEN-1)
 	mov bx, 0      ; Indexing purposes
 	mov dx, 0x03C9 ; VGA video DAC
 
@@ -665,3 +664,7 @@ RenderStop:
 	pop ds
 	pop ax
 	ret
+
+
+;==============================
+include "sakurai.inc"
