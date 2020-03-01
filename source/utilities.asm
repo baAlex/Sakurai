@@ -115,7 +115,7 @@ PrintLogNumber:
 
 	; Create the string termination
 	mov cx, 0x000A ; Unix NL + NULL
-	push cx        ; Push A
+	push cx ; Push Alpha
 
 	; Create the number string
 	mov bh, 0x00
@@ -128,7 +128,7 @@ PrintLogNumber:
 	shr bl, 4
 	mov cl, [hex_table + bx]
 
-		push cx ; Push B
+		push cx ; Push Beta
 
 	mov bl, ah ; Bits 8-11
 	and bl, 00001111b
@@ -138,7 +138,7 @@ PrintLogNumber:
 	shr bl, 4
 	mov cl, [hex_table + bx]
 
-		push cx ; Push C
+		push cx ; Push Gamma
 
 	; Point DS to SS, and DX to SP
 	mov bx, ss
@@ -149,7 +149,7 @@ PrintLogNumber:
 	mov cx, 5 ; Length not counting NULL
 	call PrintLogString
 
-	pop cx ; Pushes' A, B and C
+	pop cx ; Pushes' Alpha, Beta and Gamma
 	pop cx
 	pop cx
 

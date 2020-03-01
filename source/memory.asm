@@ -43,7 +43,7 @@ MemoryCopy:
 	jz near MemoryCopy_16 ; Lucky, no remainder
 
 	; Copy the remainder in steps of 1 byte
-	sub cx, ax ; ax = remainder value
+	sub cx, ax ; AX = remainder value
 
 MemoryCopy_1_loop:
 	mov ah, [es:si] ; Remainder isn't bigger than 16,
@@ -96,7 +96,7 @@ MemoryClean:
 	jz MemoryClean_4 ; Lucky, no remainder
 
 	; Set the remainder in steps of 1 byte
-	sub cx, ax ; ax = remainder value
+	sub cx, ax ; AX = remainder value
 
 MemoryClean_1_loop:
 	mov byte [di], 0x00

@@ -1,12 +1,12 @@
 /*
 
-	$ bcc -0 -Md -x -i ./source/battle.c -o game.com
+	$ bcc -0 -Md -x -i ./source/game.c -o game.com
 	$ x86dis -L -e 0x00 -s intel < ./game.com
 
 	$ clang -fsyntax-only -std=c90 -Wall -Wextra -Wconversion -m16 ./source/battle.c \
-	  bcc -0 -Md -x -i ./source/battle.c -o game.com
+	  bcc -0 -Md -x -i ./source/game.c -o game.com
 
-	bcc -O = Optimize code (ilegible in asm form)
+	bcc -O = Optimize code (PROTIP: illegible in asm form)
 
 
 	MAIN() ALWAYS AT THE BEGINNING
@@ -14,9 +14,9 @@
 
 */
 
-#define DTABLE_LEN 16
-#define DTABLE_START 0x0000
-#define DTABLE_END 0x0080
+#define DRAW_TABLE_LEN 16
+#define DRAW_TABLE_START 0x0000
+#define DRAW_TABLE_END 0x0080
 
 #define CODE_HALT 0x00
 #define CODE_DRAW_BKG 0x01 /* Draw the loaded background into the buffer, slow as hell */
@@ -41,14 +41,14 @@ static int s_frame = 0;
 
 int main()
 {
-	struct DInstruction* ins = (void*)(DTABLE_START);
+	struct DInstruction* ins = (void*)(DRAW_TABLE_START);
 
 	ins[0].code = (s_frame != 0) ? CODE_HALT : CODE_DRAW_BKG;
 	ins[1].code = CODE_HALT;
 
 	s_frame++;
 
-	/*for(; ins < (struct DInstruction*)(DTABLE_END); ins++)
+	/*for(; ins < (struct DInstruction*)(DRAW_TABLE_END); ins++)
 	{
 		ins->code = 0xAB;
 		ins->argument = 0xAB;
@@ -58,4 +58,3 @@ int main()
 
 	return 0;
 }
-

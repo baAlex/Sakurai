@@ -80,13 +80,13 @@ Main:
 	call InputInit
 	call RenderInit
 
-	; Mesure how much took a copy of an entry
-	; segment into the VGA memory
+	; Measure how much took a copy of an entry
+	; segment into the VGA memory (ps: a lot)
 	mov ax, seg_data
 	mov ds, ax
 
 	call TimeGet ; (ax = return, ds implicit)
-	mov bx, ax   ; Start time
+	mov bx, ax ; Start time
 
 		mov ax, seg_bkg_data
 		mov es, ax
@@ -123,8 +123,8 @@ Main:
 Main_loop:
 
 		; After the previous frame we sleep
-		cmp ax, 41             ; We did it before the 41 ms?
-		jae Main_loop_no_sleep ; No, we didn't
+		cmp ax, 41 ; We did it before the 41 ms?
+		jae Main_loop_no_sleep ; No, we don't
 
 		mov bl, 41
 		sub bl, al
@@ -156,22 +156,22 @@ Main_loop_no_sleep:
 		mov ax, seg_game_data
 		mov ds, ax
 
-		mov ch, DTABLE_LEN
+		mov ch, DRAW_TABLE_LEN
 		mov bx, 0x0000
 
-Main_loop_dtable:
+Main_loop_draw_table:
 		mov ax, [bx]
-		add bx, 8 ; draw instruction size
+		add bx, 8 ; Draw instruction size
 
 		call PrintLogNumber
 
 		; CODE_HALT
 		cmp al, 0x00
-		je Main_loop_dtable_break
+		je Main_loop_draw_table_break
 
 		; CODE_DRAW_BKG
 		cmp al, 0x01
-		jne Main_loop_dtable_continue
+		jne Main_loop_draw_table_continue
 
 			mov ax, seg_bkg_data
 			mov es, ax
@@ -187,11 +187,11 @@ Main_loop_dtable:
 			mov ax, seg_game_data
 			mov ds, ax
 
-Main_loop_dtable_continue:
+Main_loop_draw_table_continue:
 		dec ch
-		jnz Main_loop_dtable
+		jnz Main_loop_draw_table
 
-Main_loop_dtable_break:
+Main_loop_draw_table_break:
 
 		; Copy from buffer to VGA memory
 		mov ax, seg_buffer_data
@@ -213,9 +213,9 @@ Main_loop_dtable_break:
 		call TimeGet ; (ax = return, ds implicit)
 		sub ax, bx
 
-		; Developers, developers, developers
-		call PrintLogNumber
-		call Exit
+		; Developers, Developers, Developers...
+		call PrintLogNumber ; (ax)
+		call Exit ; (al)
 
 		jmp Main_loop
 
@@ -241,7 +241,7 @@ TimeInit:
 	push cx
 	push dx
 	push ds
-	push es ; TODO, pusha?
+	push es
 
 	mov ax, seg_data ; The messages and previous vector lives here
 	mov ds, ax
@@ -265,14 +265,14 @@ TimeInit:
 	call PrintLogString ; (ds:dx, cx)
 
 	mov ax, es
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	mov cx, (str_offset_end - str_offset)
 	mov dx, str_offset
 	call PrintLogString ; (ds:dx, cx)
 
 	mov ax, bx
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	; Set new vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -290,16 +290,16 @@ TimeInit:
 	; http://stanislavs.org/helppc/8253.html
 	mov dx, 0x43 ; Mode Control Register
 	mov al, 00110110b ; Mode
-	        ; bits 7-6: '00' = Counter 0
-	        ; bits 5-4: '11' = Write low byte then high byte
-	        ; bits 3-1: '011' = Square wave generator
-	        ;                   (the clock reset itself without cpu indication)
-	        ; bit 0: '0' = Binary counter
+	; bits 7-6: '00' = Counter 0
+	; bits 5-4: '11' = Write low byte then high byte
+	; bits 3-1: '011' = Square wave generator, the clock
+	;                   reset itself without Cpu indication
+	; bit 0: '0' = Binary counter
 	out dx, al
 
 	; Set frequency
 	mov dx, 0x40 ; Counter 0
-	mov ax, 1193 ; PIT frequency / 1000... an aproximation
+	mov ax, 1193 ; PIT frequency / 1000... an approximation
 	out dx, al
 	mov al, ah
 	out dx, al
@@ -320,10 +320,10 @@ _TimeVector:
 	push dx
 	push ds
 
-	mov ax, seg_data ; The milisecond counter lives here
+	mov ax, seg_data ; The millisecond counter lives here
 	mov ds, ax
 
-	inc word [time_miliseconds]
+	inc word [time_milliseconds]
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
@@ -369,7 +369,7 @@ TimeStop:
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
-	mov dx, [time_previous_vector_offset] ; Protip: next one changes ds
+	mov dx, [time_previous_vector_offset] ; PROTIP: next one changes ds
 	mov ax, [time_previous_vector_sector]
 	mov ds, ax
 	mov al, 0x08 ; Interrupt number
@@ -377,12 +377,12 @@ TimeStop:
 	int 0x21
 
 	; Restore default mode, frequency (18.2)
-	mov dx, 0x43      ; Mode Control Register
+	mov dx, 0x43 ; Mode Control Register
 	mov al, 00110110b ; This is the default mode? (FIXME)
 	out dx, al
 
 	mov dx, 0x40 ; Counter 0
-	mov ax, 0    ; Default is 'no divisor'
+	mov ax, 0 ; Default is 'no divisor'
 	out dx, al
 	mov al, ah
 	out dx, al
@@ -397,10 +397,10 @@ TimeStop:
 
 ;==============================
 TimeSleep:
-; ax - Miliseconds to sleep
+; ax - Milliseconds to sleep
 ; ds - Implicit
 
-	add ax, [time_miliseconds]
+	add ax, [time_milliseconds]
 
 TimeSleep_loop:
 	nop
@@ -408,11 +408,9 @@ TimeSleep_loop:
 	nop
 	nop
 
-	hlt ; Sleep until the PIC wakeup us (the CPU)
-	    ; This should happend at new keyboard input or
-	    ; by the time counter
+	hlt ; Sleep until the PIC wake up us
 
-	cmp [time_miliseconds], ax
+	cmp [time_milliseconds], ax
 	jb TimeSleep_loop ; Jump if Below
 
 	; Bye!
@@ -421,10 +419,10 @@ TimeSleep_loop:
 
 ;==============================
 TimeGet:
-; ax - Returns miliseconds since initialization
+; ax - Returns milliseconds since initialization
 ; ds - Implicit
 
-	mov ax, [time_miliseconds]
+	mov ax, [time_milliseconds]
 	ret
 
 
@@ -438,7 +436,7 @@ InputInit:
 	push cx
 	push dx
 	push ds
-	push es ; TODO, pusha?
+	push es
 
 	mov ax, seg_data ; The messages and previous vector lives here
 	mov ds, ax
@@ -462,14 +460,14 @@ InputInit:
 	call PrintLogString ; (ds:dx, cx)
 
 	mov ax, es
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	mov cx, (str_offset_end - str_offset)
 	mov dx, str_offset
 	call PrintLogString ; (ds:dx, cx)
 
 	mov ax, bx
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	; Set new vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -495,8 +493,8 @@ InputInit:
 _InputVector:
 ; https://stackoverflow.com/a/40963633
 ; http://www.ctyme.com/intr/rb-0045.htm#Table6
-; TODO, the previous two references didn't use the
-;       following method? (?)
+; TODO: the previous two references didn't use the
+; following method?, (Why I cited these?)
 
 ; https://wiki.osdev.org/%228042%22_PS/2_Controller
 ; « Using interrupts is easy. When IRQ1 occurs you just read
@@ -528,7 +526,7 @@ _InputVector:
 	ja _InputVector_bye ; Jump if Above
 
 	; A keyboard with more than 84 keys
-	; Eewwww... we didn't do that here!
+	; Eewwww... we don't do that here!
 	cmp al, INPUT_STATE_LEN
 	jae _InputVector_bye ; Jump if Above
 
@@ -580,11 +578,11 @@ InputStop:
 	call PrintLogString ; (ds:dx, cx)
 
 	mov ax, [input_previous_vector_offset]
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
-	mov dx, [input_previous_vector_offset] ; Protip: next one changes ds
+	mov dx, [input_previous_vector_offset] ; PROTIP: next one changes ds
 	mov ax, [input_previous_vector_sector]
 	mov ds, ax
 	mov al, 0x09 ; Interrupt number
@@ -620,7 +618,7 @@ RenderInit:
 	push cx
 	push ds
 
-	mov ax, seg_data ; The messages, previous mode and palette lives here
+	mov ax, seg_data ; Messages, previous mode and palette...
 	mov ds, ax
 
 	mov cx, (str_render_init_end - str_render_init)
@@ -641,9 +639,9 @@ RenderInit:
 	int 0x10
 
 	; Get current video mode, again, to check (Int 10/AH=0Fh)
-	; - Looks like different chips, return different values when
-	;   the mode is set (above section). So we need to call this
-	;   interruptor again.
+	; Looks like different chips, return different values when
+	; the mode is set (above section). So we need to call this
+	; interrupt again.
 	mov ah, 0x0F
 	int 0x10
 
@@ -654,11 +652,11 @@ RenderInit:
 	; http://stanislavs.org/helppc/ports.html
 
 	mov dx, 0x03C8 ; VGA video DAC PEL address
-	mov al, 0x00   ; Color index
+	mov al, 0x00 ; Color index
 	out dx, al
 
 	mov ah, (PALETTE_LEN-1)
-	mov bx, 0      ; Indexing purposes
+	mov bx, 0 ; Indexing purposes
 	mov dx, 0x03C9 ; VGA video DAC
 
 RenderInit_palette_loop:

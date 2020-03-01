@@ -1,38 +1,35 @@
 
+Notes
+=====
+
 Functions
 ---------
 
-### TimeInit
-- void
+### TimeInit (void)
 
-### TimeStop
-- void
+### TimeStop (void)
 
 ### TimeSleep
-- `ax` Miliseconds to sleep
+- `ax` Milliseconds to sleep
 - Requires `ds` pointing to `seg_data`
 - Call after time Initialization
 
 ### TimeGet
-- Returns in `ax` the miliseconds since initialization
+- Returns in `ax` the milliseconds since initialization
 - Requires `ds` pointing to `seg_data`
 - Call after time Initialization
 
-### InputInit
-- void
+### InputInit (void)
 
-### InputStop
-- void
+### InputStop (void)
 
 ### InputClean
 - Requires `ds` pointing to `seg_data`
 - void
 
-### RenderInit
-- void
+### RenderInit (void)
 
-### RenderStop
-- void
+### RenderStop (void)
 
 ### MemoryCopy
 - `ds:di` Destination
