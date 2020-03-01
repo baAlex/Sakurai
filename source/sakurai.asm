@@ -142,30 +142,80 @@ Main_loop_no_sleep:
 		dec byte [input_state + 0x01]
 		jz Main_bye
 
-		; Game code
+		; Game logic frame
 		; We do a call into spooky far lands
 		call seg_game_data:GameFrame ; Far call
 		call InputClean ; (ds implicit)
 
-		; Copy from buffer to VGA memory
+		; Iterate draw table,
+		; and do some render
+		push bx
+		push cx
 		push ds
 
-		; mov ax, seg_bkg_data ; TEMP
-		; mov es, ax
-		; mov si, bkg_data
+		mov ax, seg_game_data
+		mov ds, ax
+
+		mov ch, DTABLE_LEN
+		mov bx, 0x0000
+
+Main_loop_dtable:
+		mov ax, [bx]
+		add bx, 8 ; draw instruction size
+
+		call PrintLogNumber
+
+		; CODE_HALT
+		cmp al, 0x00
+		je Main_loop_dtable_break
+
+		; CODE_DRAW_BKG
+		cmp al, 0x01
+		jne Main_loop_dtable_continue
+
+			mov ax, seg_bkg_data
+			mov es, ax
+			mov si, 0x0000
+
+			mov ax, seg_buffer_data
+			mov ds, ax
+			mov di, 0x0000
+
+			mov cx, BKG_DATA_SIZE
+			call MemoryCopy ; (es:si = source, ds:di = destination, cx)
+
+			mov ax, seg_game_data
+			mov ds, ax
+
+Main_loop_dtable_continue:
+		dec ch
+		jnz Main_loop_dtable
+
+Main_loop_dtable_break:
+
+		; Copy from buffer to VGA memory
+		mov ax, seg_buffer_data
+		mov es, ax
+		mov si, bkg_data
 
 		mov ax, VGA_SEGMENT
 		mov ds, ax
-		; mov di, VGA_OFFSET
+		mov di, VGA_OFFSET
 
 		mov cx, BKG_DATA_SIZE
 		call MemoryCopy ; (es:si = source, ds:di = destination, cx)
 
 		pop ds
+		pop cx
+		pop bx
 
 		; End time
 		call TimeGet ; (ax = return, ds implicit)
 		sub ax, bx
+
+		; Developers, developers, developers
+		call PrintLogNumber
+		call Exit
 
 		jmp Main_loop
 

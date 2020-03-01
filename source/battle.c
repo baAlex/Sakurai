@@ -14,42 +14,48 @@
 
 */
 
+#define DTABLE_LEN 16
+#define DTABLE_START 0x0000
+#define DTABLE_END 0x0080
+
+#define CODE_HALT 0x00
+#define CODE_DRAW_BKG 0x01 /* Draw the loaded background into the buffer, slow as hell */
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 
-static uint8_t Test1();
-static uint16_t Test2();
-
-struct Table
+struct DInstruction
 {
-	uint16_t foo;
-	uint16_t bar;
-	uint8_t bar2;
-	uint8_t pad;
+	uint8_t code;
+	uint8_t argument;
+
+	uint8_t unused1;
+	uint8_t unused2;
+
+	uint16_t x;
+	uint16_t y;
 };
 
-struct Table s_table = {0xAA, 0xBB, 0xCC, 0x00};
+static int s_frame = 0;
 
 
 int main()
 {
-	s_table.foo = 99;
-	s_table.bar = 100;
-	s_table.bar2 = Test1();
+	struct DInstruction* ins = (void*)(DTABLE_START);
 
-	return (int)(&s_table);
-}
+	ins[0].code = (s_frame != 0) ? CODE_HALT : CODE_DRAW_BKG;
+	ins[1].code = CODE_HALT;
 
+	s_frame++;
 
-static uint8_t Test1()
-{
-	return 13;
-}
+	/*for(; ins < (struct DInstruction*)(DTABLE_END); ins++)
+	{
+		ins->code = 0xAB;
+		ins->argument = 0xAB;
+		ins->x = 0xAB;
+		ins->y = 0xAB;
+	}*/
 
-
-static uint16_t Test2()
-{
-	return 14;
+	return 0;
 }
 

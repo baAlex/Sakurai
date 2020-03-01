@@ -19,6 +19,8 @@ EXIT_FAILURE = 0x01
 UNIX_NL = 0x0A ; The log messages uses it
 
 INPUT_STATE_LEN = 84 ; Keys, the second keyboard iteration of IBM
+DTABLE_LEN = 16
+DTABLE_SIZE = 128
 
 
 ;==============================
@@ -92,19 +94,24 @@ segment seg_data
 segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
-	fake_psp: times 32 dw 0x00
+	dtable: times DTABLE_SIZE db 0xBE
+	blank_psp: times 128 db 0xBF
 	game_data: file "./game.com"
 
 GameFrame:
 	push ax
+	push bx
+	push cx
 	push ds
 
-	mov ax, (game_data-256) ; True PSP length
+	mov ax, seg_game_data
 	mov ds, ax
 
 	call game_data ; Near call
 
 	pop ds
+	pop cx
+	pop bx
 	pop ax
 	retf ; Far return (the CPU sets CS acordily)
 
