@@ -29,12 +29,11 @@
 ;==============================
 MemoryCopy:
 ; https://stackoverflow.com/a/8022107
-; ds:di - Destination
-; es:si - Source
+; es:di - Destination
+; ds:si - Source
 ; cx    - Size
 
-	push eax
-	push ebx
+	push ax
 
 	; Modulo operation
 	mov ax, cx
@@ -46,11 +45,8 @@ MemoryCopy:
 	sub cx, ax ; AX = remainder value
 
 MemoryCopy_1_loop:
-	mov ah, [es:si] ; Remainder isn't bigger than 16,
-	mov [ds:di], ah ; so lets recycle his high byte
-	inc di
-	inc si
-	dec al
+	movsb
+	dec ax
 	jnz near MemoryCopy_1_loop
 
 MemoryCopy_16:
@@ -59,61 +55,54 @@ MemoryCopy_16:
 	shr cx, 4 ; Because LOOP decrements by 1
 
 MemoryCopy_16_loop:
-	mov ebx, [es:si]
-	mov [ds:di], ebx
-
-	mov ebx, [es:si + 4]
-	mov [ds:di + 4], ebx
-
-	mov ebx, [es:si + 8]
-	mov [ds:di + 8], ebx
-
-	mov ebx, [es:si + 12]
-	mov [ds:di + 12], ebx
-
-	add di, 16
-	add si, 16
+	movsd
+	movsd
+	movsd
+	movsd
 	loop MemoryCopy_16_loop
 
 	; Bye!
-	pop ebx
-	pop eax
+	pop ax
 	ret
 
 
 ;==============================
 MemoryClean:
 ; https://stackoverflow.com/a/8022107
-; ds:di - Destination
+; es:di - Destination
 ; cx    - Size
 
 	push eax
 
 	; Modulo operation
 	mov ax, cx
-	and ax, 3 ; Works with modulos power of 2
+	and ax, 15 ; Works with modulos power of 2
 
-	jz MemoryClean_4 ; Lucky, no remainder
+	jz MemoryClean_16 ; Lucky, no remainder
 
-	; Set the remainder in steps of 1 byte
+	; Clean the remainder in steps of 1 byte
 	sub cx, ax ; AX = remainder value
 
 MemoryClean_1_loop:
-	mov byte [di], 0x00
+	mov byte [es:di], 0x00
 	inc di
-	dec al
+	dec ax
 	jnz MemoryClean_1_loop
 
-MemoryClean_4:
+MemoryClean_16:
 
-	; Set in steps of 4 bytes
+	; Clean in steps of 16 bytes
+	shr cx, 4 ; Because LOOP decrements by 1
 	mov eax, 0x00000000
 
-MemoryClean_4_loop:
-	mov [di], eax
-	add di, 4
-	sub cx, 4
-	jnz MemoryClean_4_loop
+MemoryClean_16_loop:
+	mov dword [es:di], eax
+	mov dword [es:di + 4], eax
+	mov dword [es:di + 8], eax
+	mov dword [es:di + 12], eax
+
+	add di, 16
+	loop MemoryClean_16_loop
 
 	; Bye!
 	pop eax

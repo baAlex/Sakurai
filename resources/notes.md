@@ -32,12 +32,12 @@ Functions
 ### RenderStop (void)
 
 ### MemoryCopy
-- `ds:di` Destination
-- `es:si` Source
+- `es:di` Destination
+- `ds:si` Source
 - `cx`    Size
 
 ### MemoryClean
-- `ds:di` Destination
+- `es:di` Destination
 - `cx`    Size
 
 ### PrintLogString

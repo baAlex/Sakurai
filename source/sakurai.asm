@@ -38,6 +38,7 @@ heap 0
 
 
 segment seg_code
+	include "draw.asm"
 	include "memory.asm"
 	include "utilities.asm"
 
@@ -56,25 +57,6 @@ Main:
 	mov dx, str_hello
 	call PrintLogString ; (ds:dx, cx)
 
-	; Clean secondary data segments
-	; mov ax, seg_buffer_data
-	; mov ds, ax
-	; mov di, buffer_data
-	; mov cx, BUFFER_DATA_SIZE
-	; call MemoryClean ; (ds:di, cx)
-
-	; mov ax, seg_bkg_data
-	; mov ds, ax
-	; mov di, bkg_data
-	; mov cx, BKG_DATA_SIZE
-	; call MemoryClean ; (ds:di, cx)
-
-	; mov ax, seg_spr_data
-	; mov ds, ax
-	; mov di, spr_data
-	; mov cx, SPR_DATA_SIZE
-	; call MemoryClean ; (ds:di, cx)
-
 	; Modules initialization
 	call TimeInit
 	call InputInit
@@ -88,16 +70,16 @@ Main:
 	call TimeGet ; (ax = return, ds implicit)
 	mov bx, ax ; Start time
 
-		mov ax, seg_bkg_data
-		mov es, ax
+		mov ax, seg_buffer_data
+		mov ds, ax
 		mov si, bkg_data
 
 		mov ax, VGA_SEGMENT
-		mov ds, ax
+		mov es, ax
 		mov di, VGA_OFFSET
 
 		mov cx, BKG_DATA_SIZE
-		call MemoryCopy ; (es:si = source, ds:di = destination, cx)
+		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 	mov ax, seg_data ; TimeGet() requires it
 	mov ds, ax
@@ -147,46 +129,27 @@ Main_loop_no_sleep:
 		call seg_game_data:GameFrame ; Far call
 		call InputClean ; (ds implicit)
 
-		; Iterate draw table,
-		; and do some render
+		; Iterate draw table and do some render
 		push bx
-		push cx
 		push ds
 
 		mov ax, seg_game_data
 		mov ds, ax
-
 		mov ch, DRAW_TABLE_LEN
 		mov bx, 0x0000
 
 Main_loop_draw_table:
 		mov ax, [bx]
 		add bx, 8 ; Draw instruction size
-
 		call PrintLogNumber
 
-		; CODE_HALT
-		cmp al, 0x00
+		cmp al, 0x00 ; CODE_HALT
 		je Main_loop_draw_table_break
 
-		; CODE_DRAW_BKG
-		cmp al, 0x01
-		jne Main_loop_draw_table_continue
+		cmp al, 0x01 ; CODE_DRAW_BKG
+		je DrawBkg
 
-			mov ax, seg_bkg_data
-			mov es, ax
-			mov si, 0x0000
-
-			mov ax, seg_buffer_data
-			mov ds, ax
-			mov di, 0x0000
-
-			mov cx, BKG_DATA_SIZE
-			call MemoryCopy ; (es:si = source, ds:di = destination, cx)
-
-			mov ax, seg_game_data
-			mov ds, ax
-
+		; Next draw instruction
 Main_loop_draw_table_continue:
 		dec ch
 		jnz Main_loop_draw_table
@@ -195,18 +158,17 @@ Main_loop_draw_table_break:
 
 		; Copy from buffer to VGA memory
 		mov ax, seg_buffer_data
-		mov es, ax
+		mov ds, ax
 		mov si, bkg_data
 
 		mov ax, VGA_SEGMENT
-		mov ds, ax
+		mov es, ax
 		mov di, VGA_OFFSET
 
 		mov cx, BKG_DATA_SIZE
-		call MemoryCopy ; (es:si = source, ds:di = destination, cx)
+		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 		pop ds
-		pop cx
 		pop bx
 
 		; End time
