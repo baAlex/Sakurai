@@ -28,9 +28,12 @@
 
 ;==============================
 DrawBkg: ; CODE_DRAW_BKG
+; ah - unused
+; bx - unused
+; cx - unused
+
 	push ds
-	push cx
-	;push bx
+	push si
 
 	mov ax, seg_bkg_data
 	mov ds, ax
@@ -44,7 +47,37 @@ DrawBkg: ; CODE_DRAW_BKG
 	call MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 	; Bye!
-	;pop bx
-	pop cx
+	pop si
+	pop ds
+	jmp Main_loop_draw_table_continue
+
+
+;==============================
+DrawPixel: ; CODE_DRAW_PIXEL
+; ah - color
+; bx - X
+; cx - Y
+
+	push ds
+	push di
+
+	mov di, 0x0000
+	sub di, 320 ; (TODO: use a constant, like 64XXX something)
+
+	; Calculate offset
+DrawPixel_vertical:
+	add di, 320 ; Y
+	dec cx
+	jnz DrawPixel_vertical
+
+	add di, bx ; X
+
+	; Draw it!
+	mov cx, seg_buffer_data
+	mov ds, cx
+	mov [di], ah
+
+	; Bye!
+	pop di
 	pop ds
 	jmp Main_loop_draw_table_continue

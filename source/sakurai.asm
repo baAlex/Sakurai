@@ -131,17 +131,19 @@ Main_loop_no_sleep:
 
 		; Iterate draw table and do some render
 		push bx
+		push cx
 		push ds
 
 		mov ax, seg_game_data
 		mov ds, ax
-		mov ch, DRAW_TABLE_LEN
-		mov bx, 0x0000
+		mov si, 0x0000
 
 Main_loop_draw_table:
-		mov ax, [bx]
-		add bx, 8 ; Draw instruction size
-		call PrintLogNumber
+		mov ax, [si] ; Code, Color
+		mov bx, [si + 2] ; X
+		mov cx, [si + 4] ; Y
+
+		; call PrintLogNumber
 
 		cmp al, 0x00 ; CODE_HALT
 		je Main_loop_draw_table_break
@@ -149,10 +151,14 @@ Main_loop_draw_table:
 		cmp al, 0x01 ; CODE_DRAW_BKG
 		je DrawBkg
 
+		cmp al, 0x02 ; CODE_DRAW_PIXEL
+		je DrawPixel
+
 		; Next draw instruction
 Main_loop_draw_table_continue:
-		dec ch
-		jnz Main_loop_draw_table
+		add si, 8 ; Draw instruction size
+		cmp si, DRAW_TABLE_SIZE
+		jb Main_loop_draw_table
 
 Main_loop_draw_table_break:
 
@@ -169,6 +175,7 @@ Main_loop_draw_table_break:
 		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 		pop ds
+		pop cx
 		pop bx
 
 		; End time
@@ -176,8 +183,8 @@ Main_loop_draw_table_break:
 		sub ax, bx
 
 		; Developers, Developers, Developers...
-		call PrintLogNumber ; (ax)
-		call Exit ; (al)
+		; call PrintLogNumber ; (ax)
+		; call Exit ; (al)
 
 		jmp Main_loop
 
