@@ -1,16 +1,16 @@
 /*
 
-    $ bcc -0 -Md -x -i ./source/game.c -o game.com
-    $ x86dis -L -e 0x00 -s intel < ./game.com
+ $ bcc -0 -Md -x -i ./source/game.c -o game.com
+ $ x86dis -L -e 0x00 -s intel < ./game.com
 
-    $ clang -fsyntax-only -std=c90 -Wall -Wextra -Wconversion -m16 ./source/battle.c \
-      bcc -0 -Md -x -i ./source/game.c -o game.com
+ $ clang -fsyntax-only -std=c90 -Wall -Wextra -Wconversion -m16 ./source/game.c \
+   bcc -ansi -0 -Md -x -i ./source/game.c -o game.com
 
-    bcc -O = Optimize code (PROTIP: illegible in asm form)
+ bcc -O = Optimize code (PROTIP: illegible in asm form)
 
 
-    MAIN() ALWAYS AT THE BEGINNING
-    Seems that without the crt, bcc has some troubles
+ MAIN() ALWAYS AT THE BEGINNING
+ Seems that without the crt, bcc has some troubles
 
 */
 
@@ -23,6 +23,8 @@
 #define CODE_DRAW_PIXEL 0x02 /* Draw pixel into buffer */
 #define CODE_NOP 0xFF        /* Do nothing */
 
+typedef signed char int8_t;
+typedef signed short int16_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 
@@ -38,10 +40,19 @@ struct DInstruction
 	uint8_t unused2;
 };
 
-static uint16_t LcgRandom();
+static uint16_t Random();
+static int8_t Sin(uint8_t a);
 
 static uint16_t s_frame = 0;
-static uint16_t s_lcg_state = 0;
+static uint16_t s_marsaglia = 1;
+static int8_t s_sin_table[128] = {
+    3,   6,   9,   12,  15,  18,  21,  24,  27,  30,  33,  36,  39,  42,  45,  48,  51,  54,  57,  59,  62,  65,
+    67,  70,  73,  75,  78,  80,  82,  85,  87,  89,  91,  94,  96,  98,  100, 102, 103, 105, 107, 108, 110, 112,
+    113, 114, 116, 117, 118, 119, 120, 121, 122, 123, 123, 124, 125, 125, 126, 126, 126, 126, 126, 127, 126, 126,
+    126, 126, 126, 125, 125, 124, 123, 123, 122, 121, 120, 119, 118, 117, 116, 114, 113, 112, 110, 108, 107, 105,
+    103, 102, 100, 98,  96,  94,  91,  89,  87,  85,  82,  80,  78,  75,  73,  70,  67,  65,  62,  59,  57,  54,
+    51,  48,  45,  42,  39,  36,  33,  30,  27,  24,  21,  18,  15,  12,  9,   6,   3,   0,
+};
 
 
 int main()
@@ -51,11 +62,16 @@ int main()
 	ins[0].code = (s_frame != 0) ? CODE_NOP : CODE_DRAW_BKG;
 
 	ins[1].code = CODE_DRAW_PIXEL;
-	ins[1].color = 35;
-	ins[1].x = LcgRandom() % 320;
-	ins[1].y = LcgRandom() % 200;
+	ins[1].color = 30 + Random() % 8;
+	ins[1].x = 160 + (uint16_t)(Sin((s_frame) % 255)) + Random() % 4;
+	ins[1].y = 100 + (uint16_t)(Sin((s_frame << 2) % 255) >> 1) + Random() % 4;
 
-	ins[2].code = CODE_HALT;
+	ins[2].code = CODE_DRAW_PIXEL;
+	ins[2].color = 8;
+	ins[2].x = 160 + (uint16_t)(Sin((s_frame + s_frame) % 255)) + Random() % 16;
+	ins[2].y = 100 + (uint16_t)(Sin((s_frame << 3) % 255) >> 1) + Random() % 16;
+
+	ins[3].code = CODE_HALT;
 
 	s_frame++;
 
@@ -71,8 +87,18 @@ int main()
 }
 
 
-static uint16_t LcgRandom()
+static uint16_t Random()
 {
-	s_lcg_state = (s_lcg_state * 3333 + 1);
-	return s_lcg_state;
+	/* http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html */
+	s_marsaglia ^= s_marsaglia << 7;
+	s_marsaglia ^= s_marsaglia >> 9;
+	s_marsaglia ^= s_marsaglia << 8;
+	return s_marsaglia;
+}
+
+
+static int8_t Sin(uint8_t a)
+{
+	int8_t r = s_sin_table[a % 128];
+	return (a > 128) ? -r : r;
 }

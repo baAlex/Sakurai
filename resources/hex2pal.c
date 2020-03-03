@@ -1,4 +1,6 @@
 
+// $ clang ./resources/hex2pal.c -o hex2pal
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,8 +16,7 @@ int main(int argc, const char* argv[])
 	FILE* fp = NULL;
 	int i = 0;
 
-	union
-	{
+	union {
 		int v;
 		struct
 		{

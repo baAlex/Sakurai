@@ -62,11 +62,10 @@ DrawPixel: ; CODE_DRAW_PIXEL
 	push di
 
 	mov di, 0x0000
-	sub di, 320 ; (TODO: use a constant, like 64XXX something)
 
 	; Calculate offset
 DrawPixel_vertical:
-	add di, 320 ; Y
+	add di, 320 ; Y (TODO?)
 	dec cx
 	jnz DrawPixel_vertical
 
