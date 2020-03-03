@@ -40,7 +40,7 @@ heap 0
 segment seg_code
 	include "draw.asm"
 	include "memory.asm"
-	include "utilities.asm"
+	include "io.asm"
 
 
 ;==============================
