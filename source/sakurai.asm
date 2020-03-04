@@ -106,13 +106,19 @@ Main_loop:
 
 		; After the previous frame we sleep
 		cmp ax, 41 ; We did it before the 41 ms?
-		jae Main_loop_no_sleep ; No, we don't
+		jae Main_loop_scream ; No, we don't
 
 		mov bl, 41
 		sub bl, al
 		mov al, bl
 
 		call TimeSleep ; (ax, ds implicit)
+		jmp Main_loop_no_sleep ; To ignore the scream
+
+Main_loop_scream:
+		mov cx, (str_scream_end - str_scream)
+		mov dx, str_scream
+		call PrintLogString
 
 Main_loop_no_sleep:
 
@@ -158,6 +164,9 @@ Main_loop_instructions_table:
 
 		cmp al, 0x04 ; CODE_DRAW_RECTANGLE
 		je DrawRect
+
+		cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
+		je DrawRectBkg
 
 		; Next instruction
 Main_loop_instructions_table_continue:

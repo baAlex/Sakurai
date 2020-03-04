@@ -77,6 +77,9 @@ segment seg_data
 	str_file_open_error: db "FileOpen() error, code: "
 	str_file_open_error_end:
 
+	str_scream: db "Iyadaaa!!!", UNIX_NL ; TODO: yabai?
+	str_scream_end:
+
 	str_log_filename: db "sakurai.log", 0x00
 
 	; Time

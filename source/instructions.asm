@@ -71,10 +71,15 @@ DrawPixel: ; CODE_DRAW_PIXEL
 	add di, bx ; X
 	shr ebx, 16
 
+	cmp bx, 0
+	je DrawPixel_y_zero
+
 DrawPixel_vertical_offset:
-	add di, 320 ; Y (TODO?)
+	add di, 320
 	dec bx
 	jnz DrawPixel_vertical_offset
+
+DrawPixel_y_zero:
 
 	; Draw it!
 	mov cx, seg_buffer_data
@@ -126,16 +131,21 @@ DrawRect: ; CODE_DRAW_RECTANGLE
 	add di, bx ; X
 	shr ebx, 16
 
-DrawRect_vertical:
-	add di, 320 ; Y (TODO?)
+	cmp bx, 0
+	je DrawRect_y_zero
+
+DrawRect_vertical_offset:
+	add di, 320
 	dec bx
-	jnz DrawRect_vertical
+	jnz DrawRect_vertical_offset
+
+DrawRect_y_zero:
 
 	; Save width an height in BX
 	mov ebx, eax
 	shr ebx, 16
 
-	shl bl, 4 ; Multiply height by 16 so it matches with width
+	shl bh, 4 ; Multiply height by 16 so it matches with width behavior
 
 	; Save color in EAX
 	mov al, ah
@@ -150,7 +160,7 @@ DrawRect_vertical:
 
 	; Counter for LOOP
 	mov ch, 0x00
-	mov cl, bh ; Width
+	mov cl, bl ; Width
 
 	mov si, di
 
@@ -168,13 +178,81 @@ DrawRect_row:
 		loop DrawRect_column
 
 	; Preparations for next step
-	mov cl, bh ; Width
+	mov cl, bl ; Width
 	add si, 320
 	mov di, si
 
-	dec bl ; Height
+	dec bh ; Height
 	jnz DrawRect_row
 
 	; Bye!
 	pop si
+	jmp Main_loop_instructions_table_continue
+
+
+;==============================
+DrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
+; eax - Width, Height (high 16 bits)
+; ebx - X, Y (low 16 bits)
+
+	push ds
+	push si
+
+	; Calculate offset in DI
+	mov di, 0x0000
+	add di, bx ; X
+	shr ebx, 16
+
+	cmp bx, 0
+	je DrawRectBkg_y_zero
+
+DrawRectBkg_vertical_offset:
+	add di, 320 ; Y (TODO?)
+	dec bx
+	jnz DrawRectBkg_vertical_offset
+
+DrawRectBkg_y_zero:
+
+	; Multiply height by 16 so it matches with width behavior
+	shr eax, 16
+	shl ah, 4
+
+	; Set segments
+	mov cx, seg_buffer_data
+	mov es, cx
+
+	mov cx, seg_bkg_data
+	mov ds, cx
+
+	mov si, di
+
+	; Counter for LOOP
+	mov ch, 0x00
+	mov cl, al ; Width
+
+	mov bx, di ; BX is unused at this point
+
+	; Draw loop
+	; (a call to some similar to MemorySet(), requires an
+	; unnecessary amount of pops', pushes' and other calculations)
+DrawRectBkg_row:
+	DrawRectBkg_column:
+		movsd
+		movsd
+		movsd
+		movsd
+		loop DrawRectBkg_column
+
+	; Preparations for next step
+	mov cl, al ; Width
+	add bx, 320
+	mov di, bx
+	mov si, bx
+
+	dec ah ; Height
+	jnz DrawRectBkg_row
+
+	; Bye!
+	pop si
+	pop ds
 	jmp Main_loop_instructions_table_continue

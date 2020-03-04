@@ -23,6 +23,7 @@
 #define CODE_DRAW_PIXEL 0x02     /* Draw pixel into buffer */
 #define CODE_LOAD_BKG 0x03       /* Load a background file */
 #define CODE_DRAW_RECTANGLE 0x04 /* ... you got the idea */
+#define CODE_DRAW_RECTANGLE_BKG 0x05
 
 typedef signed char int8_t;
 typedef signed short int16_t;
@@ -79,34 +80,57 @@ int main()
 
 	if ((s_frame % 192) != 0)
 	{
+		/* Three rectangles that draw part of the background,
+		   simulates a 'clean' before an sprite draw */
+		ins[0].code = CODE_DRAW_RECTANGLE_BKG;
+		ins[0].draw.color = 51;
+		ins[0].draw.x = 100;
+		ins[0].draw.y = 100;
+		ins[0].draw.width = 5; /* Multiplied by 16 */
+		ins[0].draw.height = 5;
+
+		ins[1].code = CODE_DRAW_RECTANGLE_BKG;
+		ins[1].draw.color = 51;
+		ins[1].draw.x = 200;
+		ins[1].draw.y = 100;
+		ins[1].draw.width = 5; /* Multiplied by 16 */
+		ins[1].draw.height = 5;
+
+		ins[2].code = CODE_DRAW_RECTANGLE_BKG;
+		ins[2].draw.color = 51;
+		ins[2].draw.x = 192;
+		ins[2].draw.y = 0;
+		ins[2].draw.width = 8; /* Multiplied by 16 */
+		ins[2].draw.height = 10;
+
 		/* Some sparkling things */
-		ins[0].code = CODE_DRAW_PIXEL;
-		ins[0].draw.color = 30 + Random() % 8;
-		ins[0].draw.x = 160 + (uint16_t)(Sin((s_frame) % 255)) + Random() % 4;
-		ins[0].draw.y = 100 + (uint16_t)(Sin((s_frame << 2) % 255) >> 1) + Random() % 4;
+		ins[3].code = CODE_DRAW_PIXEL;
+		ins[3].draw.color = 30 + Random() % 8;
+		ins[3].draw.x = 160 + (uint16_t)(Sin((s_frame) % 255)) + Random() % 4;
+		ins[3].draw.y = 100 + (uint16_t)(Sin((s_frame << 2) % 255) >> 1) + Random() % 4;
 
-		ins[1].code = CODE_DRAW_PIXEL;
-		ins[1].draw.color = 8;
-		ins[1].draw.x = 160 + (uint16_t)(Sin((s_frame + s_frame) % 255)) + Random() % 16;
-		ins[1].draw.y = 100 + (uint16_t)(Sin((s_frame << 3) % 255) >> 1) + Random() % 16;
+		ins[4].code = CODE_DRAW_PIXEL;
+		ins[4].draw.color = 8;
+		ins[4].draw.x = 160 + (uint16_t)(Sin((s_frame + s_frame) % 255)) + Random() % 16;
+		ins[4].draw.y = 100 + (uint16_t)(Sin((s_frame << 3) % 255) >> 1) + Random() % 16;
 
-		/* Two rectangles */
-		ins[2].code = CODE_DRAW_RECTANGLE;
-		ins[2].draw.color = 50;
-		ins[2].draw.x = 2;
-		ins[2].draw.y = 2;
-		ins[2].draw.width = 3;  /* Multiplied by 16 */
-		ins[2].draw.height = 3; /* " */
+		/* Two rectangles, filled with color */
+		ins[5].code = CODE_DRAW_RECTANGLE;
+		ins[5].draw.color = 50;
+		ins[5].draw.x = 2;
+		ins[5].draw.y = 2;
+		ins[5].draw.width = 3; /* Multiplied by 16 */
+		ins[5].draw.height = 3;
 
-		ins[3].code = CODE_DRAW_RECTANGLE;
-		ins[3].draw.color = 51;
-		ins[3].draw.x = 52;
-		ins[3].draw.y = 2;
-		ins[3].draw.width = 3;  /* Multiplied by 16 */
-		ins[3].draw.height = 3; /* " */
+		ins[6].code = CODE_DRAW_RECTANGLE;
+		ins[6].draw.color = 51;
+		ins[6].draw.x = 52;
+		ins[6].draw.y = 2;
+		ins[6].draw.width = 3; /* Multiplied by 16 */
+		ins[6].draw.height = 3;
 
 		/* Everything done here */
-		ins[4].code = CODE_HALT;
+		ins[7].code = CODE_HALT;
 	}
 	else
 	{
@@ -128,8 +152,8 @@ int main()
 		case 7: ins[0].load.filename = (uint16_t) "assets\\bkg8.dat";
 		}
 
-		ins[1].code = CODE_DRAW_BKG;
-		ins[2].code = CODE_HALT;
+		/*ins[1].code = CODE_DRAW_BKG;*/
+		ins[1].code = CODE_HALT;
 	}
 
 	s_frame++;
