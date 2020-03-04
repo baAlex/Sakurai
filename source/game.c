@@ -14,13 +14,14 @@
 
 */
 
-#define DRAW_TABLE_LEN 16
-#define DRAW_TABLE_START 0x0000
-#define DRAW_TABLE_END 0x0080
+#define INSTRUCTIONS_TABLE_LEN 16
+#define INSTRUCTIONS_TABLE_START 0x0000
+#define INSTRUCTIONS_TABLE_END 0x0080
 
 #define CODE_HALT 0x00       /* Stops draw routine */
 #define CODE_DRAW_BKG 0x01   /* Draw loaded background into buffer */
 #define CODE_DRAW_PIXEL 0x02 /* Draw pixel into buffer */
+#define CODE_LOAD_BKG 0x03   /* Load a background file */
 #define CODE_NOP 0xFF        /* Do nothing */
 
 typedef signed char int8_t;
@@ -28,16 +29,34 @@ typedef signed short int16_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 
-struct DInstruction
+struct InstructionLoad
+{
+	uint8_t code;
+	uint8_t unused1;
+	uint16_t filename;
+
+	uint16_t unused2;
+	uint16_t unused3;
+};
+
+struct InstructionDraw
 {
 	uint8_t code;
 	uint8_t color;
-
 	uint16_t x;
-	uint16_t y;
 
-	uint8_t unused1;
-	uint8_t unused2;
+	uint16_t y;
+	uint16_t unused;
+};
+
+union Instruction {
+	uint8_t code;
+
+	/* DRAW_BKG, DRAW_PIXEL */
+	struct InstructionDraw draw;
+
+	/* LOAD_BKG */
+	struct InstructionLoad load;
 };
 
 static uint16_t Random();
@@ -57,32 +76,48 @@ static int8_t s_sin_table[128] = {
 
 int main()
 {
-	struct DInstruction* ins = (void*)(DRAW_TABLE_START);
+	union Instruction* ins = (void*)(INSTRUCTIONS_TABLE_START);
 
-	ins[0].code = (s_frame != 0) ? CODE_NOP : CODE_DRAW_BKG;
+	if ((s_frame % 192) != 0)
+	{
+		/* Some sparkling things */
+		ins[0].code = CODE_DRAW_PIXEL;
+		ins[0].draw.color = 30 + Random() % 8;
+		ins[0].draw.x = 160 + (uint16_t)(Sin((s_frame) % 255)) + Random() % 4;
+		ins[0].draw.y = 100 + (uint16_t)(Sin((s_frame << 2) % 255) >> 1) + Random() % 4;
 
-	ins[1].code = CODE_DRAW_PIXEL;
-	ins[1].color = 30 + Random() % 8;
-	ins[1].x = 160 + (uint16_t)(Sin((s_frame) % 255)) + Random() % 4;
-	ins[1].y = 100 + (uint16_t)(Sin((s_frame << 2) % 255) >> 1) + Random() % 4;
+		ins[1].code = CODE_DRAW_PIXEL;
+		ins[1].draw.color = 8;
+		ins[1].draw.x = 160 + (uint16_t)(Sin((s_frame + s_frame) % 255)) + Random() % 16;
+		ins[1].draw.y = 100 + (uint16_t)(Sin((s_frame << 3) % 255) >> 1) + Random() % 16;
 
-	ins[2].code = CODE_DRAW_PIXEL;
-	ins[2].color = 8;
-	ins[2].x = 160 + (uint16_t)(Sin((s_frame + s_frame) % 255)) + Random() % 16;
-	ins[2].y = 100 + (uint16_t)(Sin((s_frame << 3) % 255) >> 1) + Random() % 16;
+		ins[2].code = CODE_HALT;
+	}
+	else
+	{
+		/* We need to load the specified background
+		   and draw it into the entire buffer, both
+		   slow operations */
 
-	ins[3].code = CODE_HALT;
+		ins[0].code = CODE_LOAD_BKG;
+
+		switch (Random() % 8)
+		{
+		case 0: ins[0].load.filename = (uint16_t) "assets\\bkg1.dat"; break;
+		case 1: ins[0].load.filename = (uint16_t) "assets\\bkg2.dat"; break;
+		case 2: ins[0].load.filename = (uint16_t) "assets\\bkg3.dat"; break;
+		case 3: ins[0].load.filename = (uint16_t) "assets\\bkg4.dat"; break;
+		case 4: ins[0].load.filename = (uint16_t) "assets\\bkg5.dat"; break;
+		case 5: ins[0].load.filename = (uint16_t) "assets\\bkg6.dat"; break;
+		case 6: ins[0].load.filename = (uint16_t) "assets\\bkg7.dat"; break;
+		case 7: ins[0].load.filename = (uint16_t) "assets\\bkg8.dat";
+		}
+
+		ins[1].code = CODE_DRAW_BKG;
+		ins[2].code = CODE_HALT;
+	}
 
 	s_frame++;
-
-	/*for(; ins < (struct DInstruction*)(DRAW_TABLE_END); ins++)
-	{
-	    ins->code = 0xAB;
-	    ins->argument = 0xAB;
-	    ins->x = 0xAB;
-	    ins->y = 0xAB;
-	}*/
-
 	return 0;
 }
 

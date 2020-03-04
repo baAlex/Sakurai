@@ -4,7 +4,7 @@
 
 
 BUFFER_DATA_SIZE = 64000 ; Bytes
-BKG_DATA_SIZE = 64000    ; " (TODO: using a file)
+BKG_DATA_SIZE = 64000    ; "
 SPR_DATA_SIZE = 65025    ; "
 
 PALETTE_LEN = 255  ; Colors
@@ -74,6 +74,9 @@ segment seg_data
 	str_offset: db " - Vector offset: "
 	str_offset_end:
 
+	str_file_open_error: db "FileOpen() error, code: "
+	str_file_open_error_end:
+
 	str_log_filename: db "sakurai.log", 0x00
 
 	; Time
@@ -88,7 +91,7 @@ segment seg_data
 	input_state: times INPUT_STATE_LEN db 0x00
 
 	; Render
-	render_palette_data: file "./assets/palette.dat"
+	render_palette_data: file "./source/palette.dat"
 	render_previous_mode: db 0x00
 
 
@@ -125,8 +128,7 @@ segment seg_buffer_data
 
 ;==============================
 segment seg_bkg_data
-	;bkg_data: times BKG_DATA_SIZE db 0x00
-	bkg_data: file "./assets/test.dat"
+	bkg_data: times BKG_DATA_SIZE db 0x00
 
 
 ;==============================

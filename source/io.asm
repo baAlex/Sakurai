@@ -178,6 +178,103 @@ PrintOut:
 
 
 ;==============================
+FileOpen:
+; ds:dx - Filename
+
+	push cx ; Following interrupt uses it
+
+	; Open existing file (Int 21/AH=3Dh)
+	; http://www.ctyme.com/intr/rb-2779.htm
+	mov ah, 0x3D
+	mov al, 0x00 ; Read mode
+	int 0x21
+
+	jc FileOpen_failure
+
+	; Bye!
+	pop cx
+	ret
+
+FileOpen_failure:
+
+	; Print error in the log
+	push ds
+	push dx
+	push bx
+
+		mov bx, ax ; Open() error code
+
+		mov ax, seg_data
+		mov ds, ax
+		mov dx, str_file_open_error
+		mov cx, (str_file_open_error_end - str_file_open_error)
+
+		call PrintLogString ; (ds:dx, cx)
+
+		mov ax, bx
+		call PrintLogNumber ; (ax)
+
+	pop bx
+	pop dx
+	pop ds
+
+	pop cx
+	mov ax, 0x0000
+	ret
+
+
+;==============================
+FileClose:
+; ax - File handler
+
+	cmp ax, 0x0000
+	jz FileClose_invalid
+
+	push bx
+	mov bx, ax
+
+	; Close file (Int 21/AH=3Eh)
+	; http://www.ctyme.com/intr/rb-2782.htm
+	mov ah, 0x3E
+	int 0x21
+
+	; Bye!
+	pop bx
+	ret
+
+FileClose_invalid:
+	ret
+
+
+;==============================
+FileRead:
+; ax    - File handler
+; ds:dx - Destination
+; cx    - Size
+
+	cmp ax, 0x0000
+	jz FileRead_invalid
+
+	push bx
+	push ax
+
+	mov bx, ax
+
+	; Read From File or Device (Int 21/AH=3Fh)
+	; http://www.ctyme.com/intr/rb-2783.htm
+	mov ah, 0x3F
+	int 0x21
+
+	; Bye!
+	pop ax
+	pop bx
+	ret
+
+FileRead_invalid:
+	ret
+
+
+;==============================
 Exit:
 ; al - Exit status
 

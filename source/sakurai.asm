@@ -131,7 +131,6 @@ Main_loop_no_sleep:
 
 		; Iterate draw table and do some render
 		push bx
-		push cx
 		push ds
 
 		mov ax, seg_game_data
@@ -140,7 +139,7 @@ Main_loop_no_sleep:
 
 Main_loop_draw_table:
 		mov ax, [si] ; Code, Color
-		mov bx, [si + 2] ; X
+		mov bx, [si + 2] ; X, Filename
 		mov cx, [si + 4] ; Y
 
 		; call PrintLogNumber
@@ -153,6 +152,9 @@ Main_loop_draw_table:
 
 		cmp al, 0x02 ; CODE_DRAW_PIXEL
 		je DrawPixel
+
+		cmp al, 0x03 ; CODE_LOAD_BKG
+		je LoadBkg
 
 		; Next draw instruction
 Main_loop_draw_table_continue:
@@ -175,7 +177,6 @@ Main_loop_draw_table_break:
 		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 		pop ds
-		pop cx
 		pop bx
 
 		; End time

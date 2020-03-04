@@ -26,9 +26,19 @@
 ; - Alexander Brandt 2020
 
 
+; Following routines are not functions ('functions' meaning the correct
+; care of the fast call convention), rather they are part of a table
+; executed in a 'switch' fashion (C lingua)...
+
+; So, the only requirement here is to preserve registers DS and SI, and
+; always jump to 'Main_loop_draw_table_continue'. And with the only
+; exception of AX, BX and CX is better to assume that other registers
+; just contain trash.
+
+
 ;==============================
 DrawBkg: ; CODE_DRAW_BKG
-; ah - unused
+; ax - unused
 ; bx - unused
 ; cx - unused
 
@@ -78,5 +88,33 @@ DrawPixel_vertical:
 
 	; Bye!
 	pop di
+	pop ds
+	jmp Main_loop_draw_table_continue
+
+
+;==============================
+LoadBkg: ; CODE_LOAD_BKG
+; ax - unused
+; bx - Filename
+; cx - unused
+
+	push ds
+
+	; Open file
+	mov ax, seg_game_data
+	mov ds, ax
+	mov dx, bx
+	call FileOpen
+
+	; Read into bkg data
+	mov bx, seg_bkg_data
+	mov ds, bx
+	mov dx, 0x0000
+	mov cx, BKG_DATA_SIZE
+	call FileRead
+
+	; Bye!
+	call FileClose
+
 	pop ds
 	jmp Main_loop_draw_table_continue

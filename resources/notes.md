@@ -50,5 +50,17 @@ Functions
 ### PrintOut
 - `ds:dx` Text to print ('$' terminated)
 
+### FileOpen
+- `ds:dx` Filename
+- Returns handler in `ax`, `0x0000` in case of error
+
+### FileClose
+- `ax` File handler, `0x0000` is considered an invalid value, no operation is done and no error is throw
+
+### FileRead
+- `ax` File handler, `0x0000` is considered an invalid value, no operation is done and no error is throw
+- `ds:dx` Destination
+- `cx` Size
+
 ### Exit
 - `al` Exit status
