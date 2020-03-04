@@ -73,6 +73,8 @@ MemoryClean:
 ; cx    - Size
 
 	push eax
+	push di
+	push cx
 
 	; Modulo operation
 	mov ax, cx
@@ -105,5 +107,7 @@ MemoryClean_16_loop:
 	loop MemoryClean_16_loop
 
 	; Bye!
+	pop cx
+	pop di
 	pop eax
 	ret

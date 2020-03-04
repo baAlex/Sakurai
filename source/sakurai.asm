@@ -38,9 +38,9 @@ heap 0
 
 
 segment seg_code
-	include "draw.asm"
-	include "memory.asm"
 	include "io.asm"
+	include "instructions.asm"
+	include "memory.asm"
 
 
 ;==============================
@@ -129,7 +129,8 @@ Main_loop_no_sleep:
 		call seg_game_data:GameFrame ; Far call
 		call InputClean ; (ds implicit)
 
-		; Iterate draw table and do some render
+		; Iterate instructions table and do
+		; what is required by the game logic
 		push bx
 		push ds
 
@@ -137,15 +138,14 @@ Main_loop_no_sleep:
 		mov ds, ax
 		mov si, 0x0000
 
-Main_loop_draw_table:
-		mov ax, [si] ; Code, Color
-		mov bx, [si + 2] ; X, Filename
-		mov cx, [si + 4] ; Y
+Main_loop_instructions_table:
+		mov eax, [si] ; Code, Color, Width, Height, Filename
+		mov ebx, [si + 4] ; X, Y
 
 		; call PrintLogNumber
 
 		cmp al, 0x00 ; CODE_HALT
-		je Main_loop_draw_table_break
+		je Main_loop_instructions_table_break
 
 		cmp al, 0x01 ; CODE_DRAW_BKG
 		je DrawBkg
@@ -156,13 +156,16 @@ Main_loop_draw_table:
 		cmp al, 0x03 ; CODE_LOAD_BKG
 		je LoadBkg
 
-		; Next draw instruction
-Main_loop_draw_table_continue:
-		add si, 8 ; Draw instruction size
-		cmp si, DRAW_TABLE_SIZE
-		jb Main_loop_draw_table
+		cmp al, 0x04 ; CODE_DRAW_RECTANGLE
+		je DrawRect
 
-Main_loop_draw_table_break:
+		; Next instruction
+Main_loop_instructions_table_continue:
+		add si, 8 ; Draw instruction size
+		cmp si, INSTRUCTIONS_TABLE_SIZE
+		jb Main_loop_instructions_table
+
+Main_loop_instructions_table_break:
 
 		; Copy from buffer to VGA memory
 		mov ax, seg_buffer_data

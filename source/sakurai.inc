@@ -21,8 +21,8 @@ UNIX_NL = 0x0A ; Log messages uses it
 INPUT_STATE_LEN = 84 ; Number of keys, modify this value
                      ; requires changes on the code
 
-DRAW_TABLE_LEN = 16   ; Number of draw instruction
-DRAW_TABLE_SIZE = 128 ; Size
+INSTRUCTIONS_TABLE_LEN = 16
+INSTRUCTIONS_TABLE_SIZE = 128 ; In bytes
 
 
 ;==============================
@@ -99,7 +99,7 @@ segment seg_data
 segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
-	draw_table: times DRAW_TABLE_SIZE db 0xBE
+	instructions_table: times INSTRUCTIONS_TABLE_SIZE db 0xFF
 	blank_psp: times 128 db 0xBF
 	game_data: file "./game.com"
 

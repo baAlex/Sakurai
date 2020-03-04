@@ -18,11 +18,11 @@
 #define INSTRUCTIONS_TABLE_START 0x0000
 #define INSTRUCTIONS_TABLE_END 0x0080
 
-#define CODE_HALT 0x00       /* Stops draw routine */
-#define CODE_DRAW_BKG 0x01   /* Draw loaded background into buffer */
-#define CODE_DRAW_PIXEL 0x02 /* Draw pixel into buffer */
-#define CODE_LOAD_BKG 0x03   /* Load a background file */
-#define CODE_NOP 0xFF        /* Do nothing */
+#define CODE_HALT 0x00           /* Stops draw routine */
+#define CODE_DRAW_BKG 0x01       /* Draw loaded background into buffer */
+#define CODE_DRAW_PIXEL 0x02     /* Draw pixel into buffer */
+#define CODE_LOAD_BKG 0x03       /* Load a background file */
+#define CODE_DRAW_RECTANGLE 0x04 /* ... you got the idea */
 
 typedef signed char int8_t;
 typedef signed short int16_t;
@@ -34,7 +34,6 @@ struct InstructionLoad
 	uint8_t code;
 	uint8_t unused1;
 	uint16_t filename;
-
 	uint16_t unused2;
 	uint16_t unused3;
 };
@@ -43,16 +42,16 @@ struct InstructionDraw
 {
 	uint8_t code;
 	uint8_t color;
+	uint8_t width;  /* Multiplied by 16 */
+	uint8_t height; /* Multiplied by 16 */
 	uint16_t x;
-
 	uint16_t y;
-	uint16_t unused;
 };
 
 union Instruction {
 	uint8_t code;
 
-	/* DRAW_BKG, DRAW_PIXEL */
+	/* DRAW_BKG, DRAW_PIXEL, DRAW_RECTANGLE */
 	struct InstructionDraw draw;
 
 	/* LOAD_BKG */
@@ -91,7 +90,23 @@ int main()
 		ins[1].draw.x = 160 + (uint16_t)(Sin((s_frame + s_frame) % 255)) + Random() % 16;
 		ins[1].draw.y = 100 + (uint16_t)(Sin((s_frame << 3) % 255) >> 1) + Random() % 16;
 
-		ins[2].code = CODE_HALT;
+		/* Two rectangles */
+		ins[2].code = CODE_DRAW_RECTANGLE;
+		ins[2].draw.color = 50;
+		ins[2].draw.x = 2;
+		ins[2].draw.y = 2;
+		ins[2].draw.width = 3;  /* Multiplied by 16 */
+		ins[2].draw.height = 3; /* " */
+
+		ins[3].code = CODE_DRAW_RECTANGLE;
+		ins[3].draw.color = 51;
+		ins[3].draw.x = 52;
+		ins[3].draw.y = 2;
+		ins[3].draw.width = 3;  /* Multiplied by 16 */
+		ins[3].draw.height = 3; /* " */
+
+		/* Everything done here */
+		ins[4].code = CODE_HALT;
 	}
 	else
 	{
