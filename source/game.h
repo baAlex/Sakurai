@@ -9,14 +9,17 @@ typedef signed short int16_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 
+#define UINT8_MAX 255
+#define UINT16_MAX 65535
+
 #define MIN(a, b) ((a < b) ? a : b)
 #define MAX(a, b) ((a > b) ? a : b)
 
 #define NULL 0xFFFF
 
-#define INSTRUCTIONS_TABLE_LEN 16
+#define INSTRUCTIONS_TABLE_LEN 24
 #define INSTRUCTIONS_TABLE_START 0x0000
-#define INSTRUCTIONS_TABLE_END 0x0080
+#define INSTRUCTIONS_TABLE_END 0x00C0
 
 #define CODE_HALT 0x00           /* Stops draw routine */
 #define CODE_DRAW_BKG 0x01       /* Draw loaded background into buffer */
@@ -56,26 +59,32 @@ union Instruction {
 
 
 #define ACTORS_NUMBER 6
+#define TYPES_NUMBER 8
+
+#define TYPE_HERO_A 0
+#define TYPE_HERO_B 1
+#define TYPE_A 2
+#define TYPE_B 3
+#define TYPE_C 4
+#define TYPE_D 5
+#define TYPE_E 6
+#define TYPE_F 7
+#define TYPE_DEAD 0xFF
 
 struct Actor
 {
 	uint16_t x;
-	uint16_t previous_x;
 
-	uint8_t action_type;
-	uint8_t action_to_actor;
-	uint8_t idle_time;
-	uint8_t preparation_time;
+	uint8_t target;
+	uint8_t attack_type;
 
-	uint8_t health;
-	uint8_t magic;
-	uint8_t unused1;
-	uint8_t unused2;
+	uint8_t common_time;
+	uint8_t recovery_time;
 
-	uint8_t animation;
-	uint8_t frame;
-	uint8_t previous_frame;
-	uint8_t unused3;
+	uint8_t type;
+	int8_t health;
+
+	uint8_t phase;
 };
 
 
@@ -104,13 +113,13 @@ static int8_t s_sin_table[128] = {
 /* BCC is somewhat stupid initializing static variables */
 static struct Actor s_actor[ACTORS_NUMBER] = {
     /* Our heroes */
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, TYPE_HERO_A, 100, 238},
+    {0, 0, 0, 0, 0,  TYPE_HERO_B, 100, 19},
     /* Enemies */
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    {0, 0, 0, 0, 0, TYPE_A, 100, 36},
+    {0, 0, 0, 0, 0, TYPE_B, 100, 75},
+    {0, 0, 0, 0, 0, TYPE_C, 100, 132},
+    {0, 0, 0, 0, 0, TYPE_D, 100, 24}};
 
 static uint16_t s_base_x[ACTORS_NUMBER] = {
     /* Our heroes */
@@ -118,10 +127,20 @@ static uint16_t s_base_x[ACTORS_NUMBER] = {
     /* Enemies */
     180, 202, 225, 248};
 
-static uint16_t s_base_y[ACTORS_NUMBER] = {
+static uint8_t s_base_y[ACTORS_NUMBER] = {
     /* Our heroes */
     60, 100,
     /* Enemies */
     60, 73, 86, 100};
 
-static uint16_t s_phase[ACTORS_NUMBER] = {333, 222, 115, 257, 865, 612};
+static uint8_t s_idle_time[TYPES_NUMBER] = {
+    /* Our heroes */
+    6, 2,
+
+    1, /* Type A */
+    2, /* Type B */
+    3, /* Type C */
+    4, /* Type D */
+    5, /* Type E */
+    6  /* Type F */
+};

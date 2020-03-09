@@ -21,8 +21,8 @@ UNIX_NL = 0x0A ; Log messages uses it
 INPUT_STATE_LEN = 84 ; Number of keys, modify this value
                      ; requires changes on the code
 
-INSTRUCTIONS_TABLE_LEN = 16
-INSTRUCTIONS_TABLE_SIZE = 128 ; In bytes
+INSTRUCTIONS_TABLE_LEN = 24
+INSTRUCTIONS_TABLE_SIZE = 192 ; In bytes
 
 
 ;==============================
@@ -103,7 +103,7 @@ segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
 	instructions_table: times INSTRUCTIONS_TABLE_SIZE db 0xFF
-	blank_psp: times 128 db 0xBF
+	blank_psp: times 64 db 0xBF
 	game_data: file "./game.com"
 
 GameFrame:

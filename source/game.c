@@ -31,50 +31,100 @@ SOFTWARE.
 #include "game.h"
 
 
-/* Clean actors from screen once with a big
-   rectangle or twice with two small ones?
-
-   Also, as I'm actually cleaning half the screen
-   rather that use rectangles, an instruction some
-   like 'DRAW_SCANLINE_BKG' (cleaning after an
-   specified scanline) is going to be a lot better */
-#define ONE_CLEAN_RECTANGLE
-
-
 int main()
 {
 	union Instruction* ins;
 	uint8_t i;
 
-	uint16_t heroes_min_x = 999;
-	uint16_t heroes_max_x = 0;
-#ifndef ONE_CLEAN_RECTANGLE
-	uint16_t enemies_min_x = 999;
-	uint16_t enemies_max_x = 0;
-#endif
+	uint16_t clean_min_x = UINT16_MAX;
+	uint16_t clean_max_x = 0;
 
 	/* Iterate actors, update them */
 	for (i = 0; i < ACTORS_NUMBER; i++)
 	{
-		s_actor[i].previous_x = s_actor[i].x;
-		s_actor[i].previous_frame = s_actor[i].frame;
+		/* Save position that comes from previous frame
+		   in min/max form to allow the below 'draw step'
+		   clean the screen */
+		clean_min_x = MIN(clean_min_x, s_actor[i].x);
+		clean_max_x = MAX(clean_max_x, s_actor[i].x);
 
-		s_actor[i].x = s_base_x[i] + (Sin(s_frame + s_frame + s_phase[i]) >> 5);
+		/* Nothing more, we ded' */
+		if (s_actor[i].type == TYPE_DEAD)
+			continue;
 
-		/* Save previous position in min/max form to
-		   alow the below 'draw step' clean the screen */
-
-#ifndef ONE_CLEAN_RECTANGLE
-		if (i >= 2)
+		/* We received damage on the previous frame,
+		   wait some time rather than usual conduct */
+		if (s_actor[i].recovery_time != 0)
 		{
-			enemies_min_x = MIN(enemies_min_x, s_actor[i].previous_x);
-			enemies_max_x = MAX(enemies_max_x, s_actor[i].previous_x);
+			s_actor[i].recovery_time -= 1;
+			continue;
 		}
-		else
-#endif
+
+		/* Oscillate in position */
+		s_actor[i].phase += 4;
+		s_actor[i].x = s_base_x[i] + (Sin(s_actor[i].phase) >> 5);
+
+		/* 1 - Waiting for our turn */
+		if (s_actor[i].common_time < 170)
 		{
-			heroes_min_x = MIN(heroes_min_x, s_actor[i].previous_x);
-			heroes_max_x = MAX(heroes_max_x, s_actor[i].previous_x);
+			s_actor[i].common_time += s_idle_time[s_actor[i].type];
+
+			if (s_actor[i].common_time > 170)
+				s_actor[i].common_time = 170;
+		}
+
+		/* 2 - Select target and attack type */
+		else if (s_actor[i].common_time == 170)
+		{
+			s_actor[i].common_time += 1;
+			s_actor[i].attack_type = Random() % UINT8_MAX;
+
+			/* We are heroes, so lets chose an enemy */
+			if (i < 2)
+				s_actor[i].target = 2 + (Random() % (ACTORS_NUMBER - 2));
+
+			/* The same, but from the other side */
+			else
+				s_actor[i].target = Random() % 2;
+		}
+
+		/* 3 - Preparing attack! */
+		else if (s_actor[i].common_time != 255)
+		{
+			s_actor[i].common_time += 2;
+
+			if (s_actor[i].common_time < 170)
+				s_actor[i].common_time = 255;
+		}
+
+		/* 4 - Attack (with a cool animation) */
+		else
+		{
+			s_actor[i].common_time += 1;
+
+			/* Inflict damage in our victim */
+			s_actor[s_actor[i].target].health -= 5;
+			s_actor[s_actor[i].target].recovery_time = 24; /* One second */
+
+			/* Set if victim died */
+			if (s_actor[s_actor[i].target].health <= 0)
+				s_actor[s_actor[i].target].type = TYPE_DEAD;
+
+			/* Draw an rectangle to see who is attacking */
+			ins = NewInstruction(CODE_DRAW_RECTANGLE);
+			ins->draw.color = ((i < 2) ? 36 : 58) + i;
+			ins->draw.x = 129;
+			ins->draw.y = 0;
+			ins->draw.width = 1;  /* 16 px */
+			ins->draw.height = 1; /* 16 px */
+
+			/* And our poor victim */
+			ins = NewInstruction(CODE_DRAW_RECTANGLE);
+			ins->draw.color = ((s_actor[i].target < 2) ? 36 : 58) + s_actor[i].target;
+			ins->draw.x = 145;
+			ins->draw.y = 0;
+			ins->draw.width = 1;  /* 16 px */
+			ins->draw.height = 1; /* 16 px */
 		}
 	}
 
@@ -98,58 +148,49 @@ int main()
 		}
 
 		NewInstruction(CODE_DRAW_BKG);
-
-		/* Draw two portraits in the top-left corner,
-		   this needs to be done every time that the entry
-		   screens changes (in this case the background) */
-		ins = NewInstruction(CODE_DRAW_RECTANGLE);
-		ins->draw.color = 10;
-		ins->draw.x = 2;
-		ins->draw.y = 2;
-		ins->draw.width = 3;
-		ins->draw.height = 3;
-
-		ins = NewInstruction(CODE_DRAW_RECTANGLE);
-		ins->draw.color = 10;
-		ins->draw.x = 52;
-		ins->draw.y = 2;
-		ins->draw.width = 3;
-		ins->draw.height = 3;
-
 		goto no_clean; /* Because draw an entry background
 		                  left us with the screen clean */
 	}
 
 	/* Draw step */
 	{
-		/* Before draw we need to clean the space that actors occupy */
+		/* Clean space that characters occupy */
 		ins = NewInstruction(CODE_DRAW_RECTANGLE_BKG);
-		ins->draw.x = heroes_min_x;
+		ins->draw.x = 0;
 		ins->draw.y = 56; /* Minimum value in 's_base_y' in
 		                     relation with following 'height' */
 
-		ins->draw.width = (heroes_max_x + 64 + 16 - heroes_min_x) >> 4;
+		ins->draw.width = 20;
 		ins->draw.height = 9; /* 144 px */
 
-#ifndef ONE_CLEAN_RECTANGLE
-		ins = NewInstruction(CODE_DRAW_RECTANGLE_BKG);
-		ins->draw.x = enemies_min_x;
-		ins->draw.y = 56;
-		ins->draw.width = (enemies_max_x + 64 + 16 - enemies_min_x) >> 4;
-		ins->draw.height = 9;
-#endif
+		/* Clean the time metter */
+		ins = NewInstruction(CODE_DRAW_RECTANGLE);
+		ins->draw.color = 16;
+		ins->draw.x = 3;
+		ins->draw.y = 3;
+		ins->draw.width = 4;  /* 64 px */
+		ins->draw.height = 1; /* 16 px */
 
 	no_clean:
 
-		/* Draw! */
 		for (i = 0; i < ACTORS_NUMBER; i++)
 		{
+			if (s_actor[i].type == TYPE_DEAD)
+				continue;
+
+			/* Draw character */
 			ins = NewInstruction(CODE_DRAW_RECTANGLE);
-			ins->draw.color = 30 + i;
+			ins->draw.color = ((i < 2) ? 36 : 58) + i;
 			ins->draw.x = s_actor[i].x;
 			ins->draw.y = s_base_y[i];
 			ins->draw.width = 4;  /* 64 px */
 			ins->draw.height = 6; /* 96 px */
+
+			/* Draw time metter */
+			ins = NewInstruction(CODE_DRAW_PIXEL);
+			ins->draw.color = ((i < 2) ? 36 : 58) + i;
+			ins->draw.x = 3 + (s_actor[i].common_time >> 2);
+			ins->draw.y = 3 + i + i;
 		}
 	}
 
