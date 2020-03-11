@@ -130,8 +130,12 @@ int main()
 
 	/* Change the background every 10 seconds,
 	   is just to test this functionality */
-	if ((s_frame % 240) == 0)
+	if ((*s_frame % 240) == 0)
 	{
+		/* Print something */
+		PrintString((uint16_t)"Something\n");
+		PrintNumber(0x1234);
+
 		/* Load and draw it */
 		ins = NewInstruction(CODE_LOAD_BKG);
 
@@ -197,7 +201,6 @@ int main()
 	/* Bye! */
 	NewInstruction(CODE_HALT);
 	s_instructions_counter = 0;
-	s_frame++;
 
 	return 0;
 }
@@ -222,8 +225,28 @@ static int8_t Sin(uint8_t a)
 
 static union Instruction* NewInstruction(uint8_t code)
 {
-	union Instruction* i = (union Instruction*)(INSTRUCTIONS_TABLE_START) + s_instructions_counter;
+	union Instruction* i = (union Instruction*)(INSTRUCTIONS_TABLE_OFFSET) + s_instructions_counter;
 	s_instructions_counter += 1;
 	i->code = code;
 	return i;
+}
+
+
+static void PrintString(uint16_t string)
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	*a1 = 0x01;
+	*a2 = string;
+	asm("int 0xFD");
+}
+
+
+static void PrintNumber(uint16_t number)
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	*a1 = 0x02;
+	*a2 = number;
+	asm("int 0xFD");
 }

@@ -49,18 +49,17 @@ Main:
 	mov ax, seg_data
 	mov ds, ax
 
-	mov cx, (str_separator_end - str_separator)
 	mov dx, str_separator
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
-	mov cx, (str_hello_end - str_hello)
 	mov dx, str_hello
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Modules initialization
 	call TimeInit
 	call InputInit
 	call RenderInit
+	call IntFDInit
 
 	; Measure how much took a copy of an entry
 	; segment into the VGA memory (ps: a lot)
@@ -85,9 +84,8 @@ Main:
 	mov ds, ax
 	call TimeGet ; (ax = return, ds implicit)
 
-	mov cx, (str_copy_speed_end - str_copy_speed)
 	mov dx, str_copy_speed
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	sub ax, bx
 	call PrintLogNumber ; (ax)
@@ -96,9 +94,8 @@ Main:
 	mov ax, seg_data ; From here no call should change this (TODO)
 	mov ds, ax
 
-	mov cx, (str_main_loop_end - str_main_loop)
 	mov dx, str_main_loop
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	jmp Main_loop_no_sleep ; To avoid the first sleep
 
@@ -116,9 +113,8 @@ Main_loop:
 		jmp Main_loop_no_sleep ; To ignore the scream
 
 Main_loop_scream:
-		mov cx, (str_scream_end - str_scream)
 		mov dx, str_scream
-		call PrintLogString
+		call PrintLogString ; (ds:dx)
 
 Main_loop_no_sleep:
 
@@ -204,6 +200,7 @@ Main_loop_instructions_table_break:
 Main_bye:
 
 	; Bye!
+	call IntFDStop
 	call RenderStop
 	call InputStop
 	call TimeStop
@@ -220,7 +217,6 @@ TimeInit:
 
 	push ax
 	push bx
-	push cx
 	push dx
 	push ds
 	push es
@@ -228,9 +224,8 @@ TimeInit:
 	mov ax, seg_data ; The messages and previous vector lives here
 	mov ds, ax
 
-	mov cx, (str_time_init_end - str_time_init)
 	mov dx, str_time_init
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Get current vector (Int 21/AH=35h)
 	; http://www.ctyme.com/intr/rb-2740.htm
@@ -242,16 +237,14 @@ TimeInit:
 	mov [time_previous_vector_offset], bx
 
 	; Print it
-	mov cx, (str_segment_end - str_segment)
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, es
 	call PrintLogNumber ; (ax)
 
-	mov cx, (str_offset_end - str_offset)
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, bx
 	call PrintLogNumber ; (ax)
@@ -290,7 +283,6 @@ TimeInit:
 	pop es
 	pop ds
 	pop dx
-	pop cx
 	pop bx
 	pop ax
 	ret
@@ -324,27 +316,23 @@ _TimeVector:
 TimeStop:
 	push ax
 	push dx
-	push cx
 	push ds
 
 	mov ax, seg_data ; To retrieve previous vector
 	mov ds, ax
 
-	mov cx, (str_time_stop_end - str_time_stop)
 	mov dx, str_time_stop
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Print previous vector
-	mov cx, (str_segment_end - str_segment)
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_sector]
 	call PrintLogNumber
 
-	mov cx, (str_offset_end - str_offset)
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_offset]
 	call PrintLogNumber
@@ -371,7 +359,6 @@ TimeStop:
 
 	; Bye!
 	pop ds
-	pop cx
 	pop dx
 	pop ax
 	ret
@@ -415,7 +402,6 @@ InputInit:
 
 	push ax
 	push bx
-	push cx
 	push dx
 	push ds
 	push es
@@ -423,9 +409,8 @@ InputInit:
 	mov ax, seg_data ; The messages and previous vector lives here
 	mov ds, ax
 
-	mov cx, (str_input_init_end - str_input_init)
 	mov dx, str_input_init
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Get current vector (Int 21/AH=35h)
 	; http://www.ctyme.com/intr/rb-2740.htm
@@ -437,16 +422,14 @@ InputInit:
 	mov [input_previous_vector_offset], bx
 
 	; Print it
-	mov cx, (str_segment_end - str_segment)
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, es
 	call PrintLogNumber ; (ax)
 
-	mov cx, (str_offset_end - str_offset)
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, bx
 	call PrintLogNumber ; (ax)
@@ -465,7 +448,6 @@ InputInit:
 	pop es
 	pop ds
 	pop dx
-	pop cx
 	pop bx
 	pop ax
 	ret
@@ -537,27 +519,23 @@ _InputVector_bye:
 InputStop:
 	push ax
 	push dx
-	push cx
 	push ds
 
 	mov ax, seg_data ; To retrieve previous vector
 	mov ds, ax
 
-	mov cx, (str_input_stop_end - str_input_stop)
 	mov dx, str_input_stop
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Print previous vector
-	mov cx, (str_segment_end - str_segment)
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, [input_previous_vector_sector]
 	call PrintLogNumber
 
-	mov cx, (str_offset_end - str_offset)
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	mov ax, [input_previous_vector_offset]
 	call PrintLogNumber ; (ax)
@@ -573,7 +551,6 @@ InputStop:
 
 	; Bye!
 	pop ds
-	pop cx
 	pop dx
 	pop ax
 	ret
@@ -597,15 +574,13 @@ InputClean_loop:
 RenderInit:
 	push ax
 	push bx
-	push cx
 	push ds
 
 	mov ax, seg_data ; Messages, previous mode and palette...
 	mov ds, ax
 
-	mov cx, (str_render_init_end - str_render_init)
 	mov dx, str_render_init
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Get current video mode (Int 10/AH=0Fh)
 	; http://www.ctyme.com/intr/rb-0108.htm
@@ -659,7 +634,6 @@ RenderInit_palette_loop:
 
 	; Bye!
 	pop ds
-	pop cx
 	pop bx
 	pop ax
 	ret
@@ -680,15 +654,111 @@ RenderStop:
 	mov ax, seg_data ; To retrieve previous mode
 	mov ds, ax
 
-	mov cx, (str_render_stop_end - str_render_stop)
 	mov dx, str_render_stop
-	call PrintLogString ; (ds:dx, cx)
+	call PrintLogString ; (ds:dx)
 
 	; Set previous mode (Int 10/AH=00h)
 	; http://www.ctyme.com/intr/rb-0069.htm
 	mov ah, 0x00
 	mov al, [render_previous_mode]
 	int 0x10
+
+	; Bye!
+	pop ds
+	pop ax
+	ret
+
+
+;==============================
+IntFDInit:
+	push ax
+	push ds
+
+	mov ax, seg_data
+	mov ds, ax
+
+	; DOS 2+ - GET INTERRUPT VECTOR
+	; http://www.ctyme.com/intr/rb-2740.htm
+	mov ah, 0x35
+	mov al, 0xFD ; Interrupt number
+	int 0x21
+
+	mov [previous_ifd_vector_segment], es
+	mov [previous_ifd_vector_offset], bx
+
+	; DOS 1+ - SET INTERRUPT VECTOR
+	; http://www.ctyme.com/intr/rb-2602.htm
+	mov ax, seg_code
+	mov ds, ax
+	mov dx, _IntFDVector
+	mov ah, 0x25
+	mov al, 0xFD ; Interrupt number
+	int 0x21
+
+	; Bye!
+	pop ds
+	pop ax
+	ret
+
+
+;==============================
+_IntFDVector:
+; http://www.ctyme.com/intr/rb-8735.htm
+
+	push ax
+	push dx
+
+	mov ax, seg_game_data
+	mov ds, ax
+
+	mov ax, [ifd_arg1]
+
+	cmp ax, 0x01
+	je _IntFDVector_print_string
+
+	cmp ax, 0x02
+	je _IntFDVector_print_number
+
+_IntFDVector_print_string:
+	mov dx, [ifd_arg2]
+	call PrintLogString ; (ds:dx)
+	jmp _IntFDVector_bye
+
+_IntFDVector_print_number:
+	mov ax, [ifd_arg2]
+	call PrintLogNumber ; (ax)
+	jmp _IntFDVector_bye
+
+
+	; Notify PIC to end this interruption? (TODO)
+	; http://stanislavs.org/helppc/8259.html
+	mov dx, 0x20
+	mov al, 0x20
+	out dx, al
+
+	; Bye!
+_IntFDVector_bye:
+	pop dx
+	pop ax
+	iret
+
+
+;==============================
+IntFDStop:
+	push ax
+	push ds
+
+	mov ax, seg_data
+	mov ds, ax
+
+	; DOS 1+ - SET INTERRUPT VECTOR
+	; http://www.ctyme.com/intr/rb-2602.htm
+	mov ax, [previous_ifd_vector_segment]
+	mov ds, ax
+	mov dx, [previous_ifd_vector_offset]
+	mov ah, 0x25
+	mov al, 0xFD ; Interrupt number
+	int 0x21
 
 	; Bye!
 	pop ds

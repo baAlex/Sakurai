@@ -29,7 +29,6 @@
 ;==============================
 PrintLogString:
 ; ds:dx - String to print
-; cx    - Length
 
 	push ax
 	push bx
@@ -56,7 +55,7 @@ PrintLogString:
 	mov dx, str_log_filename
 	int 0x21
 
-	jc PrintLogString_failure1
+	jc PrintLogString_failure
 
 PrintLogString_file_exists:
 
@@ -69,17 +68,37 @@ PrintLogString_file_exists:
 	mov dx, 0x0000 ; Origin (signed) LO
 	int 0x21
 
-	jc PrintLogString_failure1
+	jc PrintLogString_failure
+
+	; Calculate length in CX
+	pop ds
+	pop dx
+	push bx ; File handler is here and we need the register
+
+	mov cx, 0
+	mov bx, dx
+
+	mov al, [bx]
+	cmp al, 0x00
+	jz PrintLogString_write
+
+PrintLog_len:
+	inc cx
+	inc bx
+
+	mov al, [bx]
+	cmp al, 0x00
+	jnz PrintLog_len
 
 	; Write to file (Int 21/AH=40h)
 	; http://www.ctyme.com/intr/rb-2791.htm
-	mov ah, 0x40
-	pop ds
-	pop dx
-	pop cx
-	int 0x21 ; File handle still on BX
+PrintLogString_write:
 
-	jc PrintLogString_failure2
+	mov ah, 0x40
+	pop bx
+	int 0x21
+
+	jc PrintLogString_failure
 
 	; Close file (Int 21/AH=3Eh)
 	; http://www.ctyme.com/intr/rb-2782.htm
@@ -87,16 +106,12 @@ PrintLogString_file_exists:
 	int 0x21 ; File handle still on BX
 
 	; Bye!
+	pop cx
 	pop bx
 	pop ax
 	ret
 
-PrintLogString_failure1:
-	pop ds
-	pop dx
-	pop cx
-
-PrintLogString_failure2:
+PrintLogString_failure:
 	mov al, EXIT_FAILURE
 	call Exit ; (al)
 
@@ -146,7 +161,6 @@ PrintLogNumber:
 	mov dx, sp
 
 	; Print it
-	mov cx, 5 ; Length not counting NULL
 	call PrintLogString
 
 	pop cx ; Pushes' Alpha, Beta and Gamma
@@ -207,9 +221,8 @@ FileOpen_failure:
 		mov ax, seg_data
 		mov ds, ax
 		mov dx, str_file_open_error
-		mov cx, (str_file_open_error_end - str_file_open_error)
 
-		call PrintLogString ; (ds:dx, cx)
+		call PrintLogString ; (ds:dx)
 
 		mov ax, bx
 		call PrintLogNumber ; (ax)

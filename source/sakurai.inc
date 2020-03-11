@@ -38,48 +38,25 @@ segment seg_data
 	str_vga_error: db "You need a VGA adapter", "$"
 
 	; Log
-	str_separator: db UNIX_NL, "===============================", UNIX_NL
-	str_separator_end:
+	str_separator: db UNIX_NL, "===============================", UNIX_NL, 0x00
+	str_hello: db "Sakurai v0.1", UNIX_NL, 0x00
 
-	str_hello: db "Sakurai v0.1", UNIX_NL
-	str_hello_end:
+	str_time_init: db "Initializing time module...", UNIX_NL, 0x00
+	str_input_init: db "Initializing input module...", UNIX_NL, 0x00
+	str_render_init: db "Initializing render module...", UNIX_NL, 0x00
 
-	str_time_init: db "Initializing time module...", UNIX_NL
-	str_time_init_end:
+	str_copy_speed: db "Copy speed is (ms): ", 0x00
+	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL, 0x00
 
-	str_input_init: db "Initializing input module...", UNIX_NL
-	str_input_init_end:
+	str_render_stop: db "Stopping render module...", UNIX_NL, 0x00
+	str_input_stop: db "Stopping input module...", UNIX_NL, 0x00
+	str_time_stop: db "Stopping time module...", UNIX_NL, 0x00
 
-	str_render_init: db "Initializing render module...", UNIX_NL
-	str_render_init_end:
+	str_segment: db " - Vector segment: ", 0x00
+	str_offset: db " - Vector offset: ", 0x00
 
-	str_copy_speed: db "Copy speed is (ms): "
-	str_copy_speed_end:
-
-	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL
-	str_main_loop_end:
-
-	str_render_stop: db "Stopping render module...", UNIX_NL
-	str_render_stop_end:
-
-	str_input_stop: db "Stopping input module...", UNIX_NL
-	str_input_stop_end:
-
-	str_time_stop: db "Stopping time module...", UNIX_NL
-	str_time_stop_end:
-
-	str_segment: db " - Vector segment: "
-	str_segment_end:
-
-	str_offset: db " - Vector offset: "
-	str_offset_end:
-
-	str_file_open_error: db "FileOpen() error, code: "
-	str_file_open_error_end:
-
-	str_scream: db "Iyadaaa!!!", UNIX_NL ; TODO: yabai?
-	str_scream_end:
-
+	str_file_open_error: db "FileOpen() error, code: ", 0x00
+	str_scream: db "Iyadaaa!!!", UNIX_NL, 0x00
 	str_log_filename: db "sakurai.log", 0x00
 
 	; Time
@@ -97,13 +74,24 @@ segment seg_data
 	render_palette_data: file "./source/palette.dat"
 	render_previous_mode: db 0x00
 
+	; IntFD
+	previous_ifd_vector_segment: dw 0x0000
+	previous_ifd_vector_offset: dw 0x0000
+
 
 ;==============================
 segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
-	instructions_table: times INSTRUCTIONS_TABLE_SIZE db 0xFF
-	blank_psp: times 64 db 0xBF
+	instructions_table: times INSTRUCTIONS_TABLE_SIZE db 0xFF ; 192 bytes
+	frame_counter: dw 0x0000                                  ; 2
+	ifd_arg1: dw 0x0000                                       ; 2
+	ifd_arg2: dw 0x0000                                       ; 2
+	ifd_arg3: dw 0x0000                                       ; 2
+	ifd_arg4: dw 0x0000                                       ; 2
+	blank_psp: times 54 db 0xBF                               ; 54
+	                                                          ; ---------
+	                                                          ; 256
 	game_data: file "./game.com"
 
 GameFrame:
@@ -116,6 +104,7 @@ GameFrame:
 	mov ds, ax
 
 	call game_data ; Near call
+	inc word [frame_counter]
 
 	pop ds
 	pop cx
@@ -126,14 +115,14 @@ GameFrame:
 
 ;==============================
 segment seg_buffer_data
-	buffer_data: times BUFFER_DATA_SIZE db 0x00
+	buffer_data: rb BUFFER_DATA_SIZE
 
 
 ;==============================
 segment seg_bkg_data
-	bkg_data: times BKG_DATA_SIZE db 0x00
+	bkg_data: rb BKG_DATA_SIZE
 
 
 ;==============================
 segment seg_spr_data
-	spr_data: times SPR_DATA_SIZE db 0x00
+	spr_data: rb SPR_DATA_SIZE

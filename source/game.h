@@ -18,8 +18,12 @@ typedef unsigned short uint16_t;
 #define NULL 0xFFFF
 
 #define INSTRUCTIONS_TABLE_LEN 24
-#define INSTRUCTIONS_TABLE_START 0x0000
-#define INSTRUCTIONS_TABLE_END 0x00C0
+#define INSTRUCTIONS_TABLE_OFFSET 0x0000
+#define FRAME_COUNTER_OFFSET 0x00C0
+#define INT_FD_ARG1 0x00C2
+#define INT_FD_ARG2 0x00C4
+#define INT_FD_ARG3 0x00C6
+#define INT_FD_ARG4 0x00C8
 
 #define CODE_HALT 0x00           /* Stops draw routine */
 #define CODE_DRAW_BKG 0x01       /* Draw loaded background into buffer */
@@ -94,9 +98,11 @@ struct Actor
 static uint16_t Random();
 static int8_t Sin(uint8_t a);
 static union Instruction* NewInstruction(uint8_t code);
+static void PrintString(uint16_t string);
+static void PrintNumber(uint16_t number);
 
 
-static uint16_t s_frame = 0;
+static uint16_t* s_frame = (uint16_t*)FRAME_COUNTER_OFFSET;
 static uint8_t s_instructions_counter = 0;
 
 static uint16_t s_marsaglia = 1;
@@ -114,7 +120,7 @@ static int8_t s_sin_table[128] = {
 static struct Actor s_actor[ACTORS_NUMBER] = {
     /* Our heroes */
     {0, 0, 0, 0, 0, TYPE_HERO_A, 100, 238},
-    {0, 0, 0, 0, 0,  TYPE_HERO_B, 100, 19},
+    {0, 0, 0, 0, 0, TYPE_HERO_B, 100, 19},
     /* Enemies */
     {0, 0, 0, 0, 0, TYPE_A, 100, 36},
     {0, 0, 0, 0, 0, TYPE_B, 100, 75},

@@ -31,6 +31,10 @@ Functions
 
 ### RenderStop (void)
 
+### IntFDInit (void)
+
+### IntFDStop (void)
+
 ### MemoryCopy
 - `es:di` Destination
 - `ds:si` Source
@@ -42,7 +46,6 @@ Functions
 
 ### PrintLogString
 - `ds:dx` String to print
-- `cx`    Length
 
 ### PrintLogNumber
 - `ax` Number to print
