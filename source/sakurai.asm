@@ -55,6 +55,32 @@ Main:
 	mov dx, str_hello
 	call PrintLogString ; (ds:dx)
 
+	; Load game
+	mov ax, seg_data
+	mov ds, ax
+	mov dx, str_game_filename
+	call FileOpen ; (ds:dx)
+
+	mov bx, seg_game_data
+	mov ds, bx
+	mov dx, game_data
+	mov cx, 32000
+	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call FileClose
+
+	; Load palette
+	mov ax, seg_data
+	mov ds, ax
+	mov dx, str_palette_filename
+	call FileOpen ; (ds:dx)
+
+	mov bx, seg_data
+	mov ds, bx
+	mov dx, render_palette_data
+	mov cx, PALETTE_SIZE
+	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call FileClose
+
 	; Modules initialization
 	call TimeInit
 	call InputInit

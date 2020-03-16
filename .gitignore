@@ -1,11 +1,12 @@
 /sakurai.exe
 /sakurai.log
-/game.com
-/SAKURAI.EXE
+/sakurai.zip
+/game.dll
+
 /SAKURAI.LOG
-/GAME.COM
-/hex2pal
-/sin
+
+/generated/
+/assets/*.raw
 
 /.ninja_log
 /.ninja_deps

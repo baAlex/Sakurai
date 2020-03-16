@@ -1,3 +1,5 @@
+/*-----------------------------
+
 MIT License
 
 Copyright (c) 2020 Alexander Brandt
@@ -20,8 +22,58 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
--
+-------------------------------
 
-Files under folder "assets" distributed under Creative Commons
-Attribution-NonCommercial-ShareAlike 4.0 International Public License. For
-more information see <https://creativecommons.org/licenses/by-nc-sa/4.0/>
+ [utilities.c]
+ - Alexander Brandt 2020
+-----------------------------*/
+
+#include "shared.h"
+
+static uint8_t s_instructions_counter = 0;
+static uint16_t s_marsaglia = 1;
+
+
+uint16_t Random()
+{
+	/* http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html */
+	s_marsaglia ^= s_marsaglia << 7;
+	s_marsaglia ^= s_marsaglia >> 9;
+	s_marsaglia ^= s_marsaglia << 8;
+	return s_marsaglia;
+}
+
+
+union Instruction* NewInstruction(uint8_t code)
+{
+	union Instruction* i = (union Instruction*)(INSTRUCTIONS_TABLE_OFFSET) + s_instructions_counter;
+	s_instructions_counter += 1;
+	i->code = code;
+	return i;
+}
+
+
+void CleanInstructions()
+{
+	s_instructions_counter = 0;
+}
+
+
+void PrintString(uint16_t string)
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	*a1 = 0x01;
+	*a2 = string;
+	asm("int 0xFD");
+}
+
+
+void PrintNumber(uint16_t number)
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	*a1 = 0x02;
+	*a2 = number;
+	asm("int 0xFD");
+}

@@ -8,7 +8,7 @@ BKG_DATA_SIZE = 64000    ; "
 SPR_DATA_SIZE = 65025    ; "
 
 PALETTE_LEN = 255  ; Colors
-PALETTE_SIZE = 768 ; Bytes (TODO: load at runtime)
+PALETTE_SIZE = 768 ; Bytes
 
 VGA_SEGMENT = 0xA000
 VGA_OFFSET = 0x0000
@@ -23,6 +23,7 @@ INPUT_STATE_LEN = 84 ; Number of keys, modify this value
 
 INSTRUCTIONS_TABLE_LEN = 24
 INSTRUCTIONS_TABLE_SIZE = 192 ; In bytes
+GAME_SIZE = 32000 ; In bytes
 
 
 ;==============================
@@ -33,6 +34,9 @@ segment seg_data
 
 	hex_table: db "0", "1", "2", "3", "4", "5", "6", "7"
 	           db "8", "9", "A", "B", "C", "D", "E", "F"
+
+	str_game_filename: db "game.dll", 0x00
+	str_palette_filename: db "assets\palette.raw", 0x00
 
 	; Console
 	str_vga_error: db "You need a VGA adapter", "$"
@@ -71,7 +75,7 @@ segment seg_data
 	input_state: times INPUT_STATE_LEN db 0x00
 
 	; Render
-	render_palette_data: file "./source/palette.dat"
+	render_palette_data: times PALETTE_SIZE db 0x00
 	render_previous_mode: db 0x00
 
 	; IntFD
@@ -92,7 +96,7 @@ segment seg_game_data
 	blank_psp: times 54 db 0xBF                               ; 54
 	                                                          ; ---------
 	                                                          ; 256
-	game_data: file "./game.com"
+	game_data: times GAME_SIZE db 0x00
 
 GameFrame:
 	push ax
