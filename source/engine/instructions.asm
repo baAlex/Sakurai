@@ -26,6 +26,9 @@
 ; - Alexander Brandt 2020
 
 
+; http://www.brackeen.com/vga/basics.html
+
+
 ; Following routines are not functions ('functions' meaning the correct
 ; care of the fast call convention), rather they are part of a table
 ; executed in a 'switch' fashion (C lingua)...
@@ -69,17 +72,13 @@ DrawPixel: ; CODE_DRAW_PIXEL
 	; Calculate offset in DI
 	mov di, 0x0000
 	add di, bx ; X
+
 	shr ebx, 16
-
-	cmp bx, 0
-	je DrawPixel_y_zero
-
-DrawPixel_vertical_offset:
-	add di, 320
-	dec bx
-	jnz DrawPixel_vertical_offset
-
-DrawPixel_y_zero:
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+	add di, bx
+	add di, cx
 
 	; Draw it!
 	mov cx, seg_buffer_data
@@ -129,17 +128,13 @@ DrawRect: ; CODE_DRAW_RECTANGLE
 	; Calculate offset in DI
 	mov di, 0x0000
 	add di, bx ; X
+
 	shr ebx, 16
-
-	cmp bx, 0
-	je DrawRect_y_zero
-
-DrawRect_vertical_offset:
-	add di, 320
-	dec bx
-	jnz DrawRect_vertical_offset
-
-DrawRect_y_zero:
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+	add di, bx
+	add di, cx
 
 	; Save width an height in BX
 	mov ebx, eax
@@ -201,17 +196,13 @@ DrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 	; Calculate offset in DI
 	mov di, 0x0000
 	add di, bx ; X
+
 	shr ebx, 16
-
-	cmp bx, 0
-	je DrawRectBkg_y_zero
-
-DrawRectBkg_vertical_offset:
-	add di, 320 ; Y (TODO?)
-	dec bx
-	jnz DrawRectBkg_vertical_offset
-
-DrawRectBkg_y_zero:
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+	add di, bx
+	add di, cx
 
 	; Multiply height by 16 so it matches with width behavior
 	shr eax, 16
@@ -255,4 +246,58 @@ DrawRectBkg_row:
 	; Bye!
 	pop si
 	pop ds
+	jmp Main_loop_instructions_table_continue
+
+
+;==============================
+DrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
+; eax - Color (ah), Width, Height (high 16 bits)
+; ebx - X, Y (low 16 bits)
+
+	push si
+
+	; Calculate offset in DI
+	mov di, 0x0000
+	add di, bx ; X
+
+	shr ebx, 16
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+	add di, bx
+	add di, cx
+
+	; Save width an height in BX
+	mov ebx, eax
+	shr ebx, 16
+
+	; Set segment
+	mov cx, seg_buffer_data
+	mov es, cx
+
+	; Counter for LOOP
+	mov ch, 0x00
+	mov cl, bl ; Width
+
+	mov si, di
+
+	; Draw loop
+	; (a call to some similar to MemorySet(), requires an
+	; unnecessary amount of pops', pushes' and other calculations)
+DrawRectPrecise_row:
+	DrawRectPrecise_column:
+		mov byte [es:di], ah
+		inc di
+		loop DrawRectPrecise_column
+
+	; Preparations for next step
+	mov cl, bl ; Width
+	add si, 320
+	mov di, si
+
+	dec bh ; Height
+	jnz DrawRectPrecise_row
+
+	; Bye!
+	pop si
 	jmp Main_loop_instructions_table_continue

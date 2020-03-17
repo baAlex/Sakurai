@@ -31,6 +31,7 @@ typedef unsigned short uint16_t;
 #define CODE_LOAD_BKG 0x03       /* Load a background file */
 #define CODE_DRAW_RECTANGLE 0x04 /* ... you got the idea */
 #define CODE_DRAW_RECTANGLE_BKG 0x05
+#define CODE_DRAW_RECTANGLE_PRECISE 0x06
 
 struct InstructionLoad
 {
@@ -74,6 +75,12 @@ union Instruction {
 #define TYPE_E 6
 #define TYPE_F 7
 #define TYPE_DEAD 0xFF
+#define TYPE_NONE 0xFF
+
+#define STATE_IDLE 0
+#define STATE_CHARGE 1
+#define STATE_BOUNDED 2
+#define STATE_ATTACK 3
 
 struct Actor
 {
@@ -82,12 +89,15 @@ struct Actor
 	uint8_t target;
 	uint8_t attack_type;
 
-	uint8_t common_time;
-	uint8_t recovery_time;
+	uint8_t state;
+	uint8_t next_state;
 
+	uint8_t idle_time;
+	uint8_t charge_time;
+	uint8_t bounded_time;
 	uint8_t type;
-	int8_t health;
 
+	int8_t health;
 	uint8_t phase;
 };
 

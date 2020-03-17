@@ -37,13 +37,13 @@ static uint16_t* s_frame = (uint16_t*)FRAME_COUNTER_OFFSET;
 /* BCC is somewhat stupid initializing static variables */
 static struct Actor s_actor[ACTORS_NUMBER] = {
     /* Our heroes */
-    {0, 0, 0, 0, 0, TYPE_HERO_A, 100, 238},
-    {0, 0, 0, 0, 0, TYPE_HERO_B, 100, 19},
+    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_HERO_A, 100, 238},
+    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_HERO_B, 100, 19},
     /* Enemies */
-    {0, 0, 0, 0, 0, TYPE_A, 100, 36},
-    {0, 0, 0, 0, 0, TYPE_B, 100, 75},
-    {0, 0, 0, 0, 0, TYPE_C, 100, 132},
-    {0, 0, 0, 0, 0, TYPE_D, 100, 24}};
+    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_A, 100, 36},
+    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_B, 100, 75},
+    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_C, 100, 132},
+    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_D, 100, 24}};
 
 static uint16_t s_base_x[ACTORS_NUMBER] = {
     /* Our heroes */
@@ -59,14 +59,14 @@ static uint8_t s_base_y[ACTORS_NUMBER] = {
 
 static uint8_t s_idle_time[TYPES_NUMBER] = {
     /* Our heroes */
-    6, 2,
+    5, 1,
 
     1, /* Type A */
-    2, /* Type B */
-    3, /* Type C */
-    4, /* Type D */
-    5, /* Type E */
-    6  /* Type F */
+    1, /* Type B */
+    2, /* Type C */
+    3, /* Type D */
+    4, /* Type E */
+    5  /* Type F */
 };
 
 
@@ -74,9 +74,18 @@ int main()
 {
 	union Instruction* ins;
 	uint8_t i;
+	uint8_t color;
+	uint8_t width;
 
 	uint16_t clean_min_x = UINT16_MAX;
 	uint16_t clean_max_x = 0;
+
+	if (s_actor[0].type == TYPE_DEAD && s_actor[1].type == TYPE_DEAD)
+	{
+		NewInstruction(CODE_HALT);
+		CleanInstructions();
+		return; /* Game over */
+	}
 
 	/* Iterate actors, update them */
 	for (i = 0; i < ACTORS_NUMBER; i++)
@@ -87,63 +96,94 @@ int main()
 		clean_min_x = MIN(clean_min_x, s_actor[i].x);
 		clean_max_x = MAX(clean_max_x, s_actor[i].x);
 
-		/* Nothing more, we ded' */
+		/* Update state */
+		s_actor[i].state = s_actor[i].next_state;
+		s_actor[i].x = s_base_x[i] + (Sin(s_actor[i].phase) >> 5);
+
+		/* Nothing, we ded' */
 		if (s_actor[i].type == TYPE_DEAD)
 			continue;
 
-		/* We received damage on the previous frame,
-		   wait some time rather than usual conduct */
-		if (s_actor[i].recovery_time != 0)
+		/* Idle state or "wait some time for my turn" */
+		if (s_actor[i].state == STATE_IDLE)
 		{
-			s_actor[i].recovery_time -= 1;
-			continue;
-		}
-
-		/* Oscillate in position */
-		s_actor[i].phase += 4;
-		s_actor[i].x = s_base_x[i] + (Sin(s_actor[i].phase) >> 5);
-
-		/* 1 - Waiting for our turn */
-		if (s_actor[i].common_time < 170)
-		{
-			s_actor[i].common_time += s_idle_time[s_actor[i].type];
-
-			if (s_actor[i].common_time > 170)
-				s_actor[i].common_time = 170;
-		}
-
-		/* 2 - Select target and attack type */
-		else if (s_actor[i].common_time == 170)
-		{
-			s_actor[i].common_time += 1;
-			s_actor[i].attack_type = Random() % UINT8_MAX;
-
-			/* We are heroes, so lets chose an enemy */
-			if (i < 2)
-				s_actor[i].target = 2 + (Random() % (ACTORS_NUMBER - 2));
-
-			/* The same, but from the other side */
+			/* Update counter */
+			if (s_actor[i].idle_time < (255 - s_idle_time[s_actor[i].type]))
+			{
+				if ((*(uint16_t*)FRAME_COUNTER_OFFSET % 2) == 0)
+					s_actor[i].idle_time += s_idle_time[s_actor[i].type];
+			}
 			else
-				s_actor[i].target = Random() % 2;
+			{
+				/* Change to 'charge' state */
+				s_actor[i].idle_time = 255;
+				s_actor[i].charge_time = 0;
+				s_actor[i].next_state = STATE_CHARGE;
+
+				/* Select our attack */
+				s_actor[i].attack_type = Random() % UINT8_MAX;
+
+			again:
+				/* We are heroes, so lets chose an enemy */
+				if (i < 2)
+					s_actor[i].target = 2 + (Random() % (ACTORS_NUMBER - 2));
+
+				/* The same, but from the other side */
+				else
+					s_actor[i].target = Random() % 2;
+
+				/* Wait, our target is live? */
+				if (s_actor[s_actor[i].target].type == TYPE_DEAD)
+					goto again;
+			}
 		}
 
-		/* 3 - Preparing attack! */
-		else if (s_actor[i].common_time != 255)
+		/* Bounded state or "damage received, let me rest a bit" */
+		else if (s_actor[i].state == STATE_BOUNDED)
 		{
-			s_actor[i].common_time += 2;
-
-			if (s_actor[i].common_time < 170)
-				s_actor[i].common_time = 255;
+			/* Update counter */
+			if (s_actor[i].bounded_time != 0)
+				s_actor[i].bounded_time -= 1;
+			else
+			{
+				/* Restore previous state */
+				if (s_actor[i].idle_time != 255)
+					s_actor[i].next_state = STATE_IDLE;
+				else
+					s_actor[i].next_state = STATE_CHARGE;
+			}
 		}
 
-		/* 4 - Attack (with a cool animation) */
-		else
+		/* Charge state or "this weapon is too heavy, game me a sec" */
+		else if (s_actor[i].state == STATE_CHARGE)
 		{
-			s_actor[i].common_time += 1;
+			/* Oscillate in position */
+			s_actor[i].phase += 20;
+
+			/* Update counter */
+			if (s_actor[i].charge_time < (255 - 8))
+				s_actor[i].charge_time += 8;
+			else
+			{
+				/* Change to 'attack' state */
+				s_actor[i].charge_time = 255;
+				s_actor[i].next_state = STATE_ATTACK;
+			}
+		}
+
+		/* Attack state or "ey! look this cool animation" */
+		else if (s_actor[i].state == STATE_ATTACK)
+		{
+			/* Change to 'idle' state */
+			s_actor[i].idle_time = 0;
+			s_actor[i].next_state = STATE_IDLE;
 
 			/* Inflict damage in our victim */
 			s_actor[s_actor[i].target].health -= 5;
-			s_actor[s_actor[i].target].recovery_time = 24; /* One second */
+
+			/* Change they state */
+			s_actor[s_actor[i].target].next_state = STATE_BOUNDED;
+			s_actor[s_actor[i].target].bounded_time = 24; /* One second */
 
 			/* Set if victim died */
 			if (s_actor[s_actor[i].target].health <= 0)
@@ -156,7 +196,7 @@ int main()
 	if ((*(uint16_t*)FRAME_COUNTER_OFFSET % 240) == 0)
 	{
 		/* Print something */
-		PrintString((uint16_t)"Something\n");
+		PrintString((uint16_t) "Something\n");
 		PrintNumber(0x1234);
 
 		/* Load and draw it */
@@ -190,14 +230,6 @@ int main()
 		ins->draw.width = 20;
 		ins->draw.height = 9; /* 144 px */
 
-		/* Clean the time metter */
-		ins = NewInstruction(CODE_DRAW_RECTANGLE);
-		ins->draw.color = 16;
-		ins->draw.x = 3;
-		ins->draw.y = 3;
-		ins->draw.width = 4;  /* 64 px */
-		ins->draw.height = 1; /* 16 px */
-
 	no_clean:
 
 		for (i = 0; i < ACTORS_NUMBER; i++)
@@ -213,11 +245,47 @@ int main()
 			ins->draw.width = 4;  /* 64 px */
 			ins->draw.height = 6; /* 96 px */
 
-			/* Draw time metter */
-			ins = NewInstruction(CODE_DRAW_PIXEL);
-			ins->draw.color = ((i < 2) ? 36 : 58) + i;
-			ins->draw.x = 3 + (s_actor[i].common_time >> 2);
-			ins->draw.y = 3 + i + i;
+			/* Draw time background */
+			ins = NewInstruction(CODE_DRAW_RECTANGLE_PRECISE);
+			ins->draw.color = 16;
+			ins->draw.x = s_actor[i].x;
+			ins->draw.y = s_base_y[i];
+			ins->draw.width = 34;
+			ins->draw.height = 3;
+
+			/* Draw time meter */
+			switch (s_actor[i].state)
+			{
+			case STATE_IDLE:
+				color = 8;
+				width = (s_actor[i].idle_time >> 3);
+				break;
+			case STATE_CHARGE:
+				color = 41;
+				width = (s_actor[i].charge_time >> 3);
+				break;
+			default: break;
+			}
+
+			if (s_actor[i].state == STATE_BOUNDED)
+			{
+				color = 60;
+
+				if (s_actor[i].idle_time != 255)
+					width = (s_actor[i].idle_time >> 3);
+				else
+					width = (s_actor[i].charge_time >> 3);
+			}
+
+			if (width == 0)
+				continue;
+
+			ins = NewInstruction(CODE_DRAW_RECTANGLE_PRECISE);
+			ins->draw.color = color;
+			ins->draw.width = width; /* 32 px */
+			ins->draw.height = 1;
+			ins->draw.x = s_actor[i].x + 1;
+			ins->draw.y = s_base_y[i] + 1;
 		}
 	}
 

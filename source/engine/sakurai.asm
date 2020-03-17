@@ -175,6 +175,9 @@ Main_loop_instructions_table:
 		cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
 		je DrawRectBkg
 
+		cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
+		je DrawRectPrecise
+
 		; Next instruction
 Main_loop_instructions_table_continue:
 		add si, 8 ; Draw instruction size
