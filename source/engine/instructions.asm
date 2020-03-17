@@ -103,17 +103,17 @@ LoadBkg: ; CODE_LOAD_BKG
 	mov bx, seg_game_data
 	mov ds, bx
 	mov dx, ax
-	call FileOpen
+	call FileOpen ; (ds:dx)
 
 	; Read into bkg data
 	mov bx, seg_bkg_data
 	mov ds, bx
 	mov dx, 0x0000
 	mov cx, BKG_DATA_SIZE
-	call FileRead
+	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
 	; Bye!
-	call FileClose
+	call FileClose ; (ax)
 
 	pop ds
 	jmp Main_loop_instructions_table_continue

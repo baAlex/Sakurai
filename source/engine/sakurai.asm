@@ -56,8 +56,6 @@ Main:
 	call PrintLogString ; (ds:dx)
 
 	; Load game
-	mov ax, seg_data
-	mov ds, ax
 	mov dx, str_game_filename
 	call FileOpen ; (ds:dx)
 
@@ -66,20 +64,7 @@ Main:
 	mov dx, game_data
 	mov cx, 32000
 	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
-	call FileClose
-
-	; Load palette
-	mov ax, seg_data
-	mov ds, ax
-	mov dx, str_palette_filename
-	call FileOpen ; (ds:dx)
-
-	mov bx, seg_data
-	mov ds, bx
-	mov dx, render_palette_data
-	mov cx, PALETTE_SIZE
-	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
-	call FileClose
+	call FileClose ; (ax)
 
 	; Modules initialization
 	call TimeInit
@@ -355,13 +340,13 @@ TimeStop:
 	call PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_sector]
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	mov dx, str_offset
 	call PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_offset]
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -558,7 +543,7 @@ InputStop:
 	call PrintLogString ; (ds:dx)
 
 	mov ax, [input_previous_vector_sector]
-	call PrintLogNumber
+	call PrintLogNumber ; (ax)
 
 	mov dx, str_offset
 	call PrintLogString ; (ds:dx)
@@ -607,6 +592,15 @@ RenderInit:
 
 	mov dx, str_render_init
 	call PrintLogString ; (ds:dx)
+
+	; Load palette
+	mov dx, str_palette_filename
+	call FileOpen ; (ds:dx)
+
+	mov dx, render_palette_data
+	mov cx, PALETTE_SIZE
+	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call FileClose ; (ax)
 
 	; Get current video mode (Int 10/AH=0Fh)
 	; http://www.ctyme.com/intr/rb-0108.htm

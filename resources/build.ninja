@@ -33,12 +33,12 @@ rule SinTable
 # command = zip -9 $out $in
 
 # Engine
-build ./sakurai.exe: Assembly ./source/sakurai.asm
+build ./sakurai.exe: Assembly ./source/engine/sakurai.asm
 
 # Game
 build ./game.dll: CompileAndLinkC $
- ./source/game.c $
- ./source/utilities.c $
+ ./source/game/game.c $
+ ./source/game/utilities.c $
  ./generated/sin.c
 
 # Generated files
