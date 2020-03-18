@@ -60,7 +60,6 @@ segment seg_data
 	str_offset: db " - Vector offset: ", 0x00
 
 	str_file_open_error: db "FileOpen() error, code: ", 0x00
-	str_scream: db "Iyadaaa!!!", UNIX_NL, 0x00
 	str_log_filename: db "sakurai.log", 0x00
 
 	; Time
