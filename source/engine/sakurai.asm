@@ -117,17 +117,17 @@ Main_loop:
 
 		; After the previous frame we sleep
 		cmp ax, 41 ; We did it before the 41 ms?
-		jae Main_loop_scream ; No, we don't
+		jae Main_loop_time ; No, we don't
 
 		mov bl, 41
 		sub bl, al
 		mov al, bl
 
 		call TimeSleep ; (ax, ds implicit)
-		jmp Main_loop_no_sleep ; To ignore the scream
+		jmp Main_loop_no_sleep
 
-Main_loop_scream:
-		call PrintLogNumber ; (ax)
+Main_loop_time:
+		;call PrintLogNumber ; (ax)
 
 Main_loop_no_sleep:
 

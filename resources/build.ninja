@@ -29,9 +29,6 @@ rule Background
 rule SinTable
  command = ruby ./source/sdk/sin.rb > $out
 
-#rule Package
-# command = zip -9 $out $in
-
 # Engine
 build ./sakurai.exe: Assembly ./source/engine/sakurai.asm
 
@@ -55,18 +52,3 @@ build ./assets/bkg5.raw: Background ./assets/bkg5.bmp
 build ./assets/bkg6.raw: Background ./assets/bkg6.bmp
 build ./assets/bkg7.raw: Background ./assets/bkg7.bmp
 build ./assets/bkg8.raw: Background ./assets/bkg8.bmp
-
-# Package
-#build sakurai.zip: Package $
-#./sakurai.exe $
-#./game.dll $
-#./LICENSE $
-#./assets/palette.raw $
-#./assets/bkg1.raw $
-#./assets/bkg2.raw $
-#./assets/bkg3.raw $
-#./assets/bkg4.raw $
-#./assets/bkg5.raw $
-#./assets/bkg6.raw $
-#./assets/bkg7.raw $
-#./assets/bkg8.raw
