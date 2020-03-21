@@ -8,7 +8,7 @@
 
 /generated/
 /assets/*.raw
-/assets/*.spr
+/assets/*.jvn
 
 /.ninja_log
 /.ninja_deps
