@@ -70,6 +70,14 @@ RenderInit:
 	sub al, 0x13
 	jnz RenderInit_failure
 
+	; Clean Vga memory
+	mov ax, VGA_SEGMENT
+	mov es, ax
+	mov di, VGA_OFFSET
+	mov cx, 64000
+
+	call MemoryClean
+
 	; Load palette
 	; http://stanislavs.org/helppc/ports.html
 

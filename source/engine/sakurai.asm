@@ -75,6 +75,14 @@ Main:
 	call RenderInit
 	call IntFDInit
 
+	; Clean buffer memory
+	mov ax, seg_buffer_data
+	mov es, ax
+	mov di, buffer_data
+	mov cx, BUFFER_DATA_SIZE
+
+	call MemoryClean
+
 	; Measure how much took a copy of an entry
 	; segment into the VGA memory (ps: a lot)
 	mov ax, seg_data
@@ -191,13 +199,13 @@ Main_loop_instructions_table_break:
 		; Copy from buffer to VGA memory
 		mov ax, seg_buffer_data
 		mov ds, ax
-		mov si, bkg_data
+		mov si, buffer_data
 
 		mov ax, VGA_SEGMENT
 		mov es, ax
 		mov di, VGA_OFFSET
 
-		mov cx, BKG_DATA_SIZE
+		mov cx, BUFFER_DATA_SIZE
 		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 		pop ds

@@ -14,5 +14,3 @@ mcopy -i ./sakurai.img ./assets/bkg5.raw ::/assets/
 mcopy -i ./sakurai.img ./assets/bkg6.raw ::/assets/
 mcopy -i ./sakurai.img ./assets/bkg7.raw ::/assets/
 mcopy -i ./sakurai.img ./assets/bkg8.raw ::/assets/
-
-

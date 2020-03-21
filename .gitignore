@@ -2,11 +2,13 @@
 /sakurai.log
 /sakurai.zip
 /game.dll
+/test.exe
 
 /SAKURAI.LOG
 
 /generated/
 /assets/*.raw
+/assets/*.spr
 
 /.ninja_log
 /.ninja_deps
