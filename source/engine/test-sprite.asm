@@ -75,20 +75,17 @@ Main:
 
 	; Destination
 	push ds
-	push bx
 
 	mov bx, seg_buffer_data
 	mov es, bx
-	mov di, buffer_data
+	mov di, buffer_data + (320 * 100 + 160)
 
 	mov bx, seg_test
 	mov ds, bx
-	mov si, [0x0000]
-	mov bx, 0x0000
+	mov si, [0]
 
 	call seg_test:test_data + 2
 
-	pop bx
 	pop ds
 
 	; ########################

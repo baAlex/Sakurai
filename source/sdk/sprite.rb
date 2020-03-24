@@ -28,7 +28,7 @@
 require_relative "shared.rb"
 
 
-def EmitInstructions(opaque_num)
+def EmitMov(opaque_num)
 
 	while opaque_num != 0 do
 
@@ -58,31 +58,46 @@ def ProcessSprite(filename)
 	data = ReadBmpIndexedData(header, file)
 
 	print("; Thanks von Neumann!\n")
-	print("dw (rows)\n")
+	print("dw (pixels)\n")
 
 	# Code
 	print("\ncode:\n")
 
 	opaque_num = 0
 	trans_num = 0
+	max_di = 0
+	first_opaque = 0
 
 	for row in 0...header[:height] do
 
+		# Adjust vertical offset with ADD in DI
 		if row != 0 then
-		print("\tadd bx, 320 ; Row #{row}\n")
-		print("\tmov di, bx\n")
+
+			# Cycle columns to check that the row is not empty
+			# and to start ignoring initial transparent space
+			for col in 0...header[:width] do
+
+				if data[header[:width] * row + col] != 0 then
+					print("\tadd di, #{320 + col - max_di} ; Row #{row}\n")
+
+					first_opaque = col
+					max_di = col
+					trans_num = 0
+					break
+				end
+			end
 		end
 
-		trans_num = 0
-
-		for col in 0...header[:width] do
+		# Emit MOV instructions to draw opaque pixels
+		# And ADD in DI to adjust transparent pixels
+		for col in max_di...header[:width] do
 
 			# Transparent pixel found
 			if data[header[:width] * row + col] == 0 then
-
 				trans_num += 1
 
-				EmitInstructions(opaque_num)
+				EmitMov(opaque_num)
+				max_di += opaque_num
 				opaque_num = 0
 
 			# Opaque pixel
@@ -91,11 +106,13 @@ def ProcessSprite(filename)
 
 				if trans_num != 0 then
 					print("\tadd di, #{trans_num}\n")
+					max_di += trans_num
 					trans_num = 0
 				end
 
 				if opaque_num == 4 then # Enought!
-					EmitInstructions(opaque_num)
+					EmitMov(opaque_num)
+					max_di += opaque_num
 					opaque_num = 0
 				end
 			end
@@ -105,7 +122,7 @@ def ProcessSprite(filename)
 	print("\tretf\n")
 
 	# Data
-	print("\nrows:\n")
+	print("\npixels:\n")
 	first = false
 
 	for row in 0...header[:height] do
