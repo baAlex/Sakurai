@@ -128,4 +128,25 @@ segment seg_bkg_data
 
 ;==============================
 segment seg_spr_data
-	spr_data: rb SPR_DATA_SIZE
+
+	; Load slot
+	shr ax, 8 ; Slot (ah)
+	mov si, ax
+	shl si, 1 ; Multiply by indirection entry
+
+	mov bx, word [spr_indirection_table + si]
+	add bx, spr_data
+
+	mov si, [bx] ; Data offset in the sprite header
+	add si, bx
+
+	add bx, 2 ; Header size (to skip it)
+	jmp near bx
+
+spr_indirection_table:
+	dw 0    ; Sprite 0
+	dw 3334 ; Sprite 1
+
+spr_data: ; (TODO: hardcoded)
+	file "../../assets/player.jvn"
+	file "../../assets/sprite2.jvn"

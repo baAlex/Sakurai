@@ -135,7 +135,7 @@ Main_loop:
 		jmp Main_loop_no_sleep
 
 Main_loop_time:
-		;call PrintLogNumber ; (ax)
+		call PrintLogNumber ; (ax)
 
 Main_loop_no_sleep:
 
@@ -187,6 +187,9 @@ Main_loop_instructions_table:
 
 		cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
 		je DrawRectPrecise
+
+		cmp al, 0x07 ; CODE_DRAW_SPRITE
+		je DrawSprite
 
 		; Next instruction
 Main_loop_instructions_table_continue:

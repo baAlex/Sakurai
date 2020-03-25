@@ -301,3 +301,37 @@ DrawRectPrecise_row:
 	; Bye!
 	pop si
 	jmp Main_loop_instructions_table_continue
+
+
+;==============================
+DrawSprite: ; CODE_DRAW_SPRITE
+; eax - Slot (ah), Frame, Mode (high 16 bits)
+; ebx - X, Y (low 16 bits)
+
+	push si
+	push ds
+
+	mov cx, seg_buffer_data
+	mov es, cx
+
+	mov cx, seg_spr_data
+	mov ds, cx
+
+	; Calculate offset in DI
+	mov di, 0x0000
+	add di, bx ; X
+
+	shr ebx, 16
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+	add di, bx
+	add di, cx
+
+	; Draw!
+	call seg_spr_data:0x0000
+
+	; Bye!
+	pop ds
+	pop si
+	jmp Main_loop_instructions_table_continue

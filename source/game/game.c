@@ -223,12 +223,12 @@ int main()
 	{
 		/* Clean space that characters occupy */
 		ins = NewInstruction(CODE_DRAW_RECTANGLE_BKG);
-		ins->draw.x = 0;
-		ins->draw.y = 56; /* Minimum value in 's_base_y' in
-		                     relation with following 'height' */
+		ins->draw_shape.x = 0;
+		ins->draw_shape.y = 56; /* Minimum value in 's_base_y' in
+		                           relation with following 'height' */
 
-		ins->draw.width = 20;
-		ins->draw.height = 9; /* 144 px */
+		ins->draw_shape.width = 20;
+		ins->draw_shape.height = 9; /* 144 px */
 
 	no_clean:
 
@@ -238,20 +238,18 @@ int main()
 				continue;
 
 			/* Draw character */
-			ins = NewInstruction(CODE_DRAW_RECTANGLE);
-			ins->draw.color = ((i < 2) ? 36 : 58) + i;
-			ins->draw.x = s_actor[i].x;
-			ins->draw.y = s_base_y[i];
-			ins->draw.width = 4;  /* 64 px */
-			ins->draw.height = 6; /* 96 px */
+			ins = NewInstruction(CODE_DRAW_SPRITE);
+			ins->draw_sprite.slot = (i < 2) ? 0 : 1;
+			ins->draw_sprite.x = s_actor[i].x;
+			ins->draw_sprite.y = s_base_y[i];
 
-			/* Draw time background */
+			/* Draw time meter background */
 			ins = NewInstruction(CODE_DRAW_RECTANGLE_PRECISE);
-			ins->draw.color = 16;
-			ins->draw.x = s_actor[i].x;
-			ins->draw.y = s_base_y[i];
-			ins->draw.width = 34;
-			ins->draw.height = 3;
+			ins->draw_shape.color = 16;
+			ins->draw_shape.x = s_actor[i].x;
+			ins->draw_shape.y = s_base_y[i];
+			ins->draw_shape.width = 34;
+			ins->draw_shape.height = 3;
 
 			/* Draw time meter */
 			switch (s_actor[i].state)
@@ -281,11 +279,11 @@ int main()
 				continue;
 
 			ins = NewInstruction(CODE_DRAW_RECTANGLE_PRECISE);
-			ins->draw.color = color;
-			ins->draw.width = width; /* 32 px */
-			ins->draw.height = 1;
-			ins->draw.x = s_actor[i].x + 1;
-			ins->draw.y = s_base_y[i] + 1;
+			ins->draw_shape.color = color;
+			ins->draw_shape.width = width; /* 32 px */
+			ins->draw_shape.height = 1;
+			ins->draw_shape.x = s_actor[i].x + 1;
+			ins->draw_shape.y = s_base_y[i] + 1;
 		}
 	}
 

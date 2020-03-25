@@ -32,17 +32,19 @@ typedef unsigned short uint16_t;
 #define CODE_DRAW_RECTANGLE 0x04 /* ... you got the idea */
 #define CODE_DRAW_RECTANGLE_BKG 0x05
 #define CODE_DRAW_RECTANGLE_PRECISE 0x06
+#define CODE_DRAW_SPRITE 0x07
+#define CODE_LOAD_SPRITE 0x08
 
 struct InstructionLoad
 {
 	uint8_t code;
-	uint8_t unused1;
+	uint8_t slot; /* Sprites only */
 	uint16_t filename;
 	uint16_t unused2;
 	uint16_t unused3;
 };
 
-struct InstructionDraw
+struct InstructionDrawShape
 {
 	uint8_t code;
 	uint8_t color;
@@ -52,13 +54,27 @@ struct InstructionDraw
 	uint16_t y;
 };
 
+struct InstructionDrawSprite
+{
+	uint8_t code;
+	uint8_t slot;
+	uint8_t frame;
+	uint8_t mode;
+	uint16_t x;
+	uint16_t y;
+};
+
 union Instruction {
 	uint8_t code;
 
-	/* DRAW_BKG, DRAW_PIXEL, DRAW_RECTANGLE */
-	struct InstructionDraw draw;
+	/* DRAW_PIXEL, DRAW_RECTANGLE, DRAW_RECTANGLE_BKG
+	   DRAW_RECTANGLE_PRECISE */
+	struct InstructionDrawShape draw_shape;
 
-	/* LOAD_BKG */
+	/* DRAW_SPRITE */
+	struct InstructionDrawSprite draw_sprite;
+
+	/* LOAD_BKG, LOAD_SPRITE */
 	struct InstructionLoad load;
 };
 

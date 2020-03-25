@@ -49,10 +49,12 @@ build ./generated/sin.c: SinTable ./
 
 build ./generated/sprite1.asm: GenerateSprite ./assets/sprite1.bmp
 build ./generated/sprite2.asm: GenerateSprite ./assets/sprite2.bmp
+build ./generated/player.asm: GenerateSprite ./assets/player.bmp
 
 # Assets
 build ./assets/sprite1.jvn: CompileSprite ./generated/sprite1.asm
 build ./assets/sprite2.jvn: CompileSprite ./generated/sprite2.asm
+build ./assets/player.jvn: CompileSprite ./generated/player.asm
 
 build ./assets/palette.raw: Palette ./assets/palette.bmp
 
