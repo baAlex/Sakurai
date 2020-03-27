@@ -41,6 +41,7 @@ entry seg_code:Main
 
 segment seg_code
 	include "game-commands.asm"
+	include "game-interruptions.asm"
 	include "io.asm"
 	include "keyboard.asm"
 	include "memory.asm"
@@ -173,22 +174,17 @@ Main_loop_commands_table:
 		je near Main_loop_commands_table_break
 
 		cmp al, 0x01 ; CODE_DRAW_BKG
-		je near DrawBkg
-
+		je near GameDrawBkg
 		cmp al, 0x02 ; CODE_DRAW_PIXEL
-		je near DrawPixel
-
+		je near GameDrawPixel
 		cmp al, 0x04 ; CODE_DRAW_RECTANGLE
-		je near DrawRect
-
+		je near GameDrawRect
 		cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
-		je near DrawRectBkg
-
+		je near GameDrawRectBkg
 		cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
-		je near DrawRectPrecise
-
+		je near GameDrawRectPrecise
 		cmp al, 0x07 ; CODE_DRAW_SPRITE
-		je near DrawSprite
+		je near GameDrawSprite
 
 		; Next command
 Main_loop_commands_table_continue:
@@ -268,8 +264,6 @@ _IntFDVector:
 ; http://www.ctyme.com/intr/rb-8735.htm
 
 	push ax
-	push bx
-	push cx
 	push dx
 	push ds
 
@@ -279,49 +273,13 @@ _IntFDVector:
 	mov ax, [ifd_arg1]
 
 	cmp ax, 0x01
-	je near _IntFDVector_print_string
-
+	je near GamePrintString
 	cmp ax, 0x02
-	je near _IntFDVector_print_number
-
+	je near GamePrintNumber
 	cmp ax, 0x03
-	je near _IntFDVector_load_background
-
+	je near GameLoadBackground
 	cmp ax, 0x04
-	je near _IntFDVector_load_sprite
-
-_IntFDVector_print_string:
-	mov dx, [ifd_arg2]
-	call near PrintLogString ; (ds:dx)
-	jmp near _IntFDVector_bye
-
-_IntFDVector_print_number:
-	mov ax, [ifd_arg2]
-	call near PrintLogNumber ; (ax)
-	jmp near _IntFDVector_bye
-
-_IntFDVector_load_background:
-	mov dx, [ifd_arg2]
-	call near FileOpen ; (ds:dx)
-
-	mov bx, seg_bkg_data
-	mov ds, bx
-	mov dx, 0x0000
-	mov cx, BKG_DATA_SIZE
-	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
-
-	call near FileClose ; (ax)
-	jmp near _IntFDVector_bye
-
-_IntFDVector_load_sprite:
-	mov dx, [ifd_arg2]
-	call near FileOpen ; (ds:dx)
-
-
-
-
-	call near FileClose ; (ax)
-	jmp near _IntFDVector_bye
+	je near GameLoadSprite
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
@@ -333,8 +291,6 @@ _IntFDVector_bye:
 	; Bye!
 	pop ds
 	pop dx
-	pop cx
-	pop bx
 	pop ax
 	iret
 

@@ -58,7 +58,8 @@ def ProcessSprite(filename)
 	data = ReadBmpIndexedData(header, file)
 
 	print("; Thanks von Neumann!\n")
-	print("dw (pixels)\n")
+	print("dw (file_end) ; File size\n")
+	print("dw (pixels)   ; Offset to data\n")
 
 	# Code
 	print("\ncode:\n")
@@ -146,7 +147,7 @@ def ProcessSprite(filename)
 		end
 	end
 
-	print("\n")
+	print("\nfile_end:\n")
 
 	file.close()
 end

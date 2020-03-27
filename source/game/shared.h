@@ -43,7 +43,7 @@ struct CommandDrawShape
 	uint16_t y;
 };
 
-struct CommandDrawSprite
+struct CommandGameDrawSprite
 {
 	uint8_t code;
 	uint8_t slot;
@@ -61,7 +61,7 @@ union Command {
 	struct CommandDrawShape draw_shape;
 
 	/* DRAW_SPRITE */
-	struct CommandDrawSprite draw_sprite;
+	struct CommandGameDrawSprite draw_sprite;
 };
 
 

@@ -40,7 +40,7 @@
 
 
 ;==============================
-DrawBkg: ; CODE_DRAW_BKG
+GameDrawBkg: ; CODE_DRAW_BKG
 ; eax - Unused
 ; ebx - Unused
 
@@ -65,7 +65,7 @@ DrawBkg: ; CODE_DRAW_BKG
 
 
 ;==============================
-DrawPixel: ; CODE_DRAW_PIXEL
+GameDrawPixel: ; CODE_DRAW_PIXEL
 ; eax - Color (ah)
 ; ebx - X, Y (low 16 bits)
 
@@ -90,7 +90,7 @@ DrawPixel: ; CODE_DRAW_PIXEL
 
 
 ;==============================
-DrawRect: ; CODE_DRAW_RECTANGLE
+GameDrawRect: ; CODE_DRAW_RECTANGLE
 ; eax - Color (ah), Width, Height (high 16 bits)
 ; ebx - X, Y (low 16 bits)
 
@@ -133,15 +133,15 @@ DrawRect: ; CODE_DRAW_RECTANGLE
 	; Draw loop
 	; (a call to some similar to MemorySet(), requires an
 	; unnecessary amount of pops', pushes' and other calculations)
-DrawRect_row:
-	DrawRect_column:
+GameDrawRect_row:
+	GameDrawRect_column:
 		mov dword [es:di], eax
 		mov dword [es:di + 4], eax
 		mov dword [es:di + 8], eax
 		mov dword [es:di + 12], eax
 
 		add di, 16
-		loop DrawRect_column
+		loop GameDrawRect_column
 
 	; Preparations for next step
 	mov cl, bl ; Width
@@ -149,7 +149,7 @@ DrawRect_row:
 	mov di, si
 
 	dec bh ; Height
-	jnz near DrawRect_row
+	jnz near GameDrawRect_row
 
 	; Bye!
 	pop si
@@ -157,7 +157,7 @@ DrawRect_row:
 
 
 ;==============================
-DrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
+GameDrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 ; eax - Width, Height (high 16 bits)
 ; ebx - X, Y (low 16 bits)
 
@@ -197,13 +197,13 @@ DrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 	; Draw loop
 	; (a call to some similar to MemorySet(), requires an
 	; unnecessary amount of pops', pushes' and other calculations)
-DrawRectBkg_row:
-	DrawRectBkg_column:
+GameDrawRectBkg_row:
+	GameDrawRectBkg_column:
 		movsd
 		movsd
 		movsd
 		movsd
-		loop DrawRectBkg_column
+		loop GameDrawRectBkg_column
 
 	; Preparations for next step
 	mov cl, al ; Width
@@ -212,7 +212,7 @@ DrawRectBkg_row:
 	mov si, bx
 
 	dec ah ; Height
-	jnz near DrawRectBkg_row
+	jnz near GameDrawRectBkg_row
 
 	; Bye!
 	pop si
@@ -221,7 +221,7 @@ DrawRectBkg_row:
 
 
 ;==============================
-DrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
+GameDrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 ; eax - Color (ah), Width, Height (high 16 bits)
 ; ebx - X, Y (low 16 bits)
 
@@ -255,11 +255,11 @@ DrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 	; Draw loop
 	; (a call to some similar to MemorySet(), requires an
 	; unnecessary amount of pops', pushes' and other calculations)
-DrawRectPrecise_row:
-	DrawRectPrecise_column:
+GameDrawRectPrecise_row:
+	GameDrawRectPrecise_column:
 		mov byte [es:di], ah
 		inc di
-		loop DrawRectPrecise_column
+		loop GameDrawRectPrecise_column
 
 	; Preparations for next step
 	mov cl, bl ; Width
@@ -267,7 +267,7 @@ DrawRectPrecise_row:
 	mov di, si
 
 	dec bh ; Height
-	jnz near DrawRectPrecise_row
+	jnz near GameDrawRectPrecise_row
 
 	; Bye!
 	pop si
@@ -275,7 +275,7 @@ DrawRectPrecise_row:
 
 
 ;==============================
-DrawSprite: ; CODE_DRAW_SPRITE
+GameDrawSprite: ; CODE_DRAW_SPRITE
 ; eax - Slot (ah), Frame, Mode (high 16 bits)
 ; ebx - X, Y (low 16 bits)
 

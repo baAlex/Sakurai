@@ -87,13 +87,13 @@ segment seg_data
 segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
-	commands_table: times COMMANDS_TABLE_SIZE db 0xFF ; 192 bytes
+	commands_table: times COMMANDS_TABLE_SIZE db 0x00 ; 192 bytes
 	frame_counter: dw 0x0000                          ; 2
 	ifd_arg1: dw 0x0000                               ; 2
 	ifd_arg2: dw 0x0000                               ; 2
 	ifd_arg3: dw 0x0000                               ; 2
 	ifd_arg4: dw 0x0000                               ; 2
-	blank_psp: times 54 db 0xBF                       ; 54
+	blank_psp: times 54 db 0x00                       ; 54
 	                                                  ; ---------
 	                                                  ; 256
 	game_data: rb GAME_SIZE
@@ -131,7 +131,7 @@ segment seg_spr_data
 	mov si, [bx] ; Data offset in the sprite header
 	add si, bx
 
-	add bx, 2 ; Header size (to skip it)
+	add bx, 4 ; Header size (to skip it)
 	;jmp near bx
 	retf
 
