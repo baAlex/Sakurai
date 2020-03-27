@@ -46,7 +46,7 @@ PrintLogString:
 	mov dx, str_log_filename
 	int 0x21
 
-	jnc PrintLogString_file_exists
+	jnc near PrintLogString_file_exists
 
 	; Create file (Int 21/AH=3Ch)
 	; http://www.ctyme.com/intr/rb-2778.htm
@@ -55,7 +55,7 @@ PrintLogString:
 	mov dx, str_log_filename
 	int 0x21
 
-	jc PrintLogString_failure
+	jc near PrintLogString_failure
 
 PrintLogString_file_exists:
 
@@ -68,7 +68,7 @@ PrintLogString_file_exists:
 	mov dx, 0x0000 ; Origin (signed) LO
 	int 0x21
 
-	jc PrintLogString_failure
+	jc near PrintLogString_failure
 
 	; Calculate length in CX
 	pop ds
@@ -80,7 +80,7 @@ PrintLogString_file_exists:
 
 	mov al, [bx]
 	cmp al, 0x00
-	jz PrintLogString_write
+	jz near PrintLogString_write
 
 PrintLog_len:
 	inc cx
@@ -88,7 +88,7 @@ PrintLog_len:
 
 	mov al, [bx]
 	cmp al, 0x00
-	jnz PrintLog_len
+	jnz near PrintLog_len
 
 	; Write to file (Int 21/AH=40h)
 	; http://www.ctyme.com/intr/rb-2791.htm
@@ -98,7 +98,7 @@ PrintLogString_write:
 	pop bx
 	int 0x21
 
-	jc PrintLogString_failure
+	jc near PrintLogString_failure
 
 	; Close file (Int 21/AH=3Eh)
 	; http://www.ctyme.com/intr/rb-2782.htm
@@ -113,7 +113,7 @@ PrintLogString_write:
 
 PrintLogString_failure:
 	mov al, EXIT_FAILURE
-	call Exit ; (al)
+	call near Exit ; (al)
 
 
 ;==============================
@@ -161,7 +161,7 @@ PrintLogNumber:
 	mov dx, sp
 
 	; Print it
-	call PrintLogString
+	call near PrintLogString
 
 	pop cx ; Pushes' Alpha, Beta and Gamma
 	pop cx
@@ -203,7 +203,7 @@ FileOpen:
 	mov al, 0x00 ; Read mode
 	int 0x21
 
-	jc FileOpen_failure
+	jc near FileOpen_failure
 
 	; Bye!
 	pop cx
@@ -222,10 +222,10 @@ FileOpen_failure:
 		mov ds, ax
 		mov dx, str_file_open_error
 
-		call PrintLogString ; (ds:dx)
+		call near PrintLogString ; (ds:dx)
 
 		mov ax, bx
-		call PrintLogNumber ; (ax)
+		call near PrintLogNumber ; (ax)
 
 	pop bx
 	pop dx
@@ -241,7 +241,7 @@ FileClose:
 ; ax - File handler
 
 	cmp ax, 0x0000
-	jz FileClose_invalid
+	jz near FileClose_invalid
 
 	push bx
 	mov bx, ax
@@ -266,7 +266,7 @@ FileRead:
 ; cx    - Size
 
 	cmp ax, 0x0000
-	jz FileRead_invalid
+	jz near FileRead_invalid
 
 	push bx
 	push ax

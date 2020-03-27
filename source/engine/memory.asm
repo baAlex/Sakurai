@@ -80,7 +80,7 @@ MemoryClean:
 	mov ax, cx
 	and ax, 15 ; Works with modulos power of 2
 
-	jz MemoryClean_16 ; Lucky, no remainder
+	jz near MemoryClean_16 ; Lucky, no remainder
 
 	; Clean the remainder in steps of 1 byte
 	sub cx, ax ; AX = remainder value
@@ -89,7 +89,7 @@ MemoryClean_1_loop:
 	mov byte [es:di], 0x00
 	inc di
 	dec ax
-	jnz MemoryClean_1_loop
+	jnz near MemoryClean_1_loop
 
 MemoryClean_16:
 

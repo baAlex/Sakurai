@@ -42,7 +42,7 @@ TimeInit:
 	mov ds, ax
 
 	mov dx, str_time_init
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Get current vector (Int 21/AH=35h)
 	; http://www.ctyme.com/intr/rb-2740.htm
@@ -55,16 +55,16 @@ TimeInit:
 
 	; Print it
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, es
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, bx
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	; Set new vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -139,20 +139,20 @@ TimeStop:
 	mov ds, ax
 
 	mov dx, str_time_stop
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Print previous vector
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_sector]
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_offset]
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm

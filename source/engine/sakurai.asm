@@ -33,13 +33,15 @@
 ; $ fasm ./sakurai.asm
 
 format MZ
-entry seg_code:Main
+use32
 heap 0
+
+entry seg_code:Main
 
 
 segment seg_code
 	include "io.asm"
-	include "instructions.asm"
+	include "draw-instructions.asm"
 	include "memory.asm"
 	include "timer.asm"
 	include "render.asm"
@@ -53,27 +55,27 @@ Main:
 	mov ds, ax
 
 	mov dx, str_separator
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov dx, str_hello
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Load game
 	mov dx, str_game_filename
-	call FileOpen ; (ds:dx)
+	call near FileOpen ; (ds:dx)
 
 	mov bx, seg_game_data
 	mov ds, bx
 	mov dx, game_data
-	mov cx, 32000
-	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
-	call FileClose ; (ax)
+	mov cx, GAME_SIZE
+	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call near FileClose ; (ax)
 
 	; Modules initialization
-	call TimeInit
-	call InputInit
-	call RenderInit
-	call IntFDInit
+	call near TimeInit
+	call near InputInit
+	call near RenderInit
+	call near IntFDInit
 
 	; Clean buffer memory
 	mov ax, seg_buffer_data
@@ -81,14 +83,14 @@ Main:
 	mov di, buffer_data
 	mov cx, BUFFER_DATA_SIZE
 
-	call MemoryClean
+	call near MemoryClean
 
 	; Measure how much took a copy of an entry
 	; segment into the VGA memory (ps: a lot)
 	mov ax, seg_data
 	mov ds, ax
 
-	call TimeGet ; (ax = return, ds implicit)
+	call near TimeGet ; (ax = return, ds implicit)
 	mov bx, ax ; Start time
 
 		mov ax, seg_buffer_data
@@ -100,59 +102,59 @@ Main:
 		mov di, VGA_OFFSET
 
 		mov cx, BKG_DATA_SIZE
-		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
+		call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 	mov ax, seg_data ; TimeGet() requires it
 	mov ds, ax
-	call TimeGet ; (ax = return, ds implicit)
+	call near TimeGet ; (ax = return, ds implicit)
 
 	mov dx, str_copy_speed
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	sub ax, bx
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	; Main loop
 	mov ax, seg_data ; From here no call should change this (TODO)
 	mov ds, ax
 
 	mov dx, str_main_loop
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
-	jmp Main_loop_no_sleep ; To avoid the first sleep
+	jmp near Main_loop_no_sleep ; To avoid the first sleep
 
 Main_loop:
 
 		; After the previous frame we sleep
 		cmp ax, 41 ; We did it before the 41 ms?
-		jae Main_loop_time ; No, we don't
+		jae near Main_loop_time ; No, we don't
 
 		mov bl, 41
 		sub bl, al
 		mov al, bl
 
-		call TimeSleep ; (ax, ds implicit)
-		jmp Main_loop_no_sleep
+		call near TimeSleep ; (ax, ds implicit)
+		jmp near Main_loop_no_sleep
 
 Main_loop_time:
-		call PrintLogNumber ; (ax)
+		call near PrintLogNumber ; (ax)
 
 Main_loop_no_sleep:
 
 		; Start time
-		call TimeGet ; (ax = return, ds implicit)
+		call near TimeGet ; (ax = return, ds implicit)
 		mov bx, ax
 
 		; Check ESC key (0x01)
 		dec byte [input_state + 0x01]
-		jz Main_bye
+		jz near Main_bye
 
 		; Game logic frame
-		; We do a call into spooky far lands
-		call seg_game_data:GameFrame ; Far call
-		call InputClean ; (ds implicit)
+		; We do a call near into spooky far lands
+		call far seg_game_data:GameFrame
+		call near InputClean ; (ds implicit)
 
-		; Iterate instructions table and do
+		; Iterate draw instructions table and do
 		; what is required by the game logic
 		push bx
 		push ds
@@ -165,28 +167,28 @@ Main_loop_instructions_table:
 		mov eax, [si] ; Code, Color, Width, Height, Filename
 		mov ebx, [si + 4] ; X, Y
 
-		; call PrintLogNumber
+		; call near PrintLogNumber
 
 		cmp al, 0x00 ; CODE_HALT
-		je Main_loop_instructions_table_break
+		je near Main_loop_instructions_table_break
 
 		cmp al, 0x01 ; CODE_DRAW_BKG
-		je DrawBkg
+		je near DrawBkg
 
 		cmp al, 0x02 ; CODE_DRAW_PIXEL
-		je DrawPixel
+		je near DrawPixel
 
 		cmp al, 0x04 ; CODE_DRAW_RECTANGLE
-		je DrawRect
+		je near DrawRect
 
 		cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
-		je DrawRectBkg
+		je near DrawRectBkg
 
 		cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
-		je DrawRectPrecise
+		je near DrawRectPrecise
 
 		cmp al, 0x07 ; CODE_DRAW_SPRITE
-		je DrawSprite
+		je near DrawSprite
 
 		; Next instruction
 Main_loop_instructions_table_continue:
@@ -206,31 +208,27 @@ Main_loop_instructions_table_break:
 		mov di, VGA_OFFSET
 
 		mov cx, BUFFER_DATA_SIZE
-		call MemoryCopy ; (ds:si = source, es:di = destination, cx)
+		call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 		pop ds
 		pop bx
 
 		; End time
-		call TimeGet ; (ax = return, ds implicit)
+		call near TimeGet ; (ax = return, ds implicit)
 		sub ax, bx
 
-		; Developers, Developers, Developers...
-		; call PrintLogNumber ; (ax)
-		; call Exit ; (al)
-
-		jmp Main_loop
+		jmp near Main_loop
 
 Main_bye:
 
 	; Bye!
-	call IntFDStop
-	call RenderStop
-	call InputStop
-	call TimeStop
+	call near IntFDStop
+	call near RenderStop
+	call near InputStop
+	call near TimeStop
 
 	mov al, EXIT_SUCCESS
-	call Exit ; (al)
+	call near Exit ; (al)
 
 
 ;==============================
@@ -281,39 +279,37 @@ _IntFDVector:
 	mov ax, [ifd_arg1]
 
 	cmp ax, 0x01
-	je _IntFDVector_print_string
+	je near _IntFDVector_print_string
 
 	cmp ax, 0x02
-	je _IntFDVector_print_number
+	je near _IntFDVector_print_number
 
 	cmp ax, 0x03
-	je _IntFDVector_load_background
+	je near _IntFDVector_load_background
 
 _IntFDVector_print_string:
 	mov dx, [ifd_arg2]
-	call PrintLogString ; (ds:dx)
-	jmp _IntFDVector_bye
+	call near PrintLogString ; (ds:dx)
+	jmp near _IntFDVector_bye
 
 _IntFDVector_print_number:
 	mov ax, [ifd_arg2]
-	call PrintLogNumber ; (ax)
-	jmp _IntFDVector_bye
+	call near PrintLogNumber ; (ax)
+	jmp near _IntFDVector_bye
 
 _IntFDVector_load_background:
 
-	; Open file
 	mov dx, [ifd_arg2]
-	call FileOpen ; (ds:dx)
+	call near FileOpen ; (ds:dx)
 
-	; Read into bkg data
 	mov bx, seg_bkg_data
 	mov ds, bx
 	mov dx, 0x0000
 	mov cx, BKG_DATA_SIZE
-	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
-	call FileClose ; (ax)
-	jmp _IntFDVector_bye
+	call near FileClose ; (ax)
+	jmp near _IntFDVector_bye
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html

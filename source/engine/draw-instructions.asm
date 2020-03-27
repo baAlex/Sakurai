@@ -22,7 +22,7 @@
 ; SOFTWARE.
 
 
-; [instructions.asm]
+; [draw-instructions.asm]
 ; - Alexander Brandt 2020
 
 
@@ -56,12 +56,12 @@ DrawBkg: ; CODE_DRAW_BKG
 	mov di, 0x0000
 
 	mov cx, BKG_DATA_SIZE
-	call MemoryCopy ; (ds:si = source, es:di = destination, cx)
+	call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 	; Bye!
 	pop si
 	pop ds
-	jmp Main_loop_instructions_table_continue
+	jmp near Main_loop_instructions_table_continue
 
 
 ;==============================
@@ -86,7 +86,7 @@ DrawPixel: ; CODE_DRAW_PIXEL
 	mov [es:di], ah
 
 	; Bye!
-	jmp Main_loop_instructions_table_continue
+	jmp near Main_loop_instructions_table_continue
 
 
 ;==============================
@@ -149,11 +149,11 @@ DrawRect_row:
 	mov di, si
 
 	dec bh ; Height
-	jnz DrawRect_row
+	jnz near DrawRect_row
 
 	; Bye!
 	pop si
-	jmp Main_loop_instructions_table_continue
+	jmp near Main_loop_instructions_table_continue
 
 
 ;==============================
@@ -212,12 +212,12 @@ DrawRectBkg_row:
 	mov si, bx
 
 	dec ah ; Height
-	jnz DrawRectBkg_row
+	jnz near DrawRectBkg_row
 
 	; Bye!
 	pop si
 	pop ds
-	jmp Main_loop_instructions_table_continue
+	jmp near Main_loop_instructions_table_continue
 
 
 ;==============================
@@ -267,11 +267,11 @@ DrawRectPrecise_row:
 	mov di, si
 
 	dec bh ; Height
-	jnz DrawRectPrecise_row
+	jnz near DrawRectPrecise_row
 
 	; Bye!
 	pop si
-	jmp Main_loop_instructions_table_continue
+	jmp near Main_loop_instructions_table_continue
 
 
 ;==============================
@@ -300,9 +300,9 @@ DrawSprite: ; CODE_DRAW_SPRITE
 	add di, cx
 
 	; Draw!
-	call seg_spr_data:0x0000
+	call far seg_spr_data:0x0000
 
 	; Bye!
 	pop ds
 	pop si
-	jmp Main_loop_instructions_table_continue
+	jmp near Main_loop_instructions_table_continue

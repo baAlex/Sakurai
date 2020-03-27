@@ -36,16 +36,16 @@ RenderInit:
 	mov ds, ax
 
 	mov dx, str_render_init
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Load palette
 	mov dx, str_palette_filename
-	call FileOpen ; (ds:dx)
+	call near FileOpen ; (ds:dx)
 
 	mov dx, render_palette_data
 	mov cx, PALETTE_SIZE
-	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
-	call FileClose ; (ax)
+	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call near FileClose ; (ax)
 
 	; Get current video mode (Int 10/AH=0Fh)
 	; http://www.ctyme.com/intr/rb-0108.htm
@@ -68,15 +68,15 @@ RenderInit:
 	int 0x10
 
 	sub al, 0x13
-	jnz RenderInit_failure
+	jnz near RenderInit_failure
 
 	; Clean Vga memory
 	mov ax, VGA_SEGMENT
 	mov es, ax
 	mov di, VGA_OFFSET
-	mov cx, 64000
+	mov cx, VGA_DATA_SIZE
 
-	call MemoryClean
+	call near MemoryClean
 
 	; Load palette
 	; http://stanislavs.org/helppc/ports.html
@@ -103,7 +103,7 @@ RenderInit_palette_loop:
 	inc bx
 
 	dec ah
-	jnz RenderInit_palette_loop
+	jnz near RenderInit_palette_loop
 
 	; Bye!
 	pop ds
@@ -113,10 +113,10 @@ RenderInit_palette_loop:
 
 RenderInit_failure:
 	mov dx, str_vga_error
-	call PrintOut ; (ds:dx)
+	call near PrintOut ; (ds:dx)
 
 	mov al, EXIT_FAILURE
-	call Exit ; (al)
+	call near Exit ; (al)
 
 
 ;==============================
@@ -128,7 +128,7 @@ RenderStop:
 	mov ds, ax
 
 	mov dx, str_render_stop
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Set previous mode (Int 10/AH=00h)
 	; http://www.ctyme.com/intr/rb-0069.htm

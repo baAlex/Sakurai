@@ -3,9 +3,10 @@
 ; - Alexander Brandt 2020
 
 
-BUFFER_DATA_SIZE = 64000 ; Bytes
+SPR_DATA_SIZE = 65025    ; Bytes
+BUFFER_DATA_SIZE = 64000 ; "
 BKG_DATA_SIZE = 64000    ; "
-SPR_DATA_SIZE = 65025    ; "
+VGA_DATA_SIZE = 64000    ; "
 
 PALETTE_LEN = 255  ; Colors
 PALETTE_SIZE = 768 ; Bytes
@@ -106,7 +107,7 @@ GameFrame:
 	mov ax, seg_game_data
 	mov ds, ax
 
-	call game_data ; Near call
+	call near game_data ; Near call near
 	inc word [frame_counter]
 
 	pop ds
@@ -114,16 +115,6 @@ GameFrame:
 	pop bx
 	pop ax
 	retf ; Far return (CPU sets CS accordingly)
-
-
-;==============================
-segment seg_buffer_data
-	buffer_data: rb BUFFER_DATA_SIZE
-
-
-;==============================
-segment seg_bkg_data
-	bkg_data: rb BKG_DATA_SIZE
 
 
 ;==============================
@@ -150,3 +141,13 @@ spr_indirection_table:
 spr_data: ; (TODO: hardcoded)
 	file "../../assets/player.jvn"
 	file "../../assets/sprite2.jvn"
+
+
+;==============================
+segment seg_buffer_data
+	buffer_data: rb BUFFER_DATA_SIZE
+
+
+;==============================
+segment seg_bkg_data
+	bkg_data: rb BKG_DATA_SIZE

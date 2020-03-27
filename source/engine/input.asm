@@ -41,7 +41,7 @@ InputInit:
 	mov ds, ax
 
 	mov dx, str_input_init
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Get current vector (Int 21/AH=35h)
 	; http://www.ctyme.com/intr/rb-2740.htm
@@ -54,16 +54,16 @@ InputInit:
 
 	; Print it
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, es
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, bx
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	; Set new vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -118,12 +118,12 @@ _InputVector:
 	             ; anything higher is a 'release'
 	             ; (technically isn't the last, but...)
 
-	ja _InputVector_bye ; Jump if Above
+	ja near _InputVector_bye ; Jump if Above
 
 	; A keyboard with more than 84 keys
 	; Eewwww... we don't do that here!
 	cmp al, INPUT_STATE_LEN
-	jae _InputVector_bye ; Jump if Above
+	jae near _InputVector_bye ; Jump if Above
 
 	; Set our input state
 	mov bh, 0x00
@@ -156,20 +156,20 @@ InputStop:
 	mov ds, ax
 
 	mov dx, str_input_stop
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	; Print previous vector
 	mov dx, str_segment
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, [input_previous_vector_sector]
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	mov dx, str_offset
-	call PrintLogString ; (ds:dx)
+	call near PrintLogString ; (ds:dx)
 
 	mov ax, [input_previous_vector_offset]
-	call PrintLogNumber ; (ax)
+	call near PrintLogNumber ; (ax)
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
@@ -195,7 +195,7 @@ InputClean:
 InputClean_loop:
 	mov byte [input_state + bx], 0x00 ; Release
 	dec bx
-	jnz InputClean_loop
+	jnz near InputClean_loop
 
 	pop bx
 	ret
