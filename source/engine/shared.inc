@@ -3,13 +3,13 @@
 ; - Alexander Brandt 2020
 
 
-SPR_DATA_SIZE = 65025    ; Bytes
+SPR_DATA_SIZE = 64000    ; Bytes
 BUFFER_DATA_SIZE = 64000 ; "
 BKG_DATA_SIZE = 64000    ; "
 VGA_DATA_SIZE = 64000    ; "
 
-PALETTE_LEN = 255  ; Colors
-PALETTE_SIZE = 768 ; Bytes
+PALETTE_LEN = 128  ; Colors
+PALETTE_SIZE = 384 ; Bytes
 
 VGA_SEGMENT = 0xA000
 VGA_OFFSET = 0x0000
@@ -19,12 +19,12 @@ EXIT_FAILURE = 0x01
 
 UNIX_NL = 0x0A ; Log messages uses it
 
-INPUT_STATE_LEN = 84 ; Number of keys, modify this value
-                     ; requires changes on the code
+KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
+                        ; requires changes on the code
 
-INSTRUCTIONS_TABLE_LEN = 24
-INSTRUCTIONS_TABLE_SIZE = 192 ; In bytes
-GAME_SIZE = 32000 ; In bytes
+COMMANDS_TABLE_LEN = 24
+COMMANDS_TABLE_SIZE = 192 ; In bytes
+GAME_SIZE = 4096 ; In bytes
 
 
 ;==============================
@@ -47,14 +47,14 @@ segment seg_data
 	str_hello: db "Sakurai v0.1", UNIX_NL, 0x00
 
 	str_time_init: db "Initializing time module...", UNIX_NL, 0x00
-	str_input_init: db "Initializing input module...", UNIX_NL, 0x00
+	str_keyboard_init: db "Initializing keyboard module...", UNIX_NL, 0x00
 	str_render_init: db "Initializing render module...", UNIX_NL, 0x00
 
 	str_copy_speed: db "Copy speed is (ms): ", 0x00
 	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL, 0x00
 
 	str_render_stop: db "Stopping render module...", UNIX_NL, 0x00
-	str_input_stop: db "Stopping input module...", UNIX_NL, 0x00
+	str_keyboard_stop: db "Stopping keyboard module...", UNIX_NL, 0x00
 	str_time_stop: db "Stopping time module...", UNIX_NL, 0x00
 
 	str_segment: db " - Vector segment: ", 0x00
@@ -68,11 +68,11 @@ segment seg_data
 	time_previous_vector_offset: dw 0x0000
 	time_milliseconds: dw 0x0000
 
-	; Input
-	input_previous_vector_sector: dw 0x0000
-	input_previous_vector_offset: dw 0x0000
+	; Keyboard
+	keyboard_previous_vector_sector: dw 0x0000
+	keyboard_previous_vector_offset: dw 0x0000
 
-	input_state: times INPUT_STATE_LEN db 0x00
+	keyboard_state: times KEYBOARD_STATE_LEN db 0x00
 
 	; Render
 	render_palette_data: times PALETTE_SIZE db 0x00
@@ -87,16 +87,16 @@ segment seg_data
 segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
-	instructions_table: times INSTRUCTIONS_TABLE_SIZE db 0xFF ; 192 bytes
-	frame_counter: dw 0x0000                                  ; 2
-	ifd_arg1: dw 0x0000                                       ; 2
-	ifd_arg2: dw 0x0000                                       ; 2
-	ifd_arg3: dw 0x0000                                       ; 2
-	ifd_arg4: dw 0x0000                                       ; 2
-	blank_psp: times 54 db 0xBF                               ; 54
-	                                                          ; ---------
-	                                                          ; 256
-	game_data: times GAME_SIZE db 0x00
+	commands_table: times COMMANDS_TABLE_SIZE db 0xFF ; 192 bytes
+	frame_counter: dw 0x0000                          ; 2
+	ifd_arg1: dw 0x0000                               ; 2
+	ifd_arg2: dw 0x0000                               ; 2
+	ifd_arg3: dw 0x0000                               ; 2
+	ifd_arg4: dw 0x0000                               ; 2
+	blank_psp: times 54 db 0xBF                       ; 54
+	                                                  ; ---------
+	                                                  ; 256
+	game_data: rb GAME_SIZE
 
 GameFrame:
 	push ax
@@ -123,7 +123,7 @@ segment seg_spr_data
 	; Load slot
 	shr ax, 8 ; Slot (ah)
 	mov si, ax
-	shl si, 1 ; Multiply by indirection entry
+	shl si, 1 ; Multiply by indirection entry size (2 bytes)
 
 	mov bx, word [spr_indirection_table + si]
 	add bx, spr_data
@@ -132,15 +132,16 @@ segment seg_spr_data
 	add si, bx
 
 	add bx, 2 ; Header size (to skip it)
-	jmp near bx
+	;jmp near bx
+	retf
 
-spr_indirection_table:
-	dw 0    ; Sprite 0
-	dw 3334 ; Sprite 1
+spr_indirection_table: rw 32
+	;dw 0    ; Sprite 0
+	;dw 3334 ; Sprite 1
 
-spr_data: ; (TODO: hardcoded)
-	file "../../assets/player.jvn"
-	file "../../assets/sprite2.jvn"
+spr_data: rb SPR_DATA_SIZE
+	;file "../../assets/player.jvn"
+	;file "../../assets/sprite2.jvn"
 
 
 ;==============================

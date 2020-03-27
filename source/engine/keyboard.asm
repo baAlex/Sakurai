@@ -22,12 +22,12 @@
 ; SOFTWARE.
 
 
-; [input.asm]
+; [keyboard.asm]
 ; - Alexander Brandt 2020
 
 
 ;==============================
-InputInit:
+KeyboardInit:
 ; http://retired.beyondlogic.org/interrupts/interupt.htm#2
 ; http://www.ctyme.com/intr/rb-5956.htm
 
@@ -40,7 +40,7 @@ InputInit:
 	mov ax, seg_data ; The messages and previous vector lives here
 	mov ds, ax
 
-	mov dx, str_input_init
+	mov dx, str_keyboard_init
 	call near PrintLogString ; (ds:dx)
 
 	; Get current vector (Int 21/AH=35h)
@@ -49,8 +49,8 @@ InputInit:
 	mov al, 0x09 ; Interrupt number
 	int 0x21
 
-	mov [input_previous_vector_sector], es
-	mov [input_previous_vector_offset], bx
+	mov [keyboard_previous_vector_sector], es
+	mov [keyboard_previous_vector_offset], bx
 
 	; Print it
 	mov dx, str_segment
@@ -69,7 +69,7 @@ InputInit:
 	; http://www.ctyme.com/intr/rb-2602.htm
 	mov ax, seg_code
 	mov ds, ax
-	mov dx, _InputVector
+	mov dx, _KeyboardVector
 
 	mov al, 0x09 ; Interrupt number
 	mov ah, 0x25
@@ -85,7 +85,7 @@ InputInit:
 
 
 ;==============================
-_InputVector:
+_KeyboardVector:
 ; https://stackoverflow.com/a/40963633
 ; http://www.ctyme.com/intr/rb-0045.htm#Table6
 ; TODO: the previous two references didn't use the
@@ -118,19 +118,19 @@ _InputVector:
 	             ; anything higher is a 'release'
 	             ; (technically isn't the last, but...)
 
-	ja near _InputVector_bye ; Jump if Above
+	ja near _KeyboardVector_bye ; Jump if Above
 
 	; A keyboard with more than 84 keys
 	; Eewwww... we don't do that here!
-	cmp al, INPUT_STATE_LEN
-	jae near _InputVector_bye ; Jump if Above
+	cmp al, KEYBOARD_STATE_LEN
+	jae near _KeyboardVector_bye ; Jump if Above
 
-	; Set our input state
+	; Set our state
 	mov bh, 0x00
 	mov bl, al
-	mov byte [input_state + bx], 0x01 ; Press
+	mov byte [keyboard_state + bx], 0x01 ; Press
 
-_InputVector_bye:
+_KeyboardVector_bye:
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
@@ -147,7 +147,7 @@ _InputVector_bye:
 
 
 ;==============================
-InputStop:
+KeyboardStop:
 	push ax
 	push dx
 	push ds
@@ -155,26 +155,26 @@ InputStop:
 	mov ax, seg_data ; To retrieve previous vector
 	mov ds, ax
 
-	mov dx, str_input_stop
+	mov dx, str_keyboard_stop
 	call near PrintLogString ; (ds:dx)
 
 	; Print previous vector
 	mov dx, str_segment
 	call near PrintLogString ; (ds:dx)
 
-	mov ax, [input_previous_vector_sector]
+	mov ax, [keyboard_previous_vector_sector]
 	call near PrintLogNumber ; (ax)
 
 	mov dx, str_offset
 	call near PrintLogString ; (ds:dx)
 
-	mov ax, [input_previous_vector_offset]
+	mov ax, [keyboard_previous_vector_offset]
 	call near PrintLogNumber ; (ax)
 
 	; Restore previous vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
-	mov dx, [input_previous_vector_offset] ; PROTIP: next one changes ds
-	mov ax, [input_previous_vector_sector]
+	mov dx, [keyboard_previous_vector_offset] ; PROTIP: next one changes ds
+	mov ax, [keyboard_previous_vector_sector]
 	mov ds, ax
 	mov al, 0x09 ; Interrupt number
 	mov ah, 0x25
@@ -188,14 +188,14 @@ InputStop:
 
 
 ;==============================
-InputClean:
+KeyboardClean:
 	push bx
-	mov bx, (INPUT_STATE_LEN-1)
+	mov bx, (KEYBOARD_STATE_LEN-1)
 
-InputClean_loop:
-	mov byte [input_state + bx], 0x00 ; Release
+KeyboardClean_loop:
+	mov byte [keyboard_state + bx], 0x00 ; Release
 	dec bx
-	jnz near InputClean_loop
+	jnz near KeyboardClean_loop
 
 	pop bx
 	ret

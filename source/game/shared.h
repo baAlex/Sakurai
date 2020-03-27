@@ -17,8 +17,8 @@ typedef unsigned short uint16_t;
 
 #define NULL 0xFFFF
 
-#define INSTRUCTIONS_TABLE_LEN 24
-#define INSTRUCTIONS_TABLE_OFFSET 0x0000
+#define COMMANDS_TABLE_LEN 24
+#define COMMANDS_TABLE_OFFSET 0x0000
 #define FRAME_COUNTER_OFFSET 0x00C0
 #define INT_FD_ARG1 0x00C2
 #define INT_FD_ARG2 0x00C4
@@ -33,7 +33,7 @@ typedef unsigned short uint16_t;
 #define CODE_DRAW_RECTANGLE_PRECISE 0x06
 #define CODE_DRAW_SPRITE 0x07
 
-struct InstructionDrawShape
+struct CommandDrawShape
 {
 	uint8_t code;
 	uint8_t color;
@@ -43,7 +43,7 @@ struct InstructionDrawShape
 	uint16_t y;
 };
 
-struct InstructionDrawSprite
+struct CommandDrawSprite
 {
 	uint8_t code;
 	uint8_t slot;
@@ -53,15 +53,15 @@ struct InstructionDrawSprite
 	uint16_t y;
 };
 
-union Instruction {
+union Command {
 	uint8_t code;
 
 	/* DRAW_PIXEL, DRAW_RECTANGLE, DRAW_RECTANGLE_BKG
 	   DRAW_RECTANGLE_PRECISE */
-	struct InstructionDrawShape draw_shape;
+	struct CommandDrawShape draw_shape;
 
 	/* DRAW_SPRITE */
-	struct InstructionDrawSprite draw_sprite;
+	struct CommandDrawSprite draw_sprite;
 };
 
 
@@ -110,9 +110,10 @@ struct Actor
 uint16_t Random();
 int8_t Sin(uint8_t a);
 
-union Instruction* NewInstruction(uint8_t code);
-void CleanInstructions();
+union Command* NewCommand(uint8_t code);
+void CleanCommands();
 
 void PrintString(uint16_t string);
 void PrintNumber(uint16_t number);
 void LoadBackground(uint16_t filename);
+void LoadSprite(uint16_t filename, uint16_t slot);

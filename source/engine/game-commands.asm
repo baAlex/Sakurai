@@ -22,7 +22,7 @@
 ; SOFTWARE.
 
 
-; [draw-instructions.asm]
+; [game-commands.asm]
 ; - Alexander Brandt 2020
 
 
@@ -34,7 +34,7 @@
 ; executed in a 'switch' fashion (C lingua)...
 
 ; So, the only requirement here is to preserve registers DS and SI, and
-; always jump to 'Main_loop_instructions_table_continue'. And with the only
+; always jump to 'Main_loop_commands_table_continue'. And with the only
 ; exception of AX, BX and CX is better to assume that other registers
 ; just contain trash.
 
@@ -61,7 +61,7 @@ DrawBkg: ; CODE_DRAW_BKG
 	; Bye!
 	pop si
 	pop ds
-	jmp near Main_loop_instructions_table_continue
+	jmp near Main_loop_commands_table_continue
 
 
 ;==============================
@@ -86,7 +86,7 @@ DrawPixel: ; CODE_DRAW_PIXEL
 	mov [es:di], ah
 
 	; Bye!
-	jmp near Main_loop_instructions_table_continue
+	jmp near Main_loop_commands_table_continue
 
 
 ;==============================
@@ -153,7 +153,7 @@ DrawRect_row:
 
 	; Bye!
 	pop si
-	jmp near Main_loop_instructions_table_continue
+	jmp near Main_loop_commands_table_continue
 
 
 ;==============================
@@ -217,7 +217,7 @@ DrawRectBkg_row:
 	; Bye!
 	pop si
 	pop ds
-	jmp near Main_loop_instructions_table_continue
+	jmp near Main_loop_commands_table_continue
 
 
 ;==============================
@@ -271,7 +271,7 @@ DrawRectPrecise_row:
 
 	; Bye!
 	pop si
-	jmp near Main_loop_instructions_table_continue
+	jmp near Main_loop_commands_table_continue
 
 
 ;==============================
@@ -305,4 +305,4 @@ DrawSprite: ; CODE_DRAW_SPRITE
 	; Bye!
 	pop ds
 	pop si
-	jmp near Main_loop_instructions_table_continue
+	jmp near Main_loop_commands_table_continue

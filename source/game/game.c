@@ -72,7 +72,7 @@ static uint8_t s_idle_time[TYPES_NUMBER] = {
 
 int main()
 {
-	union Instruction* ins;
+	union Command* com;
 	uint8_t i;
 	uint8_t color;
 	uint8_t width;
@@ -82,8 +82,8 @@ int main()
 
 	if (s_actor[0].type == TYPE_DEAD && s_actor[1].type == TYPE_DEAD)
 	{
-		NewInstruction(CODE_HALT);
-		CleanInstructions();
+		NewCommand(CODE_HALT);
+		CleanCommands();
 		return; /* Game over */
 	}
 
@@ -195,6 +195,14 @@ int main()
 	   is just to test this functionality */
 	if ((*(uint16_t*)FRAME_COUNTER_OFFSET % 240) == 0)
 	{
+		if(*(uint16_t*)FRAME_COUNTER_OFFSET == 0)
+		{
+			PrintString("Loading sprites...\n");
+			LoadSprite("assets\\player.jvn", 0);
+			LoadSprite("assets\\sprite1.jvn", 1);
+			LoadSprite("assets\\sprite2.jvn", 2);
+		}
+
 		switch (Random() % 8)
 		{
 		case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
@@ -207,7 +215,7 @@ int main()
 		case 7: LoadBackground((uint16_t) "assets\\bkg8.raw");
 		}
 
-		NewInstruction(CODE_DRAW_BKG);
+		NewCommand(CODE_DRAW_BKG);
 		goto no_clean; /* Because draw an entry background
 		                  left us with the screen clean */
 	}
@@ -215,13 +223,13 @@ int main()
 	/* Draw step */
 	{
 		/* Clean space that characters occupy */
-		ins = NewInstruction(CODE_DRAW_RECTANGLE_BKG);
-		ins->draw_shape.x = 0;
-		ins->draw_shape.y = 56; /* Minimum value in 's_base_y' in
+		com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
+		com->draw_shape.x = 0;
+		com->draw_shape.y = 56; /* Minimum value in 's_base_y' in
 		                           relation with following 'height' */
 
-		ins->draw_shape.width = 20;
-		ins->draw_shape.height = 9; /* 144 px */
+		com->draw_shape.width = 20;
+		com->draw_shape.height = 9; /* 144 px */
 
 	no_clean:
 
@@ -231,18 +239,18 @@ int main()
 				continue;
 
 			/* Draw character */
-			ins = NewInstruction(CODE_DRAW_SPRITE);
-			ins->draw_sprite.slot = (i < 2) ? 0 : 1;
-			ins->draw_sprite.x = s_actor[i].x;
-			ins->draw_sprite.y = s_base_y[i];
+			com = NewCommand(CODE_DRAW_SPRITE);
+			com->draw_sprite.slot = (i < 2) ? 0 : 1;
+			com->draw_sprite.x = s_actor[i].x;
+			com->draw_sprite.y = s_base_y[i];
 
 			/* Draw time meter background */
-			ins = NewInstruction(CODE_DRAW_RECTANGLE_PRECISE);
-			ins->draw_shape.color = 16;
-			ins->draw_shape.x = s_actor[i].x;
-			ins->draw_shape.y = s_base_y[i];
-			ins->draw_shape.width = 34;
-			ins->draw_shape.height = 3;
+			com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
+			com->draw_shape.color = 16;
+			com->draw_shape.x = s_actor[i].x;
+			com->draw_shape.y = s_base_y[i];
+			com->draw_shape.width = 34;
+			com->draw_shape.height = 3;
 
 			/* Draw time meter */
 			switch (s_actor[i].state)
@@ -271,18 +279,18 @@ int main()
 			if (width == 0)
 				continue;
 
-			ins = NewInstruction(CODE_DRAW_RECTANGLE_PRECISE);
-			ins->draw_shape.color = color;
-			ins->draw_shape.width = width; /* 32 px */
-			ins->draw_shape.height = 1;
-			ins->draw_shape.x = s_actor[i].x + 1;
-			ins->draw_shape.y = s_base_y[i] + 1;
+			com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
+			com->draw_shape.color = color;
+			com->draw_shape.width = width; /* 32 px */
+			com->draw_shape.height = 1;
+			com->draw_shape.x = s_actor[i].x + 1;
+			com->draw_shape.y = s_base_y[i] + 1;
 		}
 	}
 
 	/* Bye! */
-	NewInstruction(CODE_HALT);
-	CleanInstructions();
+	NewCommand(CODE_HALT);
+	CleanCommands();
 
 	return 0;
 }

@@ -19,11 +19,11 @@ Functions
 - Requires `ds` pointing to `seg_data`
 - Call after time Initialization
 
-### InputInit (void)
+### KeyboardInit (void)
 
-### InputStop (void)
+### KeyboardStop (void)
 
-### InputClean
+### KeyboardClean
 - Requires `ds` pointing to `seg_data`
 - void
 

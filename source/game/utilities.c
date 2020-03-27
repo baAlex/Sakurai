@@ -30,7 +30,7 @@ SOFTWARE.
 
 #include "shared.h"
 
-static uint8_t s_instructions_counter = 0;
+static uint8_t s_commands_counter = 0;
 static uint16_t s_marsaglia = 1;
 
 
@@ -44,18 +44,18 @@ uint16_t Random()
 }
 
 
-union Instruction* NewInstruction(uint8_t code)
+union Command* NewCommand(uint8_t code)
 {
-	union Instruction* i = (union Instruction*)(INSTRUCTIONS_TABLE_OFFSET) + s_instructions_counter;
-	s_instructions_counter += 1;
+	union Command* i = (union Command*)(COMMANDS_TABLE_OFFSET) + s_commands_counter;
+	s_commands_counter += 1;
 	i->code = code;
 	return i;
 }
 
 
-void CleanInstructions()
+void CleanCommands()
 {
-	s_instructions_counter = 0;
+	s_commands_counter = 0;
 }
 
 
@@ -85,5 +85,17 @@ void LoadBackground(uint16_t filename)
 	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
 	*a1 = 0x03;
 	*a2 = filename;
+	asm("int 0xFD");
+}
+
+
+void LoadSprite(uint16_t filename, uint16_t slot)
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	uint16_t* a3 = (uint16_t*)INT_FD_ARG3;
+	*a1 = 0x04;
+	*a2 = filename;
+	*a3 = slot;
 	asm("int 0xFD");
 }

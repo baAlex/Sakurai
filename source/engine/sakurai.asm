@@ -40,12 +40,12 @@ entry seg_code:Main
 
 
 segment seg_code
+	include "game-commands.asm"
 	include "io.asm"
-	include "draw-instructions.asm"
+	include "keyboard.asm"
 	include "memory.asm"
-	include "timer.asm"
 	include "render.asm"
-	include "input.asm"
+	include "timer.asm"
 
 
 ;==============================
@@ -73,7 +73,7 @@ Main:
 
 	; Modules initialization
 	call near TimeInit
-	call near InputInit
+	call near KeyboardInit
 	call near RenderInit
 	call near IntFDInit
 
@@ -146,15 +146,15 @@ Main_loop_no_sleep:
 		mov bx, ax
 
 		; Check ESC key (0x01)
-		dec byte [input_state + 0x01]
+		dec byte [keyboard_state + 0x01]
 		jz near Main_bye
 
 		; Game logic frame
 		; We do a call near into spooky far lands
 		call far seg_game_data:GameFrame
-		call near InputClean ; (ds implicit)
+		call near KeyboardClean ; (ds implicit)
 
-		; Iterate draw instructions table and do
+		; Iterate draw commands table and do
 		; what is required by the game logic
 		push bx
 		push ds
@@ -163,14 +163,14 @@ Main_loop_no_sleep:
 		mov ds, ax
 		mov si, 0x0000
 
-Main_loop_instructions_table:
+Main_loop_commands_table:
 		mov eax, [si] ; Code, Color, Width, Height, Filename
 		mov ebx, [si + 4] ; X, Y
 
 		; call near PrintLogNumber
 
 		cmp al, 0x00 ; CODE_HALT
-		je near Main_loop_instructions_table_break
+		je near Main_loop_commands_table_break
 
 		cmp al, 0x01 ; CODE_DRAW_BKG
 		je near DrawBkg
@@ -190,13 +190,13 @@ Main_loop_instructions_table:
 		cmp al, 0x07 ; CODE_DRAW_SPRITE
 		je near DrawSprite
 
-		; Next instruction
-Main_loop_instructions_table_continue:
-		add si, 8 ; Draw instruction size
-		cmp si, INSTRUCTIONS_TABLE_SIZE
-		jb Main_loop_instructions_table
+		; Next command
+Main_loop_commands_table_continue:
+		add si, 8 ; Draw command size
+		cmp si, COMMANDS_TABLE_SIZE
+		jb Main_loop_commands_table
 
-Main_loop_instructions_table_break:
+Main_loop_commands_table_break:
 
 		; Copy from buffer to VGA memory
 		mov ax, seg_buffer_data
@@ -224,7 +224,7 @@ Main_bye:
 	; Bye!
 	call near IntFDStop
 	call near RenderStop
-	call near InputStop
+	call near KeyboardStop
 	call near TimeStop
 
 	mov al, EXIT_SUCCESS
@@ -287,6 +287,9 @@ _IntFDVector:
 	cmp ax, 0x03
 	je near _IntFDVector_load_background
 
+	cmp ax, 0x04
+	je near _IntFDVector_load_sprite
+
 _IntFDVector_print_string:
 	mov dx, [ifd_arg2]
 	call near PrintLogString ; (ds:dx)
@@ -298,7 +301,6 @@ _IntFDVector_print_number:
 	jmp near _IntFDVector_bye
 
 _IntFDVector_load_background:
-
 	mov dx, [ifd_arg2]
 	call near FileOpen ; (ds:dx)
 
@@ -307,6 +309,16 @@ _IntFDVector_load_background:
 	mov dx, 0x0000
 	mov cx, BKG_DATA_SIZE
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+
+	call near FileClose ; (ax)
+	jmp near _IntFDVector_bye
+
+_IntFDVector_load_sprite:
+	mov dx, [ifd_arg2]
+	call near FileOpen ; (ds:dx)
+
+
+
 
 	call near FileClose ; (ax)
 	jmp near _IntFDVector_bye
