@@ -77,3 +77,13 @@ void PrintNumber(uint16_t number)
 	*a2 = number;
 	asm("int 0xFD");
 }
+
+
+void LoadBackground(uint16_t filename)
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	*a1 = 0x03;
+	*a2 = filename;
+	asm("int 0xFD");
+}

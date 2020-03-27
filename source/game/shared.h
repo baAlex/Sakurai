@@ -28,21 +28,10 @@ typedef unsigned short uint16_t;
 #define CODE_HALT 0x00           /* Stops draw routine */
 #define CODE_DRAW_BKG 0x01       /* Draw loaded background into buffer */
 #define CODE_DRAW_PIXEL 0x02     /* Draw pixel into buffer */
-#define CODE_LOAD_BKG 0x03       /* Load a background file */
 #define CODE_DRAW_RECTANGLE 0x04 /* ... you got the idea */
 #define CODE_DRAW_RECTANGLE_BKG 0x05
 #define CODE_DRAW_RECTANGLE_PRECISE 0x06
 #define CODE_DRAW_SPRITE 0x07
-#define CODE_LOAD_SPRITE 0x08
-
-struct InstructionLoad
-{
-	uint8_t code;
-	uint8_t slot; /* Sprites only */
-	uint16_t filename;
-	uint16_t unused2;
-	uint16_t unused3;
-};
 
 struct InstructionDrawShape
 {
@@ -73,9 +62,6 @@ union Instruction {
 
 	/* DRAW_SPRITE */
 	struct InstructionDrawSprite draw_sprite;
-
-	/* LOAD_BKG, LOAD_SPRITE */
-	struct InstructionLoad load;
 };
 
 
@@ -129,3 +115,4 @@ void CleanInstructions();
 
 void PrintString(uint16_t string);
 void PrintNumber(uint16_t number);
+void LoadBackground(uint16_t filename);

@@ -176,9 +176,6 @@ Main_loop_instructions_table:
 		cmp al, 0x02 ; CODE_DRAW_PIXEL
 		je DrawPixel
 
-		cmp al, 0x03 ; CODE_LOAD_BKG
-		je LoadBkg
-
 		cmp al, 0x04 ; CODE_DRAW_RECTANGLE
 		je DrawRect
 
@@ -273,7 +270,10 @@ _IntFDVector:
 ; http://www.ctyme.com/intr/rb-8735.htm
 
 	push ax
+	push bx
+	push cx
 	push dx
+	push ds
 
 	mov ax, seg_game_data
 	mov ds, ax
@@ -286,6 +286,9 @@ _IntFDVector:
 	cmp ax, 0x02
 	je _IntFDVector_print_number
 
+	cmp ax, 0x03
+	je _IntFDVector_load_background
+
 _IntFDVector_print_string:
 	mov dx, [ifd_arg2]
 	call PrintLogString ; (ds:dx)
@@ -296,16 +299,34 @@ _IntFDVector_print_number:
 	call PrintLogNumber ; (ax)
 	jmp _IntFDVector_bye
 
+_IntFDVector_load_background:
+
+	; Open file
+	mov dx, [ifd_arg2]
+	call FileOpen ; (ds:dx)
+
+	; Read into bkg data
+	mov bx, seg_bkg_data
+	mov ds, bx
+	mov dx, 0x0000
+	mov cx, BKG_DATA_SIZE
+	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
+
+	call FileClose ; (ax)
+	jmp _IntFDVector_bye
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
+_IntFDVector_bye:
 	mov dx, 0x20
 	mov al, 0x20
 	out dx, al
 
 	; Bye!
-_IntFDVector_bye:
+	pop ds
 	pop dx
+	pop cx
+	pop bx
 	pop ax
 	iret
 

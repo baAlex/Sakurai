@@ -90,35 +90,6 @@ DrawPixel: ; CODE_DRAW_PIXEL
 
 
 ;==============================
-LoadBkg: ; CODE_LOAD_BKG
-; eax - Filename (high 16 bits)
-; ebx - Unused
-
-	push ds
-
-	shr eax, 16
-
-	; Open file
-	mov bx, seg_game_data
-	mov ds, bx
-	mov dx, ax
-	call FileOpen ; (ds:dx)
-
-	; Read into bkg data
-	mov bx, seg_bkg_data
-	mov ds, bx
-	mov dx, 0x0000
-	mov cx, BKG_DATA_SIZE
-	call FileRead ; (ax = fp, ds:dx = dest, cx = size)
-
-	; Bye!
-	call FileClose ; (ax)
-
-	pop ds
-	jmp Main_loop_instructions_table_continue
-
-
-;==============================
 DrawRect: ; CODE_DRAW_RECTANGLE
 ; eax - Color (ah), Width, Height (high 16 bits)
 ; ebx - X, Y (low 16 bits)

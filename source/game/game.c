@@ -195,23 +195,16 @@ int main()
 	   is just to test this functionality */
 	if ((*(uint16_t*)FRAME_COUNTER_OFFSET % 240) == 0)
 	{
-		/* Print something */
-		PrintString((uint16_t) "Something\n");
-		PrintNumber(0x1234);
-
-		/* Load and draw it */
-		ins = NewInstruction(CODE_LOAD_BKG);
-
 		switch (Random() % 8)
 		{
-		case 0: ins->load.filename = (uint16_t) "assets\\bkg1.raw"; break;
-		case 1: ins->load.filename = (uint16_t) "assets\\bkg2.raw"; break;
-		case 2: ins->load.filename = (uint16_t) "assets\\bkg3.raw"; break;
-		case 3: ins->load.filename = (uint16_t) "assets\\bkg4.raw"; break;
-		case 4: ins->load.filename = (uint16_t) "assets\\bkg5.raw"; break;
-		case 5: ins->load.filename = (uint16_t) "assets\\bkg6.raw"; break;
-		case 6: ins->load.filename = (uint16_t) "assets\\bkg7.raw"; break;
-		case 7: ins->load.filename = (uint16_t) "assets\\bkg8.raw";
+		case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
+		case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
+		case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
+		case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
+		case 4: LoadBackground((uint16_t) "assets\\bkg5.raw"); break;
+		case 5: LoadBackground((uint16_t) "assets\\bkg6.raw"); break;
+		case 6: LoadBackground((uint16_t) "assets\\bkg7.raw"); break;
+		case 7: LoadBackground((uint16_t) "assets\\bkg8.raw");
 		}
 
 		NewInstruction(CODE_DRAW_BKG);
