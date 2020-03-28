@@ -42,12 +42,9 @@
 
 ;==============================
 GamePrintString:
-	push dx
-
 	mov dx, [ifd_arg2]
 	call near PrintLogString ; (ds:dx)
 
-	pop dx
 	jmp near _IntFDVector_bye
 
 
@@ -61,34 +58,95 @@ GamePrintNumber:
 
 ;==============================
 GameLoadBackground:
-	push dx
-	push bx
 	push cx
 
 	mov dx, [ifd_arg2]
 	call near FileOpen ; (ds:dx)
 
-	mov bx, seg_bkg_data
-	mov ds, bx
+	mov dx, seg_bkg_data
+	mov ds, dx
 	mov dx, 0x0000
 	mov cx, BKG_DATA_SIZE
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
-	call near FileClose ; (ax)
-
+	; Bye!
 	pop cx
-	pop bx
-	pop dx
+	call near FileClose ; (ax)
 	jmp near _IntFDVector_bye
 
 
 ;==============================
 GameLoadSprite:
-	push dx
+	push bx
+	push cx
+	push si
 
 	mov dx, [ifd_arg2]
-	call near FileOpen ; (ds:dx)
-	call near FileClose ; (ax)
+	call near FileOpen ; (ds:dx, ax = RETURN)
 
-	pop dx
+	mov si, [ifd_arg3]
+	; (TODO: an PoolFree() here please...)
+
+	; From here everything happens on 'seg_data'
+	mov dx, seg_data
+	mov ds, dx
+
+	mov dx, str_spr_load
+	call near PrintLogString ; (ds:dx)
+
+	; Read sprite header in 'spr_header'
+	mov dx, spr_header
+	mov cx, 4 ; TODO, use a define (SPRITE_HEADER_SIZE)
+	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+
+	push ax ; To keep the fp
+
+		mov dx, str_size
+		call near PrintLogString ; (ds:dx)
+		mov ax, [spr_header] ; SprHeader::file_size
+		mov cx, ax
+		call near PrintLogNumber ; (ax)
+
+		mov dx, str_offset
+		call near PrintLogString ; (ds:dx)
+		mov ax, [spr_header + 2] ; SprHeader::data_offset
+		mov bx, ax
+		call near PrintLogNumber ; (ax)
+
+	pop ax
+
+	; Allocate memory accordingly
+	; And from here welcome to to 'seg_pool_a'
+	mov dx, seg_pool_a
+	mov ds, dx
+	mov dx, pool_a_data
+
+	call near PoolAllocate ; (ds:dx = pool, cx = size, di = RETURN)
+
+	; Fill the already read sprite header
+	mov [di], cx     ; SprHeader::file_size
+	mov [di + 2], bx ; SprHeader::data_offset
+
+	; Read the rest of the sprite file
+	mov dx, di
+
+	add dx, 4 ; TODO: SPRITE_HEADER_SIZE
+	sub cx, 4 ; TODO: SPRITE_HEADER_SIZE
+
+	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+
+	; Lazily lets write in the indirection table (TODO)
+	; ... once again in 'seg_data'!!!
+	mov dx, seg_data
+	mov ds, dx
+
+	shl si, 1 ; Multiply by the indirection table entry size (2)
+	mov word [spr_indirection_table + si], di
+
+	; Bye!
+	pop si
+	pop cx
+	pop bx
+
+	call near FileClose ; (ax)
 	jmp near _IntFDVector_bye

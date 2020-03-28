@@ -111,3 +111,189 @@ MemoryClean_16_loop:
 	pop di
 	pop eax
 	ret
+
+
+;==============================
+CHUNK_HEADER_SIZE = 8
+; u8  used
+; u8  last
+; u16 size
+; u16 previous_size
+; u16 unused2
+
+
+;==============================
+PoolInit:
+; ds:dx - Address to initialize
+; cx    - Size
+
+	push si
+
+	sub cx, CHUNK_HEADER_SIZE
+	jz near PoolInit_failure ; TODO
+	jc near PoolInit_failure ; TODO
+
+	mov si, dx
+
+	; Chunk header
+	mov byte [si], 0      ; Header::used
+	mov byte [si + 1], 1  ; Header::last
+	mov word [si + 2], cx ; Header::size
+
+	; Bye!
+	pop si
+	ret
+
+PoolInit_failure:
+	mov al, EXIT_FAILURE
+	call near Exit ; (al)
+
+
+;==============================
+PoolPrint:
+; ds:dx - Address
+
+	push ax
+	push bx
+	push si
+
+	mov si, dx
+
+	push ds
+	push dx
+		mov dx, seg_data
+		mov ds, dx
+		mov dx, str_mem_pool
+		call near PrintLogString ; (ds:dx)
+	pop dx
+	pop ds
+
+PoolPrint_loop:
+
+	; Used/last
+	push ds
+	push dx
+		mov dx, seg_data
+		mov ds, dx
+		mov dx, str_flags
+		call near PrintLogString ; (ds:dx)
+	pop dx
+	pop ds
+
+	mov word ax, [si] ; Header::used / Header::last
+	mov bx, ax
+	call near PrintLogNumber
+
+	; Size
+	push ds
+	push dx
+		mov dx, seg_data
+		mov ds, dx
+		mov dx, str_size
+		call near PrintLogString ; (ds:dx)
+	pop dx
+	pop ds
+
+	mov word ax, [si + 2] ; Header::size
+	call near PrintLogNumber
+
+	; Chunk is marked as the last one?
+	dec bh ; Header::last (bh)
+	jz near PoolPrint_bye
+
+	; Nope, advance to the next one
+	push ds
+	push dx
+		mov dx, seg_data
+		mov ds, dx
+		mov dx, str_mem_separator
+		call near PrintLogString ; (ds:dx)
+	pop dx
+	pop ds
+
+	add si, CHUNK_HEADER_SIZE
+	add si, ax
+	jmp near PoolPrint_loop
+
+	; Bye!
+PoolPrint_bye:
+	pop si
+	pop bx
+	pop ax
+	ret
+
+
+;==============================
+PoolAllocate:
+; ds:dx - Pool
+; cx    - Size
+
+	push ax
+	push bx
+	push si
+
+	mov si, dx
+
+	; Iterate chunks finding a free one
+	; Yes, inefficient as hell, but is not like
+	; a few 64 kb of memory require much more
+PoolAllocate_loop:
+
+	; Is used?
+	mov word bx, [si] ; Header::used (bl) / Header::last (bh)
+	cmp bl, 0x01 ; Header::used (bl)
+	jz near PoolAllocate_continue ; Yes, used
+
+	; Has space?
+	mov word ax, [si + 2] ; Header::size
+	cmp ax, cx
+	jz near PoolAllocate_continue_size_set ; No space here
+	jc near PoolAllocate_continue_size_set
+
+	; Found, lets subdivide the chunk
+	; ax - Chunk size
+	; bx - Chunk used (bl) / last (bh)
+	; cx - New chunk required size
+	; si - Chunk offset
+	sub ax, cx
+	sub ax, CHUNK_HEADER_SIZE
+	jz near PoolAllocate_no_remainder
+	jc near PoolAllocate_no_remainder
+
+	mov di, si
+	add di, cx ; Advance to the remainder chunk
+	add di, CHUNK_HEADER_SIZE
+
+	mov byte [di], 0      ; Remainder Header::used
+	mov byte [di + 1], bh ; Remainder Header::last
+	mov word [di + 2], ax ; Remainder Header::size
+	mov word [di + 4], cx ; Remainder Header::previous_size
+
+	mov byte [si + 1], 0  ; Header::last
+	mov word [si + 2], cx ; Header::size
+
+PoolAllocate_no_remainder:
+	mov byte [si], 1 ; Header::used
+
+	; Bye!
+	add si, CHUNK_HEADER_SIZE
+	mov di, si ; Return value
+	pop si
+	pop bx
+	pop ax
+	ret
+
+	; Advance to the next one, if any
+PoolAllocate_continue:
+	mov word ax, [si + 2] ; Header::size
+PoolAllocate_continue_size_set:
+	dec bh ; Header::last
+	jz near PoolAllocate_failure ; Last one :(
+
+	add si, CHUNK_HEADER_SIZE
+	add si, ax
+	jmp near PoolAllocate_loop
+
+PoolAllocate_failure:
+	mov al, EXIT_FAILURE
+	call near Exit ; (al)

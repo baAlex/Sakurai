@@ -197,7 +197,6 @@ int main()
 	{
 		if(*(uint16_t*)FRAME_COUNTER_OFFSET == 0)
 		{
-			PrintString("Loading sprites...\n");
 			LoadSprite("assets\\player.jvn", 0);
 			LoadSprite("assets\\sprite1.jvn", 1);
 			LoadSprite("assets\\sprite2.jvn", 2);
@@ -240,7 +239,7 @@ int main()
 
 			/* Draw character */
 			com = NewCommand(CODE_DRAW_SPRITE);
-			com->draw_sprite.slot = (i < 2) ? 0 : 1;
+			com->draw_sprite.slot = (i < 2) ? 0 : 2;
 			com->draw_sprite.x = s_actor[i].x;
 			com->draw_sprite.y = s_base_y[i];
 

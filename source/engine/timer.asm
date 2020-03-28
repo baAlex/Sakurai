@@ -54,13 +54,13 @@ TimeInit:
 	mov [time_previous_vector_offset], bx
 
 	; Print it
-	mov dx, str_segment
+	mov dx, str_vector_segment
 	call near PrintLogString ; (ds:dx)
 
 	mov ax, es
 	call near PrintLogNumber ; (ax)
 
-	mov dx, str_offset
+	mov dx, str_vector_offset
 	call near PrintLogString ; (ds:dx)
 
 	mov ax, bx
@@ -142,13 +142,13 @@ TimeStop:
 	call near PrintLogString ; (ds:dx)
 
 	; Print previous vector
-	mov dx, str_segment
+	mov dx, str_vector_segment
 	call near PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_sector]
 	call near PrintLogNumber ; (ax)
 
-	mov dx, str_offset
+	mov dx, str_vector_offset
 	call near PrintLogString ; (ds:dx)
 
 	mov ax, [time_previous_vector_offset]

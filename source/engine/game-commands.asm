@@ -282,12 +282,6 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	push si
 	push ds
 
-	mov cx, seg_buffer_data
-	mov es, cx
-
-	mov cx, seg_spr_data
-	mov ds, cx
-
 	; Calculate offset in DI
 	mov di, 0x0000
 	add di, bx ; X
@@ -299,8 +293,28 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	add di, bx
 	add di, cx
 
+	; Load slot
+	mov dx, seg_data
+	mov ds, dx
+
+	shr ax, 8 ; Slot (ah)
+	mov si, ax
+	shl si, 1 ; Multiply by the indirection table entry size (2)
+
+	mov bx, word[spr_indirection_table + si]
+
 	; Draw!
-	call far seg_spr_data:0x0000
+	mov dx, seg_buffer_data
+	mov es, dx
+
+	mov dx, seg_pool_a
+	mov ds, dx
+
+	mov si, [bx + 2] ; Data offset in the sprite header
+	add si, bx
+	add bx, 4 ; Header size (to skip it)
+
+	call far seg_pool_a:spr_draw
 
 	; Bye!
 	pop ds

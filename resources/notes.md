@@ -44,6 +44,18 @@ Functions
 - `es:di` Destination
 - `cx`    Size
 
+### PoolInit
+- `ds:dx` Pool to initialize
+- `cx`    Size
+
+### PoolPrint
+- `ds:dx` Pool to print
+
+### PoolAllocate
+- `ds:dx` Pool
+- `cx`    Size of bytes to allocate
+- Returns in `di` the address of the allocated memory
+
 ### PrintLogString
 - `ds:dx` String to print
 

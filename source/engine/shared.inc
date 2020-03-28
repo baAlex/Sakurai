@@ -3,10 +3,12 @@
 ; - Alexander Brandt 2020
 
 
-SPR_DATA_SIZE = 64000    ; Bytes
-BUFFER_DATA_SIZE = 64000 ; "
+BUFFER_DATA_SIZE = 64000 ; Bytes
 BKG_DATA_SIZE = 64000    ; "
 VGA_DATA_SIZE = 64000    ; "
+
+POOL_A_SIZE = 64000 ; Bytes
+POOL_B_SIZE = 64000 ; "
 
 PALETTE_LEN = 128  ; Colors
 PALETTE_SIZE = 384 ; Bytes
@@ -57,8 +59,17 @@ segment seg_data
 	str_keyboard_stop: db "Stopping keyboard module...", UNIX_NL, 0x00
 	str_time_stop: db "Stopping time module...", UNIX_NL, 0x00
 
-	str_segment: db " - Vector segment: ", 0x00
-	str_offset: db " - Vector offset: ", 0x00
+	str_vector_segment: db " - Vector segment: ", 0x00
+	str_vector_offset: db " - Vector offset: ", 0x00
+
+	str_mem_pool: db "Memory pool:", UNIX_NL, 0x00
+	str_spr_load: db "Loading sprite...", UNIX_NL, 0x00
+	str_mem_separator: db " ----", UNIX_NL, 0x00
+
+	str_segment: db " - Segment: ", 0x00
+	str_offset: db " - Offset: ", 0x00
+	str_flags: db " - Flags: ", 0x00
+	str_size: db " - Size: ", 0x00
 
 	str_file_open_error: db "FileOpen() error, code: ", 0x00
 	str_log_filename: db "sakurai.log", 0x00
@@ -81,6 +92,10 @@ segment seg_data
 	; IntFD
 	previous_ifd_vector_segment: dw 0x0000
 	previous_ifd_vector_offset: dw 0x0000
+
+	; Game
+	spr_header: times 2 dw 0x0000
+	spr_indirection_table: times 32 dw 0x0000
 
 
 ;==============================
@@ -118,30 +133,16 @@ GameFrame:
 
 
 ;==============================
-segment seg_spr_data
+segment seg_pool_a
+	pool_a_data: rb POOL_A_SIZE
 
-	; Load slot
-	shr ax, 8 ; Slot (ah)
-	mov si, ax
-	shl si, 1 ; Multiply by indirection entry size (2 bytes)
+spr_draw:
+	jmp near bx
 
-	mov bx, word [spr_indirection_table + si]
-	add bx, spr_data
 
-	mov si, [bx] ; Data offset in the sprite header
-	add si, bx
-
-	add bx, 4 ; Header size (to skip it)
-	;jmp near bx
-	retf
-
-spr_indirection_table: rw 32
-	;dw 0    ; Sprite 0
-	;dw 3334 ; Sprite 1
-
-spr_data: rb SPR_DATA_SIZE
-	;file "../../assets/player.jvn"
-	;file "../../assets/sprite2.jvn"
+;==============================
+segment seg_pool_b
+	pool_b_data: rb POOL_B_SIZE
 
 
 ;==============================

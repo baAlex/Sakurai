@@ -63,7 +63,7 @@ Main:
 
 	; Load game
 	mov dx, str_game_filename
-	call near FileOpen ; (ds:dx)
+	call near FileOpen ; (ds:dx, return in ax)
 
 	mov bx, seg_game_data
 	mov ds, bx
@@ -72,11 +72,20 @@ Main:
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 	call near FileClose ; (ax)
 
-	; Modules initialization
-	call near TimeInit
-	call near KeyboardInit
-	call near RenderInit
-	call near IntFDInit
+	; Memory pool initialization
+	mov ax, seg_pool_a
+	mov ds, ax
+	mov dx, pool_a_data
+	mov cx, POOL_A_SIZE
+	call near PoolInit ; (ds:dx, cx)
+	call near PoolPrint ; (ds:dx)
+
+	mov ax, seg_pool_b
+	mov ds, ax
+	mov dx, pool_b_data
+	mov cx, POOL_B_SIZE
+	call near PoolInit ; (ds:dx, cx)
+	call near PoolPrint ; (ds:dx)
 
 	; Clean buffer memory
 	mov ax, seg_buffer_data
@@ -85,6 +94,12 @@ Main:
 	mov cx, BUFFER_DATA_SIZE
 
 	call near MemoryClean
+
+	; Modules initialization
+	call near TimeInit
+	call near KeyboardInit
+	call near RenderInit
+	call near IntFDInit
 
 	; Measure how much took a copy of an entry
 	; segment into the VGA memory (ps: a lot)
