@@ -186,30 +186,30 @@ def ProcessSprite(filename)
 	end
 
 	data = ReadBmpIndexedData(header, file)
-	imrow_list = Array.new()
+	im_row_list = Array.new()
 
 	file.close()
 
-	# Create immediate rows
+	# Create intermediate rows
 	for r in 0...header[:height] do
 
-		imrow = IRRow.new(r)
+		im_row = IRRow.new(r)
 
 		for c in 0...header[:width] do
-			imrow.append(data[header[:width] * r + c], c)
+			im_row.append(data[header[:width] * r + c], c)
 		end
 
-		if imrow.pixels.size != 0 then
-			imrow_list.append(imrow)
+		if im_row.pixels.size != 0 then
+			im_row_list.append(im_row)
 		end
 	end
 
 	# Brute force from here, close your eyes...
-	for irA in imrow_list do
-		for irB in imrow_list do
+	for a in im_row_list do
+		for b in im_row_list do
 
-			if offset = irA.subset_of?(irB) then
-				irA.superset = irB
+			if offset = a.subset_of?(b) then
+				a.superset = b
 				break
 			end
 		end
@@ -217,14 +217,14 @@ def ProcessSprite(filename)
 
 	soup = Array.new()
 
-	for ir in imrow_list do
-		if ir.superset == nil then
-			soup += ir.pixels
+	for row in im_row_list do
+		if row.superset == nil then
+			soup += row.pixels
 		else
 			# Unfold superset linkage
 			# ('unfold' is the correct word?)
-			while ir.superset.superset != nil do
-				ir.superset = ir.superset.superset
+			while row.superset.superset != nil do
+				row.superset = row.superset.superset
 			end
 		end
 	end
@@ -239,8 +239,8 @@ def ProcessSprite(filename)
 	delta_x = 0
 	data_offset = 0
 
-	for ir in imrow_list do
-		delta_x, data_offset = ir.emit_instructions(soup, delta_x, data_offset)
+	for row in im_row_list do
+		delta_x, data_offset = row.emit_instructions(soup, delta_x, data_offset)
 	end
 
 	print("\tretf\n")
