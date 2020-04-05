@@ -28,20 +28,150 @@
 require_relative "shared.rb"
 
 
-def EmitMov(opaque_num)
+class IRPixel
+	attr_accessor :value
+	attr_accessor :x
 
-	while opaque_num != 0 do
+	def initialize(value, x)
+		@value = value
+		@x = x
+	end
+end
 
-		if opaque_num >= 4 then
-			print("\tmovsd\n")
-			opaque_num -= 4
-		elsif opaque_num >=2 then
-			print("\tmovsw\n")
-			opaque_num -= 2
-		else
-			print("\tmovsb\n")
-			opaque_num -= 1
+
+class IRRow
+	attr_accessor :pixels
+	attr_accessor :row_no
+	attr_accessor :superset
+
+
+	def initialize(row_no)
+		@pixels = Array.new()
+		@row_no = row_no
+		@superset = nil
+	end
+
+
+	def append(value, x)
+		if value == 0 then return end
+		@pixels.push(IRPixel.new(value, x))
+	end
+
+
+	def emit_mov(accumulator)
+
+		while accumulator > 0 do
+			if accumulator >= 4 then
+				print("\tmovsd\n")
+				accumulator -= 4
+			elsif accumulator >=2 then
+				print("\tmovsw\n")
+				accumulator -= 2
+			else
+				print("\tmovsb\n")
+				accumulator -= 1
+			end
 		end
+	end
+
+
+	def emit_instructions(soup, previous_delta_x, previous_data_offset)
+
+		# Destination X, Y adjustment (DI)
+		if @row_no > 0 then
+			print("\tadd di, #{320 - previous_delta_x + @pixels[0].x - 1}")
+			print(" ; Row #{@row_no}, x = #{@pixels[0].x}")
+
+			if @superset then printf(", superset = #{@superset.row_no}") end
+			printf("\n")
+		end
+
+		# Source data offset adjustment (SI)
+		data_offset = data_offset_at(soup)
+
+		if data_offset > previous_data_offset then
+			print("\tadd si, #{data_offset - previous_data_offset}")
+			print(" ; #{data_offset}\n")
+		elsif data_offset < previous_data_offset then
+			print("\tsub si, #{previous_data_offset - data_offset}")
+			print(" ; #{data_offset}\n")
+		end
+
+		# Iterate pixels an emit MOV instructions
+		accumulator = 0
+		last_x = (@pixels[0].x - 1)
+
+		for p in @pixels do
+
+			# Transparent pixel between (x adjustment)
+			if p.x != (last_x + 1) then
+				emit_mov(accumulator)
+				data_offset += accumulator
+				accumulator = 0
+
+				print("\tadd di, #{p.x - (last_x + 1)}\n")
+			end
+
+			# Opaque pixels
+			accumulator += 1
+
+			if accumulator == 4 || p == @pixels.last() then
+				emit_mov(accumulator)
+				data_offset += accumulator
+				accumulator = 0
+			end
+
+			last_x = p.x
+		end
+
+		# Bye!
+		return last_x, data_offset
+	end
+
+
+	def subset_of?(other)
+
+		if self == other || @pixels.size > other.pixels.size then
+			return false
+		end
+
+		for x in 0...(other.pixels.size - @pixels.size) do
+			for y in 0...@pixels.size do
+
+				if @pixels[y].value != other.pixels[x + y].value then
+					break
+				end
+
+				if y == (@pixels.size - 1) then
+					return true
+				end
+			end
+		end
+
+		return false
+	end
+
+
+	def data_offset_at(array)
+
+		if @pixels.size > array.size then
+			return nil
+		end
+
+		for x in 0...array.size do
+			for y in 0...@pixels.size do # TODO, out of bounds?
+
+				if @pixels[y].value != array[x + y].value then
+					break
+				end
+
+				if y == (@pixels.size - 1) then
+					return (x)
+				end
+			end
+		end
+
+		return nil
 	end
 end
 
@@ -56,100 +186,74 @@ def ProcessSprite(filename)
 	end
 
 	data = ReadBmpIndexedData(header, file)
+	imrow_list = Array.new()
 
+	file.close()
+
+	# Create immediate rows
+	for r in 0...header[:height] do
+
+		imrow = IRRow.new(r)
+
+		for c in 0...header[:width] do
+			imrow.append(data[header[:width] * r + c], c)
+		end
+
+		if imrow.pixels.size != 0 then
+			imrow_list.append(imrow)
+		end
+	end
+
+	# Brute force from here, close your eyes...
+	for irA in imrow_list do
+		for irB in imrow_list do
+
+			if offset = irA.subset_of?(irB) then
+				irA.superset = irB
+				break
+			end
+		end
+	end
+
+	soup = Array.new()
+
+	for ir in imrow_list do
+		if ir.superset == nil then
+			soup += ir.pixels
+		else
+			# Unfold superset linkage
+			# ('unfold' is the correct word?)
+			while ir.superset.superset != nil do
+				ir.superset = ir.superset.superset
+			end
+		end
+	end
+
+	# Print header
 	print("; Thanks von Neumann!\n")
 	print("dw (file_end) ; File size\n")
 	print("dw (pixels)   ; Offset to data\n")
 
-	# Code
+	# Print code
 	print("\ncode:\n")
+	delta_x = 0
+	data_offset = 0
 
-	opaque_num = 0
-	trans_num = 0
-	max_di = 0
-	first_opaque = 0
-
-	for row in 0...header[:height] do
-
-		# Adjust vertical offset with ADD in DI
-		if row != 0 then
-
-			# Cycle columns to check that the row is not empty
-			# and to start ignoring initial transparent space
-			for col in 0...header[:width] do
-
-				if data[header[:width] * row + col] != 0 then
-					print("\tadd di, #{320 + col - max_di} ; Row #{row}\n")
-
-					first_opaque = col
-					max_di = col
-					trans_num = 0
-					break
-				end
-			end
-		end
-
-		# Emit MOV instructions to draw opaque pixels
-		# And ADD in DI to adjust transparent pixels
-		for col in max_di...header[:width] do
-
-			# Transparent pixel found
-			if data[header[:width] * row + col] == 0 then
-				trans_num += 1
-
-				EmitMov(opaque_num)
-				max_di += opaque_num
-				opaque_num = 0
-
-			# Opaque pixel
-			else
-				opaque_num += 1 # Sum whitout emit
-
-				if trans_num != 0 then
-					print("\tadd di, #{trans_num}\n")
-					max_di += trans_num
-					trans_num = 0
-				end
-
-				if opaque_num == 4 then # Enought!
-					EmitMov(opaque_num)
-					max_di += opaque_num
-					opaque_num = 0
-				end
-			end
-		end
+	for ir in imrow_list do
+		delta_x, data_offset = ir.emit_instructions(soup, delta_x, data_offset)
 	end
 
 	print("\tretf\n")
 
-	# Data
-	print("\npixels:\n")
-	first = false
+	# Print data
+	print("\npixels: db")
 
-	for row in 0...header[:height] do
-
-		i = 0
-		first = false
-
-		for col in 0...header[:width] do
-
-			if data[header[:width] * row + col] != 0 then
-
-				if first == false then
-					print("\nrow#{row}: db")
-					first = true
-				end
-
-				printf("%s", (i == 0) ? " " : ", ")
-				print("#{data[header[:width] * row + col]}")
-				i += 1
-			end
-		end
+	for i in 0...soup.size do
+		printf("%s", (i != 0) ? ", " : " ")
+		print(soup[i].value)
 	end
 
-	print("\nfile_end:\n")
-
-	file.close()
+	print("\n\nfile_end:\n")
 end
 
 (ARGV.length > 0) ? ProcessSprite(ARGV[0]) : raise("No Bmp input specified")
