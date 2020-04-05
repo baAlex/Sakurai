@@ -42,13 +42,11 @@ end
 class IRRow
 	attr_accessor :pixels
 	attr_accessor :row_no
-	attr_accessor :superset
 
 
 	def initialize(row_no)
 		@pixels = Array.new()
 		@row_no = row_no
-		@superset = nil
 	end
 
 
@@ -80,10 +78,7 @@ class IRRow
 		# Destination X, Y adjustment (DI)
 		if @row_no > 0 then
 			print("\tadd di, #{320 - previous_delta_x + @pixels[0].x - 1}")
-			print(" ; Row #{@row_no}, x = #{@pixels[0].x}")
-
-			if @superset then printf(", superset = #{@superset.row_no}") end
-			printf("\n")
+			print(" ; Row #{@row_no}, x = #{@pixels[0].x}\n")
 		end
 
 		# Source data offset adjustment (SI)
@@ -159,7 +154,7 @@ class IRRow
 		end
 
 		for x in 0...array.size do
-			for y in 0...@pixels.size do # TODO, out of bounds?
+			for y in 0...(array.size - @pixels.size) do
 
 				if @pixels[y].value != array[x + y].value then
 					break
@@ -171,6 +166,7 @@ class IRRow
 			end
 		end
 
+		raise("This should not happen!")
 		return nil
 	end
 end
@@ -205,27 +201,39 @@ def ProcessSprite(filename)
 	end
 
 	# Brute force from here, close your eyes...
+	soup = Array.new()
+	soup_clean = Array.new()
+
 	for a in im_row_list do
+
+		superset = nil
+
 		for b in im_row_list do
 
-			if offset = a.subset_of?(b) then
-				a.superset = b
+			if a.subset_of?(b) == true then
+				superset = b
 				break
 			end
 		end
+
+		if superset == nil then
+			soup += a.pixels
+		end
 	end
 
-	soup = Array.new()
+	soup_mask = Array.new(soup.size, false)
 
 	for row in im_row_list do
-		if row.superset == nil then
-			soup += row.pixels
-		else
-			# Unfold superset linkage
-			# ('unfold' is the correct word?)
-			while row.superset.superset != nil do
-				row.superset = row.superset.superset
-			end
+		offset = row.data_offset_at(soup)
+		
+		for i in offset...(offset + row.pixels.size) do
+			soup_mask[i] = true
+		end
+	end
+
+	for i in 0...soup.size do
+		if soup_mask[i] == true then
+			soup_clean.push(soup[i])
 		end
 	end
 
@@ -240,7 +248,7 @@ def ProcessSprite(filename)
 	data_offset = 0
 
 	for row in im_row_list do
-		delta_x, data_offset = row.emit_instructions(soup, delta_x, data_offset)
+		delta_x, data_offset = row.emit_instructions(soup_clean, delta_x, data_offset)
 	end
 
 	print("\tretf\n")
@@ -248,9 +256,9 @@ def ProcessSprite(filename)
 	# Print data
 	print("\npixels: db")
 
-	for i in 0...soup.size do
+	for i in 0...soup_clean.size do
 		printf("%s", (i != 0) ? ", " : " ")
-		print(soup[i].value)
+		print(soup_clean[i].value)
 	end
 
 	print("\n\nfile_end:\n")
