@@ -41,12 +41,10 @@ end
 
 class IRRow
 	attr_accessor :pixels
-	attr_accessor :row_no
 
 
-	def initialize(row_no)
+	def initialize()
 		@pixels = Array.new()
-		@row_no = row_no
 	end
 
 
@@ -73,13 +71,16 @@ class IRRow
 	end
 
 
-	def emit_instructions(soup, previous_delta_x, previous_data_offset)
+	def emit_instructions(soup, previous_delta_x, previous_data_offset, row_no)
 
 		# Destination X, Y adjustment (DI)
-		if @row_no > 0 then
+		if row_no > 0 then
 			print("\tadd di, #{320 - previous_delta_x + @pixels[0].x - 1}")
-			print(" ; Row #{@row_no}, x = #{@pixels[0].x}\n")
+		else
+			print("\tadd di, #{@pixels[0].x - 1}")
 		end
+
+		print(" ; Row #{row_no}, x = #{@pixels[0].x}\n")
 
 		# Source data offset adjustment (SI)
 		data_offset = data_offset_at(soup)
@@ -172,66 +173,111 @@ class IRRow
 end
 
 
-def ProcessSprite(filename)
+class IRFrame
+	attr_accessor :rows
 
-	file = File.open(filename, "rb")
-	header = ReadBmpHeader(file)
 
-	if header[:bpp] != 8 then
-		raise("True color images not supported")
+	def initialize()
+		@rows = Array.new()
 	end
 
-	data = ReadBmpIndexedData(header, file)
-	im_row_list = Array.new()
 
-	file.close()
-
-	# Create intermediate rows
-	for r in 0...header[:height] do
-
-		im_row = IRRow.new(r)
-
-		for c in 0...header[:width] do
-			im_row.append(data[header[:width] * r + c], c)
-		end
-
-		if im_row.pixels.size != 0 then
-			im_row_list.append(im_row)
-		end
+	def append(row)
+		if row.pixels.size == 0 then return end
+		@rows.push(row)
 	end
+end
 
-	# Brute force from here, close your eyes...
-	soup = Array.new()
-	soup_clean = Array.new()
 
-	for a in im_row_list do
+def ProcessSprite(filename_list)
 
-		superset = nil
+	frame_list = Array.new()
+	previous_header = nil
 
-		for b in im_row_list do
+	# Iterate files creating intermediate objects
+	for filename in filename_list do
 
-			if a.subset_of?(b) == true then
-				superset = b
-				break
+		# Create frame
+		frame = IRFrame.new()
+		frame_list.push(frame)
+
+		file = File.open(filename, "rb")
+		header = ReadBmpHeader(file)
+	
+		if header[:bpp] != 8 then
+			raise("True color images not supported")
+		end
+	
+		if previous_header != nil then
+			if previous_header[:width] != header[:width] ||
+			   previous_header[:height] != header[:height] then
+				raise("Animation frames can't have different dimensions")
 			end
 		end
 
-		if superset == nil then
-			soup += a.pixels
+		data = ReadBmpIndexedData(header, file)
+		file.close()
+
+		# Create rows
+		for r in 0...header[:height] do
+
+			row = IRRow.new()
+
+			for c in 0...header[:width] do
+				row.append(data[header[:width] * r + c], c)
+			end
+
+			frame.append(row)
 		end
+
+		# Next step
+		previous_header = header
 	end
 
-	soup_mask = Array.new(soup.size, false)
+	# Brute force, close your eyes...
+	soup = Array.new()
 
-	for row in im_row_list do
+	for frame_a in frame_list do
+	for row_a in frame_a.rows do
+
+		superset = nil
+
+		for frame_b in frame_list do
+		for row_b in frame_a.rows do
+
+			if row_a.subset_of?(row_b) == true then
+				superset = row_b
+				break
+			end
+
+		end
+		end
+
+		if superset == nil then
+			soup += row_a.pixels
+		end
+
+	end
+	end
+
+	# Even with the 'superset' approach some bytes
+	# on the soup ends being unused, lets delete them
+	soup_mask = Array.new(soup.size, false)
+	soup_clean = Array.new()
+
+	for frame in frame_list do
+	for row in frame.rows do
+
 		offset = row.data_offset_at(soup)
-		
+
 		for i in offset...(offset + row.pixels.size) do
 			soup_mask[i] = true
 		end
+
+	end
 	end
 
-	for i in 0...soup.size do
+	for i in 0...soup_mask.size do
 		if soup_mask[i] == true then
 			soup_clean.push(soup[i])
 		end
@@ -243,25 +289,36 @@ def ProcessSprite(filename)
 	print("dw (pixels)   ; Offset to data\n")
 
 	# Print code
-	print("\ncode:\n")
-	delta_x = 0
-	data_offset = 0
+	frame_list.each_with_index() do |frame, frame_no|
 
-	for row in im_row_list do
-		delta_x, data_offset = row.emit_instructions(soup_clean, delta_x, data_offset)
+		print("\ncode_f#{frame_no + 1}:\n")
+		delta_x = 0
+		data_offset = 0
+
+		frame.rows.each_with_index() do |row, row_no|
+			delta_x, data_offset = row.emit_instructions(soup_clean, delta_x, data_offset, row_no)
+		end
+
+		print("\tretf\n")
 	end
 
-	print("\tretf\n")
-
 	# Print data
-	print("\npixels: db")
+	print("\npixels:\n")
 
 	for i in 0...soup_clean.size do
-		printf("%s", (i != 0) ? ", " : " ")
-		print(soup_clean[i].value)
+
+		if (i % 16) == 0 then print("\tdb ") end
+
+		print("#{soup_clean[i].value}")
+
+		if i != soup_clean.size - 1 then
+			printf("%s", ((i % 16) != 15) ? ", " : "\n")
+		else
+			print("\n")
+		end
 	end
 
 	print("\n\nfile_end:\n")
 end
 
-(ARGV.length > 0) ? ProcessSprite(ARGV[0]) : raise("No Bmp input specified")
+(ARGV.length > 0) ? ProcessSprite(ARGV) : raise("No Bmp input specified")

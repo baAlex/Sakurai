@@ -47,11 +47,19 @@ build ./game.dll: CompileAndLinkC $
 # Generated files
 build ./generated/sin.c: SinTable ./
 
+build ./generated/idle.asm: GenerateSprite $
+ ./assets/idle/idle0001.bmp $
+ ./assets/idle/idle0002.bmp $
+ ./assets/idle/idle0003.bmp $
+ ./assets/idle/idle0004.bmp
+
 build ./generated/sprite1.asm: GenerateSprite ./assets/sprite1.bmp
 build ./generated/sprite2.asm: GenerateSprite ./assets/sprite2.bmp
 build ./generated/player.asm: GenerateSprite ./assets/player.bmp
 
 # Assets
+build ./assets/idle.jvn: CompileSprite ./generated/idle.asm
+
 build ./assets/sprite1.jvn: CompileSprite ./generated/sprite1.asm
 build ./assets/sprite2.jvn: CompileSprite ./generated/sprite2.asm
 build ./assets/player.jvn: CompileSprite ./generated/player.asm
