@@ -48,7 +48,7 @@ struct CommandGameDrawSprite
 	uint8_t code;
 	uint8_t slot;
 	uint8_t frame;
-	uint8_t mode;
+	uint8_t unused;
 	uint16_t x;
 	uint16_t y;
 };

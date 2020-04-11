@@ -197,7 +197,7 @@ int main()
 	{
 		if(*(uint16_t*)FRAME_COUNTER_OFFSET == 0)
 		{
-			LoadSprite("assets\\player.jvn", 0);
+			LoadSprite("assets\\idle.jvn", 0);
 			LoadSprite("assets\\sprite1.jvn", 1);
 			LoadSprite("assets\\sprite2.jvn", 2);
 		}
@@ -239,9 +239,19 @@ int main()
 
 			/* Draw character */
 			com = NewCommand(CODE_DRAW_SPRITE);
-			com->draw_sprite.slot = (i < 2) ? 0 : 2;
 			com->draw_sprite.x = s_actor[i].x;
 			com->draw_sprite.y = s_base_y[i];
+
+			if (i < 2)
+			{
+				com->draw_sprite.slot = 0;
+				com->draw_sprite.frame = *(uint16_t*)FRAME_COUNTER_OFFSET + i;
+			}
+			else
+			{
+				com->draw_sprite.slot = 2;
+				com->draw_sprite.frame = 0;
+			}
 
 			/* Draw time meter background */
 			com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);

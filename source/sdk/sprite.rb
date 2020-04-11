@@ -284,9 +284,16 @@ def ProcessSprite(filename_list)
 	end
 
 	# Print header
-	print("; Thanks von Neumann!\n")
+	print("; Thanks von Neumann!\n\n")
 	print("dw (file_end) ; File size\n")
-	print("dw (pixels)   ; Offset to data\n")
+	print("dw (pixels) ; Offset to data\n")
+	print("dw #{frame_list.size} ; Frames number\n")
+
+	print("\n")
+
+	for i in 0...frame_list.size do
+		print("dw (code_f#{i + 1} - $)\n")
+	end
 
 	# Print code
 	frame_list.each_with_index() do |frame, frame_no|

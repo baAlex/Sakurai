@@ -293,7 +293,7 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	add di, bx
 	add di, cx
 
-	; Load slot
+	; Load sprite offset from indirection table, in BX
 	mov dx, seg_data
 	mov ds, dx
 
@@ -303,18 +303,36 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 
 	mov bx, word[spr_indirection_table + si]
 
+	; Read SI and CX from sprite header
+	mov dx, seg_pool_a
+	mov ds, dx
+
+	mov si, [bx + 2] ; Data offset in header
+	mov cx, [bx + 4] ; Frame number in header
+	add si, bx
+
+	; Load frame number in AX (currently is on the higher EAX bytes)
+	shr eax, 16
+	and ax, 0x00FF
+
+ 	div cl ; Modulo by frames number
+ 	shr ax, 8
+
+	; Read the frame offset table after header using AX, then 
+	; point BX into the desired frame code
+	shl ax, 1 ; Multiply by the frame offsets entry size (2)
+	add bx, 6 ; Header size (to skip it)
+	add bx, ax
+	add bx, [bx]
+
 	; Draw!
 	mov dx, seg_buffer_data
 	mov es, dx
 
-	mov dx, seg_pool_a
-	mov ds, dx
-
-	mov si, [bx + 2] ; Data offset in the sprite header
-	add si, bx
-	add bx, 4 ; Header size (to skip it)
-
 	call far seg_pool_a:spr_draw
+		; BX = Absolute offset (in the segment) pointing into a frame code 
+		; DS:SI = Source, specified in the header (also absolute)
+		; ES:DI = Destination
 
 	; Bye!
 	pop ds
