@@ -245,7 +245,7 @@ int main()
 			if (i < 2)
 			{
 				com->draw_sprite.slot = 0;
-				com->draw_sprite.frame = *(uint16_t*)FRAME_COUNTER_OFFSET + i;
+				com->draw_sprite.frame = (*(uint16_t*)FRAME_COUNTER_OFFSET + i + 2) >> 2;
 			}
 			else
 			{

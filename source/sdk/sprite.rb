@@ -193,9 +193,17 @@ def ProcessSprite(filename_list)
 
 	frame_list = Array.new()
 	previous_header = nil
+	pingpong = false
 
 	# Iterate files creating intermediate objects
 	for filename in filename_list do
+
+		# Options
+		if filename == "!linear" then next end
+		if filename == "!pingpong" then
+			pingpong = true
+			next
+		end
 
 		# Create frame
 		frame = IRFrame.new()
@@ -287,12 +295,24 @@ def ProcessSprite(filename_list)
 	print("; Thanks von Neumann!\n\n")
 	print("dw (file_end) ; File size\n")
 	print("dw (pixels) ; Offset to data\n")
-	print("dw #{frame_list.size} ; Frames number\n")
+
+	if pingpong == true && frame_list.size > 1 then
+		print("dw #{frame_list.size * 2 - 2} ; Frames number, ping pong mode\n")
+	else
+		print("dw #{frame_list.size} ; Frames number\n")
+	end
 
 	print("\n")
 
+	# Print frame code offsets
 	for i in 0...frame_list.size do
 		print("dw (code_f#{i + 1} - $)\n")
+	end
+
+	if pingpong == true && frame_list.size > 1 then
+		for i in 0...(frame_list.size - 2) do
+			print("dw (code_f#{frame_list.size - i - 1} - $)\n")
+		end
 	end
 
 	# Print code

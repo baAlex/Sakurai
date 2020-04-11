@@ -20,8 +20,11 @@ rule Assembly
 rule CompileAndLinkC
  command = bcc -ansi -0 -Md -O -W -x -i -o $out $in -C -c
 
-rule GenerateSprite
- command = ruby ./source/sdk/sprite.rb $in > $out
+rule GenerateLinearSprite
+ command = ruby ./source/sdk/sprite.rb !linear $in > $out
+
+rule GeneratePingPongSprite
+ command = ruby ./source/sdk/sprite.rb !pingpong $in > $out
 
 rule CompileSprite
  command = fasm $in $out
@@ -47,15 +50,15 @@ build ./game.dll: CompileAndLinkC $
 # Generated files
 build ./generated/sin.c: SinTable ./
 
-build ./generated/idle.asm: GenerateSprite $
+build ./generated/idle.asm: GeneratePingPongSprite $
  ./assets/idle/idle0001.bmp $
  ./assets/idle/idle0002.bmp $
  ./assets/idle/idle0003.bmp $
  ./assets/idle/idle0004.bmp
 
-build ./generated/sprite1.asm: GenerateSprite ./assets/sprite1.bmp
-build ./generated/sprite2.asm: GenerateSprite ./assets/sprite2.bmp
-build ./generated/player.asm: GenerateSprite ./assets/player.bmp
+build ./generated/sprite1.asm: GenerateLinearSprite ./assets/sprite1.bmp
+build ./generated/sprite2.asm: GenerateLinearSprite ./assets/sprite2.bmp
+build ./generated/player.asm: GenerateLinearSprite ./assets/player.bmp
 
 # Assets
 build ./assets/idle.jvn: CompileSprite ./generated/idle.asm
