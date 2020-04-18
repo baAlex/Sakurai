@@ -41,16 +41,27 @@ end
 
 class IRRow
 	attr_accessor :pixels
+	attr_accessor :max_x
+	attr_accessor :y
 
 
-	def initialize()
+	def initialize(y)
 		@pixels = Array.new()
+		@max_x = 0
+		@y = y
 	end
 
 
 	def append(value, x)
-		if value == 0 then return end
-		@pixels.push(IRPixel.new(value, x))
+
+		if value > 0 then
+
+			@pixels.push(IRPixel.new(value, x))
+
+			if x > @max_x then
+				@max_x = x
+			end
+		end
 	end
 
 
@@ -71,16 +82,16 @@ class IRRow
 	end
 
 
-	def emit_instructions(soup, previous_delta_x, previous_data_offset, row_no)
+	def emit_instructions(soup, prev_row, previous_data_offset)
 
 		# Destination X, Y adjustment (DI)
-		if row_no > 0 then
-			print("\tadd di, #{320 - previous_delta_x + @pixels[0].x - 1}")
+		if prev_row != nil then
+			print("\tadd di, #{320 * (@y - prev_row.y) - prev_row.max_x + @pixels[0].x - 1}")
 		else
-			print("\tadd di, #{@pixels[0].x - 1}")
+			print("\tadd di, #{320 * @y + @pixels[0].x}")
 		end
 
-		print(" ; Row #{row_no}, x = #{@pixels[0].x}\n")
+		print(" ; Row #{@y}, x = #{@pixels[0].x}\n")
 
 		# Source data offset adjustment (SI)
 		data_offset = data_offset_at(soup)
@@ -121,7 +132,7 @@ class IRRow
 		end
 
 		# Bye!
-		return last_x, data_offset
+		return data_offset
 	end
 
 
@@ -131,17 +142,17 @@ class IRRow
 			return false
 		end
 
-		for x in 0...(other.pixels.size - @pixels.size) do
-			for y in 0...@pixels.size do
+		for a in 0...(other.pixels.size - @pixels.size) do
+		for b in 0...@pixels.size do
 
-				if @pixels[y].value != other.pixels[x + y].value then
-					break
-				end
-
-				if y == (@pixels.size - 1) then
-					return true
-				end
+			if @pixels[b].value != other.pixels[a + b].value then
+				break
 			end
+
+			if b == (@pixels.size - 1) then
+				return true
+			end
+		end
 		end
 
 		return false
@@ -154,17 +165,18 @@ class IRRow
 			return nil
 		end
 
-		for x in 0...array.size do
-			for y in 0...(array.size - @pixels.size) do
+		# FIXME!, the '+1'
+		for a in 0...(array.size - @pixels.size + 1) do
+		for b in 0...@pixels.size do
 
-				if @pixels[y].value != array[x + y].value then
-					break
-				end
-
-				if y == (@pixels.size - 1) then
-					return (x)
-				end
+			if @pixels[b].value != array[a + b].value then
+				break
 			end
+
+			if b == (@pixels.size - 1) then
+				return (a)
+			end
+		end
 		end
 
 		raise("This should not happen!")
@@ -176,11 +188,9 @@ end
 class IRFrame
 	attr_accessor :rows
 
-
 	def initialize()
 		@rows = Array.new()
 	end
-
 
 	def append(row)
 		if row.pixels.size == 0 then return end
@@ -199,7 +209,10 @@ def ProcessSprite(filename_list)
 	for filename in filename_list do
 
 		# Options
-		if filename == "!linear" then next end
+		if filename == "!linear" then
+			next
+		end
+
 		if filename == "!pingpong" then
 			pingpong = true
 			next
@@ -211,11 +224,11 @@ def ProcessSprite(filename_list)
 
 		file = File.open(filename, "rb")
 		header = ReadBmpHeader(file)
-	
+
 		if header[:bpp] != 8 then
 			raise("True color images not supported")
 		end
-	
+
 		if previous_header != nil then
 			if previous_header[:width] != header[:width] ||
 			   previous_header[:height] != header[:height] then
@@ -229,7 +242,7 @@ def ProcessSprite(filename_list)
 		# Create rows
 		for r in 0...header[:height] do
 
-			row = IRRow.new()
+			row = IRRow.new(r)
 
 			for c in 0...header[:width] do
 				row.append(data[header[:width] * r + c], c)
@@ -309,6 +322,7 @@ def ProcessSprite(filename_list)
 		print("dw (code_f#{i + 1} - $)\n")
 	end
 
+	# Extra frame codes offsets for pingpong playback
 	if pingpong == true && frame_list.size > 1 then
 		for i in 0...(frame_list.size - 2) do
 			print("dw (code_f#{frame_list.size - i - 1} - $)\n")
@@ -319,11 +333,12 @@ def ProcessSprite(filename_list)
 	frame_list.each_with_index() do |frame, frame_no|
 
 		print("\ncode_f#{frame_no + 1}:\n")
-		delta_x = 0
+		prev_row = nil
 		data_offset = 0
 
-		frame.rows.each_with_index() do |row, row_no|
-			delta_x, data_offset = row.emit_instructions(soup_clean, delta_x, data_offset, row_no)
+		frame.rows.each() do |row|
+			data_offset = row.emit_instructions(soup_clean, prev_row, data_offset)
+			prev_row = row
 		end
 
 		print("\tretf\n")
@@ -334,7 +349,9 @@ def ProcessSprite(filename_list)
 
 	for i in 0...soup_clean.size do
 
-		if (i % 16) == 0 then print("\tdb ") end
+		if (i % 16) == 0 then
+			print("\tdb ")
+		end
 
 		print("#{soup_clean[i].value}")
 
