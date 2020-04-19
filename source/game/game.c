@@ -200,6 +200,7 @@ int main()
 			LoadSprite("assets\\idle.jvn", 0);
 			LoadSprite("assets\\sprite1.jvn", 1);
 			LoadSprite("assets\\sprite2.jvn", 2);
+			LoadSprite("assets\\font2.jvn", 3);
 		}
 
 		switch (Random() % 8)
@@ -214,7 +215,6 @@ int main()
 		case 7: LoadBackground((uint16_t) "assets\\bkg8.raw");
 		}
 
-		NewCommand(CODE_DRAW_BKG);
 		goto no_clean; /* Because draw an entry background
 		                  left us with the screen clean */
 	}
@@ -231,6 +231,14 @@ int main()
 		com->draw_shape.height = 9; /* 144 px */
 
 	no_clean:
+
+		NewCommand(CODE_DRAW_BKG);
+
+			com = NewCommand(CODE_DRAW_SPRITE);
+			com->draw_sprite.x = 160;
+			com->draw_sprite.y = 170;
+			com->draw_sprite.slot = 3;
+			com->draw_sprite.frame = *(uint16_t*)FRAME_COUNTER_OFFSET;
 
 		for (i = 0; i < ACTORS_NUMBER; i++)
 		{

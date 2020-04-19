@@ -315,10 +315,11 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	shr eax, 16
 	and ax, 0x00FF
 
- 	div cl ; Modulo by frames number
- 	shr ax, 8
+	inc cl
+	div cl ; Modulo by frames number
+	shr ax, 8
 
-	; Read the frame offset table after header using AX, then 
+	; Read the frame offset table after header using AX, then
 	; point BX into the desired frame code
 	shl ax, 1 ; Multiply by the frame offsets entry size (2)
 	add bx, 6 ; Header size (to skip it)
@@ -330,7 +331,7 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	mov es, dx
 
 	call far seg_pool_a:spr_draw
-		; BX = Absolute offset (in the segment) pointing into a frame code 
+		; BX = Absolute offset (in the segment) pointing into a frame code
 		; DS:SI = Source, specified in the header (also absolute)
 		; ES:DI = Destination
 

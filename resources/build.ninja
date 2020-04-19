@@ -17,17 +17,20 @@
 rule Assembly
  command = fasm $in $out
 
+rule AssemblySprite
+ command = fasm $in $out
+
 rule CompileAndLinkC
  command = bcc -ansi -0 -Md -O -W -x -i -o $out $in -C -c
 
-rule GenerateLinearSprite
- command = ruby ./source/sdk/sprite.rb !linear $in > $out
+rule SpriteLinear
+ command = ruby ./source/sdk/sprite.rb +linear $in > $out
 
-rule GeneratePingPongSprite
- command = ruby ./source/sdk/sprite.rb !pingpong $in > $out
+rule SpritePingPong
+ command = ruby ./source/sdk/sprite.rb +pingpong $in > $out
 
-rule CompileSprite
- command = fasm $in $out
+rule SpriteFont
+ command = ruby ./source/sdk/sprite.rb +font $in > $out
 
 rule Palette
  command = ruby ./source/sdk/palette.rb $in > $out
@@ -50,22 +53,28 @@ build ./game.dll: CompileAndLinkC $
 # Generated files
 build ./generated/sin.c: SinTable ./
 
-build ./generated/idle.asm: GeneratePingPongSprite $
+build ./generated/idle.asm: SpritePingPong $
  ./assets/idle/idle0001.bmp $
  ./assets/idle/idle0002.bmp $
  ./assets/idle/idle0003.bmp $
  ./assets/idle/idle0004.bmp
 
-build ./generated/sprite1.asm: GenerateLinearSprite ./assets/sprite1.bmp
-build ./generated/sprite2.asm: GenerateLinearSprite ./assets/sprite2.bmp
-build ./generated/player.asm: GenerateLinearSprite ./assets/player.bmp
+build ./generated/sprite1.asm: SpriteLinear ./assets/sprite1.bmp
+build ./generated/sprite2.asm: SpriteLinear ./assets/sprite2.bmp
+build ./generated/player.asm: SpriteLinear ./assets/player.bmp
+
+build ./generated/font1.asm: SpriteFont ./assets/font1.bmp
+build ./generated/font2.asm: SpriteFont ./assets/font2.bmp
 
 # Assets
-build ./assets/idle.jvn: CompileSprite ./generated/idle.asm
+build ./assets/idle.jvn: AssemblySprite ./generated/idle.asm
 
-build ./assets/sprite1.jvn: CompileSprite ./generated/sprite1.asm
-build ./assets/sprite2.jvn: CompileSprite ./generated/sprite2.asm
-build ./assets/player.jvn: CompileSprite ./generated/player.asm
+build ./assets/sprite1.jvn: AssemblySprite ./generated/sprite1.asm
+build ./assets/sprite2.jvn: AssemblySprite ./generated/sprite2.asm
+build ./assets/player.jvn: AssemblySprite ./generated/player.asm
+
+build ./assets/font1.jvn: AssemblySprite ./generated/font1.asm
+build ./assets/font2.jvn: AssemblySprite ./generated/font2.asm
 
 build ./assets/palette.raw: Palette ./assets/palette.bmp
 

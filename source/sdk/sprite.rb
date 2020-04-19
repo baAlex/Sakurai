@@ -199,29 +199,21 @@ class IRFrame
 end
 
 
-def ProcessSprite(filename_list)
+def FramesFromIndividualFiles(filename_list)
 
 	frame_list = Array.new()
 	previous_header = nil
-	pingpong = false
 
 	# Iterate files creating intermediate objects
 	for filename in filename_list do
 
-		# Options
-		if filename == "!linear" then
+		if filename == "+linear" ||
+		   filename == "+pingpong" ||
+		   filename == "+font" then
 			next
 		end
 
-		if filename == "!pingpong" then
-			pingpong = true
-			next
-		end
-
-		# Create frame
-		frame = IRFrame.new()
-		frame_list.push(frame)
-
+		# Read BMP data
 		file = File.open(filename, "rb")
 		header = ReadBmpHeader(file)
 
@@ -236,16 +228,19 @@ def ProcessSprite(filename_list)
 			end
 		end
 
-		data = ReadBmpIndexedData(header, file)
+		bmp_data = ReadBmpIndexedData(header, file)
 		file.close()
 
-		# Create rows
+		# Create a frame with rows
+		frame = IRFrame.new()
+		frame_list.push(frame)
+
 		for r in 0...header[:height] do
 
 			row = IRRow.new(r)
 
 			for c in 0...header[:width] do
-				row.append(data[header[:width] * r + c], c)
+				row.append(bmp_data[header[:width] * r + c], c)
 			end
 
 			frame.append(row)
@@ -255,9 +250,88 @@ def ProcessSprite(filename_list)
 		previous_header = header
 	end
 
-	# Brute force, close your eyes...
+	return frame_list
+end
+
+
+def FramesFromFontSheet(filename_list)
+
+	frame_list = Array.new()
+	header = nil
+	bmp_data = nil
+
+	# Iterate files, the first one wins
+	for filename in filename_list do
+
+		if filename == "+linear" ||
+		   filename == "+pingpong" ||
+		   filename == "+font" then
+			next
+		end
+
+		# Read BMP data
+		file = File.open(filename, "rb")
+		header = ReadBmpHeader(file)
+
+		if header[:bpp] != 8 then
+			raise("True color images not supported")
+		end
+
+		bmp_data = ReadBmpIndexedData(header, file)
+		file.close()
+		break
+	end
+
+	if bmp_data == nil
+		raise("No valid input")
+	end
+
+	# Create frames subdividing the image by 16x16
+	# (to get our 256 ascii characters)
+	char_width = header[:width] / 16
+	char_height = header[:height] / 16
+	offset = 0
+
+	while 1 do
+
+		frame = IRFrame.new()
+		frame_list.push(frame)
+
+		for r in 0...char_height do
+
+			row = IRRow.new(r)
+
+			for c in 0...char_width do
+				row.append(bmp_data[(header[:width]) * r + offset + c], c)
+			end
+
+			frame.append(row)
+		end
+
+		# Next frame
+		offset += char_width
+
+		if (offset % header[:width]) == 0 then
+			offset += (char_height - 1) * header[:width]
+		end
+
+		if frame_list.size == 255 || # !
+		   offset > (header[:width] * header[:height]) - (char_width) then
+			break
+		end
+
+		# FIXME?, the modulo in the engine side didn't allow 255 frames
+	end
+
+	return frame_list
+end
+
+
+def OptimizedDataFromFrames(frame_list)
+
 	soup = Array.new()
 
+	# Brute force, close your eyes...
 	for frame_a in frame_list do
 	for row_a in frame_a.rows do
 
@@ -304,40 +378,46 @@ def ProcessSprite(filename_list)
 		end
 	end
 
+	return soup_clean
+end
+
+
+def EmitProgram(pingpong, frame_list, data_soup)
+
 	# Print header
 	print("; Thanks von Neumann!\n\n")
 	print("dw (file_end) ; File size\n")
 	print("dw (pixels) ; Offset to data\n")
 
 	if pingpong == true && frame_list.size > 1 then
-		print("dw #{frame_list.size * 2 - 2} ; Frames number, ping pong mode\n")
+		print("dw #{frame_list.size * 2 - 2 - 1} ; Frames number -ping pong mode-\n")
 	else
-		print("dw #{frame_list.size} ; Frames number\n")
+		print("dw #{frame_list.size - 1} ; Frames number\n")
 	end
 
 	print("\n")
 
 	# Print frame code offsets
 	for i in 0...frame_list.size do
-		print("dw (code_f#{i + 1} - $)\n")
+		print("dw (code_f#{i} - $)\n")
 	end
 
 	# Extra frame codes offsets for pingpong playback
 	if pingpong == true && frame_list.size > 1 then
 		for i in 0...(frame_list.size - 2) do
-			print("dw (code_f#{frame_list.size - i - 1} - $)\n")
+			print("dw (code_f#{frame_list.size - i - 2} - $)\n")
 		end
 	end
 
 	# Print code
 	frame_list.each_with_index() do |frame, frame_no|
 
-		print("\ncode_f#{frame_no + 1}:\n")
+		print("\ncode_f#{frame_no}:\n")
 		prev_row = nil
 		data_offset = 0
 
 		frame.rows.each() do |row|
-			data_offset = row.emit_instructions(soup_clean, prev_row, data_offset)
+			data_offset = row.emit_instructions(data_soup, prev_row, data_offset)
 			prev_row = row
 		end
 
@@ -347,15 +427,15 @@ def ProcessSprite(filename_list)
 	# Print data
 	print("\npixels:\n")
 
-	for i in 0...soup_clean.size do
+	for i in 0...data_soup.size do
 
 		if (i % 16) == 0 then
 			print("\tdb ")
 		end
 
-		print("#{soup_clean[i].value}")
+		print("#{data_soup[i].value}")
 
-		if i != soup_clean.size - 1 then
+		if i != data_soup.size - 1 then
 			printf("%s", ((i % 16) != 15) ? ", " : "\n")
 		else
 			print("\n")
@@ -365,4 +445,37 @@ def ProcessSprite(filename_list)
 	print("\n\nfile_end:\n")
 end
 
-(ARGV.length > 0) ? ProcessSprite(ARGV) : raise("No Bmp input specified")
+
+def main(args)
+
+	pingpong = false
+	font_sheet = false
+
+	for a in args do
+
+		if a == "+pingpong" then
+			pingpong = true
+		end
+
+		if a == "+linear" then
+			pingpong = false
+		end
+
+		if a == "+font" then
+			font_sheet = true
+		end
+	end
+
+	if font_sheet == false then
+		frame_list = FramesFromIndividualFiles(ARGV)
+	else
+		frame_list = FramesFromFontSheet(ARGV)
+	end
+
+	data_soup = OptimizedDataFromFrames(frame_list)
+
+	EmitProgram(pingpong, frame_list, data_soup)
+end
+
+
+(ARGV.length > 0) ? main(ARGV) : raise("No Bmp input specified")
