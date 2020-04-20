@@ -200,6 +200,8 @@ Main_loop_commands_table:
 		je near GameDrawRectPrecise
 		cmp al, 0x07 ; CODE_DRAW_SPRITE
 		je near GameDrawSprite
+		cmp al, 0x08 ; CODE_DRAW_TEXT
+		je near GameDrawText
 
 		; Next command
 Main_loop_commands_table_continue:

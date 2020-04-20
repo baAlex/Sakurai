@@ -338,7 +338,7 @@ def OptimizedDataFromFrames(frame_list)
 		superset = nil
 
 		for frame_b in frame_list do
-		for row_b in frame_a.rows do
+		for row_b in frame_b.rows do
 
 			if row_a.subset_of?(row_b) == true then
 				superset = row_b
@@ -382,7 +382,7 @@ def OptimizedDataFromFrames(frame_list)
 end
 
 
-def EmitProgram(pingpong, frame_list, data_soup)
+def EmitProgram(pingpong, font_sheet, frame_list, data_soup)
 
 	# Print header
 	print("; Thanks von Neumann!\n\n")
@@ -413,12 +413,28 @@ def EmitProgram(pingpong, frame_list, data_soup)
 	frame_list.each_with_index() do |frame, frame_no|
 
 		print("\ncode_f#{frame_no}:\n")
+
+		if frame_no == 0x20 then
+			print("\tmov ax, 4\n")
+			print("\tretf\n")
+		end
+
 		prev_row = nil
 		data_offset = 0
+		max_x = 0
 
 		frame.rows.each() do |row|
+
+			if row.max_x > max_x then
+				max_x = row.max_x
+			end
+
 			data_offset = row.emit_instructions(data_soup, prev_row, data_offset)
 			prev_row = row
+		end
+
+		if font_sheet == true then
+			print("\tmov ax, #{max_x + 2}\n")
 		end
 
 		print("\tretf\n")
@@ -474,7 +490,7 @@ def main(args)
 
 	data_soup = OptimizedDataFromFrames(frame_list)
 
-	EmitProgram(pingpong, frame_list, data_soup)
+	EmitProgram(pingpong, font_sheet, frame_list, data_soup)
 end
 
 

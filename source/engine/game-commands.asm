@@ -339,3 +339,107 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	pop ds
 	pop si
 	jmp near Main_loop_commands_table_continue
+
+
+;==============================
+GameDrawText: ; CODE_DRAW_TEXT
+; eax - Slot (ah), Text (high 16 bits)
+; ebx - X, Y (low 16 bits)
+
+	push si
+	push ds
+
+	; Calculate offset in DI
+	mov di, 0x0000
+	add di, bx ; X
+
+	shr ebx, 16
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+	add di, bx
+	add di, cx
+
+	; Load sprite offset from indirection table, in BX
+	mov dx, seg_data
+	mov ds, dx
+
+	shr ax, 8 ; Slot (ah)
+	mov si, ax
+	shl si, 1 ; Multiply by the indirection table entry size (2)
+
+	mov bx, word[spr_indirection_table + si]
+
+	; Read SI from sprite header
+	mov dx, seg_pool_a
+	mov ds, dx
+
+	mov si, [bx + 2] ; Data offset in header
+	add si, bx
+
+	; Set segments to use
+	mov dx, seg_buffer_data
+	mov es, dx
+
+	mov dx, seg_game_data
+	mov fs, dx
+
+	; Load text address in CX (currently is on the higher EAX bytes)
+	shr eax, 16
+	mov cx, ax
+
+	; Save BX in DX, as in every iteration we need to get
+	; back to the beginning of the sprite code (offset)
+	mov dx, bx
+
+	; Read first character in AL, frame to draw
+	mov bx, cx
+	mov al, [fs:bx]
+	mov ah, 0x00
+
+	cmp al, 0x00
+	jz GameDrawText_bye
+
+GameDrawText_loop:
+
+	mov bx, dx
+
+	; Read the frame offset table after header using AX, then
+	; point BX into the desired frame code
+	shl ax, 1 ; Multiply by the frame offsets entry size (2)
+	add bx, 6 ; Header size (to skip it)
+	add bx, ax
+	add bx, [bx]
+
+	push di ; Destroyed by spr_draw()
+	push si
+
+	; Draw!
+	call far seg_pool_a:spr_draw
+		; BX = Absolute offset (in the segment) pointing into a frame code
+		; DS:SI = Source, specified in the header (also absolute)
+		; ES:DI = Destination
+
+	pop si
+	pop di
+
+	; Add kerning to destination
+	;mov ax, 12
+	add di, ax
+
+	; Preparations for next character
+	inc cx
+
+	mov bx, cx
+	mov al, [fs:bx]
+	mov ah, 0x00
+
+	cmp al, 0x00
+	jnz GameDrawText_loop
+
+GameDrawText_bye:
+
+	; Bye!
+	pop ds
+	pop si
+	jmp near Main_loop_commands_table_continue

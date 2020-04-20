@@ -32,6 +32,7 @@ typedef unsigned short uint16_t;
 #define CODE_DRAW_RECTANGLE_BKG 0x05
 #define CODE_DRAW_RECTANGLE_PRECISE 0x06
 #define CODE_DRAW_SPRITE 0x07
+#define CODE_DRAW_TEXT 0x08
 
 struct CommandDrawShape
 {
@@ -53,6 +54,15 @@ struct CommandGameDrawSprite
 	uint16_t y;
 };
 
+struct CommandGameDrawText
+{
+	uint8_t code;
+	uint8_t slot;
+	uint16_t text;
+	uint16_t x;
+	uint16_t y;
+};
+
 union Command {
 	uint8_t code;
 
@@ -62,6 +72,9 @@ union Command {
 
 	/* DRAW_SPRITE */
 	struct CommandGameDrawSprite draw_sprite;
+
+	/* CODE_DRAW_TEXT */
+	struct CommandGameDrawText draw_text;
 };
 
 
