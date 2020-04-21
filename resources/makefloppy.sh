@@ -19,6 +19,9 @@ mmd -i ./sakurai.img ::/assets
 	mcopy -i ./sakurai.img ./assets/bkg7.raw ::/assets/
 	mcopy -i ./sakurai.img ./assets/bkg8.raw ::/assets/
 
-	mcopy -i ./sakurai.img ./assets/player.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/idle.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/sprite1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/sprite2.jvn ::/assets/
+
+	mcopy -i ./sakurai.img ./assets/font1.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/font2.jvn ::/assets/
