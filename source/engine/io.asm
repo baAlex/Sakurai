@@ -25,6 +25,8 @@
 ; [io.asm]
 ; - Alexander Brandt 2020
 
+include "macros.asm"
+
 
 ;==============================
 PrintLogString:
@@ -156,9 +158,7 @@ PrintLogNumber:
 		push cx ; Push Gamma
 
 	; Point DS to SS, and DX to SP
-	mov bx, ss
-	mov ds, bx
-	mov dx, sp
+	SetDsDx ss, sp
 
 	; Print it
 	call near PrintLogString
@@ -218,10 +218,7 @@ FileOpen_failure:
 
 		mov bx, ax ; Open() error code
 
-		mov ax, seg_data
-		mov ds, ax
-		mov dx, str_file_open_error
-
+		SetDsDx seg_data, str_file_open_error
 		call near PrintLogString ; (ds:dx)
 
 		mov ax, bx

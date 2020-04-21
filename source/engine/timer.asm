@@ -68,10 +68,7 @@ TimeInit:
 
 	; Set new vector (Int 21/AH=25h)
 	; http://www.ctyme.com/intr/rb-2602.htm
-	mov ax, seg_code
-	mov ds, ax
-	mov dx, _TimeVector
-
+	SetDsDx seg_code, _TimeVector
 	mov al, 0x08 ; Interrupt number
 	mov ah, 0x25
 	int 0x21

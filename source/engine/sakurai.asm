@@ -47,13 +47,14 @@ segment seg_code
 	include "memory.asm"
 	include "render.asm"
 	include "timer.asm"
+	include "macros.asm"
 
 
 ;==============================
 Main:
 	; Welcome message
-	mov ax, seg_data
-	mov ds, ax
+	mov dx, seg_data
+	mov ds, dx
 
 	mov dx, str_separator
 	call near PrintLogString ; (ds:dx)
@@ -65,24 +66,18 @@ Main:
 	mov dx, str_game_filename
 	call near FileOpen ; (ds:dx, return in ax)
 
-	mov bx, seg_game_data
-	mov ds, bx
-	mov dx, game_data
+	SetDsDx seg_game_data, game_data
 	mov cx, GAME_SIZE
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 	call near FileClose ; (ax)
 
 	; Memory pool initialization
-	mov ax, seg_pool_a
-	mov ds, ax
-	mov dx, pool_a_data
+	SetDsDx seg_pool_a, pool_a_data
 	mov cx, POOL_A_SIZE
 	call near PoolInit ; (ds:dx, cx)
 	call near PoolPrint ; (ds:dx)
 
-	mov ax, seg_pool_b
-	mov ds, ax
-	mov dx, pool_b_data
+	SetDsDx seg_pool_b, pool_b_data
 	mov cx, POOL_B_SIZE
 	call near PoolInit ; (ds:dx, cx)
 	call near PoolPrint ; (ds:dx)
@@ -103,18 +98,18 @@ Main:
 
 	; Measure how much took a copy of an entry
 	; segment into the VGA memory (ps: a lot)
-	mov ax, seg_data
-	mov ds, ax
+	mov dx, seg_data
+	mov ds, dx
 
 	call near TimeGet ; (ax = return, ds implicit)
 	mov bx, ax ; Start time
 
-		mov ax, seg_buffer_data
-		mov ds, ax
+		mov dx, seg_buffer_data
+		mov ds, dx
 		mov si, bkg_data
 
-		mov ax, VGA_SEGMENT
-		mov es, ax
+		mov dx, VGA_SEGMENT
+		mov es, dx
 		mov di, VGA_OFFSET
 
 		mov cx, BKG_DATA_SIZE
@@ -131,8 +126,8 @@ Main:
 	call near PrintLogNumber ; (ax)
 
 	; Main loop
-	mov ax, seg_data ; From here no call should change this (TODO)
-	mov ds, ax
+	mov dx, seg_data ; From here no call should change this (TODO)
+	mov ds, dx
 
 	mov dx, str_main_loop
 	call near PrintLogString ; (ds:dx)
@@ -165,6 +160,55 @@ Main_loop_no_sleep:
 		dec byte [keyboard_state + 0x01]
 		jz near Main_bye
 
+		; Provide input to game logic
+		mov dx, [keyboard_state + 0x01] ; X
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Y
+		push dx
+		mov dx, [keyboard_state + 0x01] ; A
+		push dx
+		mov dx, [keyboard_state + 0x01] ; B
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Up
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Down
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Left
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Right
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Select
+		push dx
+		mov dx, [keyboard_state + 0x01] ; Start
+		push dx
+
+		mov dx, seg_game_data
+		mov ds, dx
+
+			pop dx
+			mov [input_start], dx
+			pop dx
+			mov [input_select], dx
+			pop dx
+			mov [input_right], dx
+			pop dx
+			mov [input_left], dx
+			pop dx
+			mov [input_down], dx
+			pop dx
+			mov [input_up], dx
+			pop dx
+			mov [input_b], dx
+			pop dx
+			mov [input_a], dx
+			pop dx
+			mov [input_y], dx
+			pop dx
+			mov [input_x], dx
+
+		mov dx, seg_data
+		mov ds, dx
+
 		; Game logic frame
 		; We do a call near into spooky far lands
 		call far seg_game_data:GameFrame
@@ -175,8 +219,8 @@ Main_loop_no_sleep:
 		push bx
 		push ds
 
-		mov ax, seg_game_data
-		mov ds, ax
+		mov dx, seg_game_data
+		mov ds, dx
 		mov si, 0x0000
 
 Main_loop_commands_table:
@@ -212,12 +256,12 @@ Main_loop_commands_table_continue:
 Main_loop_commands_table_break:
 
 		; Copy from buffer to VGA memory
-		mov ax, seg_buffer_data
-		mov ds, ax
+		mov dx, seg_buffer_data
+		mov ds, dx
 		mov si, buffer_data
 
-		mov ax, VGA_SEGMENT
-		mov es, ax
+		mov dx, VGA_SEGMENT
+		mov es, dx
 		mov di, VGA_OFFSET
 
 		mov cx, BUFFER_DATA_SIZE
@@ -248,6 +292,7 @@ Main_bye:
 IntFDInit:
 	push ax
 	push ds
+	push dx
 
 	mov ax, seg_data
 	mov ds, ax
@@ -263,14 +308,13 @@ IntFDInit:
 
 	; DOS 1+ - SET INTERRUPT VECTOR
 	; http://www.ctyme.com/intr/rb-2602.htm
-	mov ax, seg_code
-	mov ds, ax
-	mov dx, _IntFDVector
+	SetDsDx seg_code, _IntFDVector
 	mov ah, 0x25
 	mov al, 0xFD ; Interrupt number
 	int 0x21
 
 	; Bye!
+	pop dx
 	pop ds
 	pop ax
 	ret
@@ -316,6 +360,7 @@ _IntFDVector_bye:
 IntFDStop:
 	push ax
 	push ds
+	push dx
 
 	mov ax, seg_data
 	mov ds, ax
@@ -323,13 +368,14 @@ IntFDStop:
 	; DOS 1+ - SET INTERRUPT VECTOR
 	; http://www.ctyme.com/intr/rb-2602.htm
 	mov ax, [previous_ifd_vector_segment]
-	mov ds, ax
 	mov dx, [previous_ifd_vector_offset]
+	mov ds, ax
 	mov ah, 0x25
 	mov al, 0xFD ; Interrupt number
 	int 0x21
 
 	; Bye!
+	pop dx
 	pop ds
 	pop ax
 	ret

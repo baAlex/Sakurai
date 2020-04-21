@@ -108,7 +108,19 @@ segment seg_game_data
 	ifd_arg2: dw 0x0000                               ; 2
 	ifd_arg3: dw 0x0000                               ; 2
 	ifd_arg4: dw 0x0000                               ; 2
-	blank_psp: times 54 db 0x00                       ; 54
+
+	input_x: db 0x00                                  ; 1
+	input_y: db 0x00                                  ; 1
+	input_a: db 0x00                                  ; 1
+	input_b: db 0x00                                  ; 1
+	input_up: db 0x00                                 ; 1
+	input_down: db 0x00                               ; 1
+	input_left: db 0x00                               ; 1
+	input_right: db 0x00                              ; 1
+	input_select: db 0x00                             ; 1
+	input_start: db 0x00                             ; 1
+
+	blank_psp: times 44 db 0x00                       ; 44
 	                                                  ; ---------
 	                                                  ; 256
 	game_data: rb GAME_SIZE

@@ -30,7 +30,9 @@
 RenderInit:
 	push ax
 	push bx
+	push cx
 	push ds
+	push dx
 
 	mov ax, seg_data ; Messages, previous mode and palette...
 	mov ds, ax
@@ -106,7 +108,9 @@ RenderInit_palette_loop:
 	jnz near RenderInit_palette_loop
 
 	; Bye!
+	pop dx
 	pop ds
+	pop cx
 	pop bx
 	pop ax
 	ret
@@ -123,6 +127,7 @@ RenderInit_failure:
 RenderStop:
 	push ax
 	push ds
+	push dx
 
 	mov ax, seg_data ; To retrieve previous mode
 	mov ds, ax
@@ -137,6 +142,7 @@ RenderStop:
 	int 0x10
 
 	; Bye!
+	pop dx
 	pop ds
 	pop ax
 	ret

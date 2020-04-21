@@ -25,6 +25,8 @@
 ; [memory.asm]
 ; - Alexander Brandt 2020
 
+include "macros.asm"
+
 
 ;==============================
 MemoryCopy:
@@ -161,9 +163,7 @@ PoolPrint:
 
 	push ds
 	push dx
-		mov dx, seg_data
-		mov ds, dx
-		mov dx, str_mem_pool
+		SetDsDx seg_data, str_mem_pool
 		call near PrintLogString ; (ds:dx)
 	pop dx
 	pop ds
@@ -173,9 +173,7 @@ PoolPrint_loop:
 	; Used/last
 	push ds
 	push dx
-		mov dx, seg_data
-		mov ds, dx
-		mov dx, str_flags
+		SetDsDx seg_data, str_flags
 		call near PrintLogString ; (ds:dx)
 	pop dx
 	pop ds
@@ -187,9 +185,7 @@ PoolPrint_loop:
 	; Size
 	push ds
 	push dx
-		mov dx, seg_data
-		mov ds, dx
-		mov dx, str_size
+		SetDsDx seg_data, str_size
 		call near PrintLogString ; (ds:dx)
 	pop dx
 	pop ds
@@ -204,9 +200,7 @@ PoolPrint_loop:
 	; Nope, advance to the next one
 	push ds
 	push dx
-		mov dx, seg_data
-		mov ds, dx
-		mov dx, str_mem_separator
+		SetDsDx seg_data, str_mem_separator
 		call near PrintLogString ; (ds:dx)
 	pop dx
 	pop ds
