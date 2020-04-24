@@ -434,7 +434,7 @@ def EmitProgram(pingpong, font_sheet, frame_list, data_soup)
 		end
 
 		if font_sheet == true then
-			print("\tmov ax, #{max_x + 2}\n")
+			print("\tmov ax, #{max_x + 1}\n") # FIXME?!
 		end
 
 		print("\tretf\n")

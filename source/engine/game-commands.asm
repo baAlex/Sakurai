@@ -360,6 +360,8 @@ GameDrawText: ; CODE_DRAW_TEXT
 	add di, bx
 	add di, cx
 
+	push di # TODO, here the push/pop is an incompressible mess!
+
 	; Load sprite offset from indirection table, in BX
 	mov dx, seg_data
 	mov ds, dx
@@ -423,23 +425,35 @@ GameDrawText_loop:
 	pop si
 	pop di
 
-	; Add kerning to destination
-	;mov ax, 12
+	; Add spacing to destination
 	add di, ax
 
 	; Preparations for next character
+GameDrawText_next:
 	inc cx
 
 	mov bx, cx
 	mov al, [fs:bx]
 	mov ah, 0x00
 
+	; Is a new line?
+	cmp al, 0xA
+	jnz is_null
+
+	pop di
+	add di, 3200 # New line space (HARDCODED!)
+	push di
+	jmp GameDrawText_next
+
+	; Is NULL?
+is_null:
 	cmp al, 0x00
 	jnz GameDrawText_loop
 
 GameDrawText_bye:
 
 	; Bye!
+	pop di
 	pop ds
 	pop si
 	jmp near Main_loop_commands_table_continue
