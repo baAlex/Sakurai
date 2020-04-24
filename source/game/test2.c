@@ -24,18 +24,15 @@ SOFTWARE.
 
 -------------------------------
 
- [game.c]
+ [test2.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "game.h"
-#include "game-private.h"
+#include "tests.h"
 #include "utilities.h"
 
-#define DEVELOPER
 
-
-static void sResetBackground()
+static void sChangeBackground()
 {
 	union Command* com;
 
@@ -53,110 +50,56 @@ static void sResetBackground()
 
 	NewCommand(CODE_DRAW_BKG);
 
-#ifdef DEVELOPER
 	com = NewCommand(CODE_DRAW_TEXT);
 	com->draw_text.x = 1;
 	com->draw_text.y = 0;
 	com->draw_text.slot = 1;
-	com->draw_text.text = (uint16_t) "Sakurai, alpha build";
-#endif
+	com->draw_text.text = (uint16_t)"Sakurai, alpha build";
 }
 
 
-static void sResetActors()
-{
-	/* TODO: is not the idea to have entirely random enemies */
-	uint8_t i = 0;
-
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		/* Only enemies resets they health and type */
-		if (i >= HEROES_NO)
-		{
-			do
-				actor[i].type = (Random() % TYPES_NO);
-			while (actor[i].type < HEROES_NO);
-
-			actor[i].health = persona[actor[i].type].health;
-
-			if (actor[i].health <= 90)
-				actor[i].health += (uint8_t)(Random() % 10);
-		}
-
-		actor[i].phase = (uint8_t)Random();
-		actor[i].x = info[i].base_x;
-
-		/* The rest just need to be zero */
-		actor[i].target = 0;
-		actor[i].attack_type = 0;
-		actor[i].state = 0;
-		actor[i].next_state = 0;
-		actor[i].idle_time = 0;
-		actor[i].charge_time = 0;
-		actor[i].bounded_time = 0;
-	}
-}
-
-
-static void sDrawActors()
+void* Test2()
 {
 	union Command* com;
-	uint8_t i = 0;
 
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		com = NewCommand(CODE_DRAW_SPRITE);
-		com->draw_sprite.x = actor[i].x;
-		com->draw_sprite.y = info[i].base_y;
+	int8_t x_sin = Sin((uint8_t)CURRENT_FRAME) >> 2;
 
-		if (i >= HEROES_NO)
-			com->draw_sprite.slot = 5;
-		else
-			com->draw_sprite.slot = 6;
-	}
-}
+	if ((CURRENT_FRAME % 240) == 0) /* Every 10 seconds */
+		sChangeBackground();
 
+	/* Draw an sprite whitout clean the background */
+	com = NewCommand(CODE_DRAW_SPRITE);
+	com->draw_sprite.slot = 2;
+	com->draw_sprite.x = 40 + x_sin;
+	com->draw_sprite.y = 50;
+	com->draw_sprite.frame = CURRENT_FRAME >> 2;
 
-void* MenuState()
-{
-	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
+	/* Another, cleaning the background */
+	com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
+	com->draw_shape.x = 200 + x_sin;
+	com->draw_shape.y = 50;
+	com->draw_shape.width = 5;  /* 80 px */
+	com->draw_shape.height = 6; /* 96 px */
 
-	return MenuState;
-}
-
-
-void* FieldState()
-{
-	uint8_t i = 0;
-
-	/* Update logic */
-	for (i = 0; i < ACTORS_NO; i++) {}
-
-	/* Draw */
-	sDrawActors();
+	com = NewCommand(CODE_DRAW_SPRITE);
+	com->draw_sprite.slot = 2;
+	com->draw_sprite.x = 200 + x_sin;
+	com->draw_sprite.y = 50;
+	com->draw_sprite.frame = CURRENT_FRAME >> 2;
 
 	/* Bye! */
 	NewCommand(CODE_HALT);
 	CleanCommands();
 
-	return FieldState;
+	return Test2;
 }
 
 
-void* GameStart()
+void* Test2Start()
 {
 	LoadSprite("assets\\font1.jvn", 1);
-	LoadSprite("assets\\font2.jvn", 2);
+	LoadSprite("assets\\idle.jvn", 2);
 
-	LoadSprite("assets\\sprite1.jvn", 4);
-	LoadSprite("assets\\sprite2.jvn", 5);
-	LoadSprite("assets\\idle.jvn", 6);
-
-	sResetActors();
-	sResetBackground();
-
-	FieldState();
-	return FieldState;
+	Test2();
+	return Test2;
 }

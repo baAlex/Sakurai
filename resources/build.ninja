@@ -46,7 +46,10 @@ build ./sakurai.exe: Assembly ./source/engine/sakurai.asm
 
 # Game
 build ./game.dll: CompileAndLinkC $
+ ./source/game/main.c $
  ./source/game/game.c $
+ ./source/game/test1.c $
+ ./source/game/test2.c $
  ./source/game/utilities.c $
  ./generated/sin.c
 
