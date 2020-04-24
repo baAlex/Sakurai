@@ -360,7 +360,7 @@ GameDrawText: ; CODE_DRAW_TEXT
 	add di, bx
 	add di, cx
 
-	push di # TODO, here the push/pop is an incompressible mess!
+	push di ; TODO, here the push/pop is an incompressible mess!
 
 	; Load sprite offset from indirection table, in BX
 	mov dx, seg_data
@@ -441,7 +441,7 @@ GameDrawText_next:
 	jnz is_null
 
 	pop di
-	add di, 3200 # New line space (HARDCODED!)
+	add di, 3200 ; New line space (HARDCODED!)
 	push di
 	jmp GameDrawText_next
 
