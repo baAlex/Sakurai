@@ -28,7 +28,7 @@ SOFTWARE.
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "shared.h"
+#include "utilities.h"
 
 static uint8_t s_commands_counter = 0;
 static uint16_t s_marsaglia = 1;

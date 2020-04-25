@@ -28,286 +28,288 @@ SOFTWARE.
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "shared.h"
+#include "game.h"
+#include "game-private.h"
+#include "utilities.h"
+
+#define DEVELOPER
 
 
-static uint16_t* s_frame = (uint16_t*)FRAME_COUNTER_OFFSET;
+/*-----------------------------
 
-
-/* BCC is somewhat stupid initializing static variables */
-static struct Actor s_actor[ACTORS_NUMBER] = {
-    /* Our heroes */
-    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_HERO_A, 100, 238},
-    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_HERO_B, 100, 19},
-    /* Enemies */
-    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_A, 100, 36},
-    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_B, 100, 75},
-    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_C, 100, 132},
-    {0, 0, 0, 0, 0, 0, 0, 0, TYPE_D, 100, 24}};
-
-static uint16_t s_base_x[ACTORS_NUMBER] = {
-    /* Our heroes */
-    38, 8,
-    /* Enemies */
-    180, 202, 225, 248};
-
-static uint8_t s_base_y[ACTORS_NUMBER] = {
-    /* Our heroes */
-    60, 100,
-    /* Enemies */
-    60, 73, 86, 100};
-
-static uint8_t s_idle_time[TYPES_NUMBER] = {
-    /* Our heroes */
-    5, 1,
-
-    1, /* Type A */
-    1, /* Type B */
-    2, /* Type C */
-    3, /* Type D */
-    4, /* Type E */
-    5  /* Type F */
-};
-
-
-int main()
+ sResetBackground()
+ - Loads a new random background and draws it
+ - Draws a legend on the top ("alpha build")
+ - Draws part of the ui
+-----------------------------*/
+static void sResetBackground()
 {
 	union Command* com;
-	uint8_t i;
-	uint8_t color;
-	uint8_t width;
 
-	uint16_t clean_min_x = UINT16_MAX;
-	uint16_t clean_max_x = 0;
-
-	if (s_actor[0].type == TYPE_DEAD && s_actor[1].type == TYPE_DEAD)
+	switch (Random() % 8)
 	{
-		NewCommand(CODE_HALT);
-		CleanCommands();
-		return; /* Game over */
+	case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
+	case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
+	case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
+	case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
+	case 4: LoadBackground((uint16_t) "assets\\bkg8.raw"); break;
+	case 5: LoadBackground((uint16_t) "assets\\bkg7.raw"); break;
+	case 6: LoadBackground((uint16_t) "assets\\bkg6.raw"); break;
+	case 7: LoadBackground((uint16_t) "assets\\bkg5.raw");
 	}
 
-	/* Iterate actors, update them */
-	for (i = 0; i < ACTORS_NUMBER; i++)
+	NewCommand(CODE_DRAW_BKG);
+
+#ifdef DEVELOPER
+	com = NewCommand(CODE_DRAW_TEXT);
+	com->draw_text.x = 1;
+	com->draw_text.y = 0;
+	com->draw_text.slot = 31;
+	com->draw_text.text = (uint16_t) "Sakurai, alpha build";
+#endif
+}
+
+
+/*-----------------------------
+
+ sResetActors()
+ - Iterate the actors array and reset they values
+ - Enemies are chosen and set in a random fashion
+ - Heroes reset all values except for health and type
+ - Finally, unloads all sprites in the engine to then
+   load only the necessary ones (TODO)
+-----------------------------*/
+static void sResetActors()
+{
+	/* TODO: is not the idea to have entirely random enemies */
+	uint8_t loaded[TYPES_NO];
+	uint8_t i = 0;
+
+	for (i = 0; i < TYPES_NO; i++)
+		loaded[i] = 0; /* TODO, i need a malloc()!! */
+
+	for (i = 0; i < ACTORS_NO; i++)
 	{
-		/* Save position that comes from previous frame
-		   in min/max form to allow the below 'draw step'
-		   clean the screen */
-		clean_min_x = MIN(clean_min_x, s_actor[i].x);
-		clean_max_x = MAX(clean_max_x, s_actor[i].x);
+		/* Only enemies resets they health and type */
+		if (i >= HEROES_NO)
+		{
+			do
+				actor[i].type = (Random() % TYPES_NO);
+			while (actor[i].type < HEROES_NO);
 
-		/* Update state */
-		s_actor[i].state = s_actor[i].next_state;
-		s_actor[i].x = s_base_x[i] + (Sin(s_actor[i].phase) >> 5);
+			actor[i].health = persona[actor[i].type].health;
 
-		/* Nothing, we ded' */
-		if (s_actor[i].type == TYPE_DEAD)
+			/* A random plus of health, 10 pts */
+			if (actor[i].health <= 90)
+				actor[i].health += (uint8_t)(Random() % 10);
+		}
+
+		actor[i].phase = (uint8_t)Random();
+		actor[i].state = STATE_IDLE;
+
+		/* The rest just need to be zero */
+		actor[i].target = 0;
+		actor[i].attack_type = 0;
+		actor[i].idle_time = 0;
+		actor[i].charge_time = 0;
+		actor[i].bounded_time = 0;
+
+		/* Load sprites, whitout repeat */
+		if (loaded[actor[i].type] == 0)
+		{
+			if (actor[i].type == TYPE_HERO_A)
+				LoadSprite("assets\\player.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_HERO_B)
+				LoadSprite("assets\\player.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_A)
+				LoadSprite("assets\\type-a.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_B)
+				LoadSprite("assets\\type-b.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_C)
+				LoadSprite("assets\\type-c.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_D)
+				LoadSprite("assets\\type-d.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_E)
+				LoadSprite("assets\\type-e.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_F)
+				LoadSprite("assets\\type-f.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_G)
+				LoadSprite("assets\\type-g.jvn", actor[i].type);
+
+			loaded[actor[i].type] = 1;
+		}
+	}
+}
+
+
+/*-----------------------------
+
+ sDrawActors()
+ - As the name says, plus a time meter bar on top of them
+-----------------------------*/
+static void sDrawActors()
+{
+	union Command* com;
+	uint8_t i = 0;
+	uint8_t color = 0;
+	uint8_t width = 0;
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (actor[i].state == STATE_DEAD)
 			continue;
 
-		/* Idle state or "wait some time for my turn" */
-		if (s_actor[i].state == STATE_IDLE)
+		/* Sprite */
+		com = NewCommand(CODE_DRAW_SPRITE);
+		com->draw_sprite.x = info[i].base_x;
+		com->draw_sprite.y = info[i].base_y;
+		com->draw_sprite.slot = actor[i].type;
+
+		if (actor[i].state == STATE_CHARGE)
+			com->draw_sprite.x += Sin(actor[i].phase) >> 5;
+
+		/* Time meter background */
+		com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
+		com->draw_shape.color = 16;
+		com->draw_shape.x = info[i].base_x;
+		com->draw_shape.y = info[i].base_y;
+		com->draw_shape.width = 34;
+		com->draw_shape.height = 3;
+
+		/* Time meter */
+		if (actor[i].state == STATE_IDLE)
 		{
-			/* Update counter */
-			if (s_actor[i].idle_time < (255 - s_idle_time[s_actor[i].type]))
-			{
-				if ((*(uint16_t*)FRAME_COUNTER_OFFSET % 2) == 0)
-					s_actor[i].idle_time += s_idle_time[s_actor[i].type];
-			}
-			else
-			{
-				/* Change to 'charge' state */
-				s_actor[i].idle_time = 255;
-				s_actor[i].charge_time = 0;
-				s_actor[i].next_state = STATE_CHARGE;
-
-				/* Select our attack */
-				s_actor[i].attack_type = Random() % UINT8_MAX;
-
-			again:
-				/* We are heroes, so lets chose an enemy */
-				if (i < 2)
-					s_actor[i].target = 2 + (Random() % (ACTORS_NUMBER - 2));
-
-				/* The same, but from the other side */
-				else
-					s_actor[i].target = Random() % 2;
-
-				/* Wait, our target is live? */
-				if (s_actor[s_actor[i].target].type == TYPE_DEAD)
-					goto again;
-			}
+			color = 8;
+			width = (actor[i].idle_time >> 3); /* Max of 32 px */
+		}
+		else
+		{
+			color = 41;
+			width = (actor[i].charge_time >> 3);
 		}
 
-		/* Bounded state or "damage received, let me rest a bit" */
-		else if (s_actor[i].state == STATE_BOUNDED)
-		{
-			/* Update counter */
-			if (s_actor[i].bounded_time != 0)
-				s_actor[i].bounded_time -= 1;
-			else
-			{
-				/* Restore previous state */
-				if (s_actor[i].idle_time != 255)
-					s_actor[i].next_state = STATE_IDLE;
-				else
-					s_actor[i].next_state = STATE_CHARGE;
-			}
-		}
+		if (width == 0) /* Too tiny to draw it */
+			continue;
 
-		/* Charge state or "this weapon is too heavy, game me a sec" */
-		else if (s_actor[i].state == STATE_CHARGE)
-		{
-			/* Oscillate in position */
-			s_actor[i].phase += 20;
-
-			/* Update counter */
-			if (s_actor[i].charge_time < (255 - 8))
-				s_actor[i].charge_time += 8;
-			else
-			{
-				/* Change to 'attack' state */
-				s_actor[i].charge_time = 255;
-				s_actor[i].next_state = STATE_ATTACK;
-			}
-		}
-
-		/* Attack state or "ey! look this cool animation" */
-		else if (s_actor[i].state == STATE_ATTACK)
-		{
-			/* Change to 'idle' state */
-			s_actor[i].idle_time = 0;
-			s_actor[i].next_state = STATE_IDLE;
-
-			/* Inflict damage in our victim */
-			s_actor[s_actor[i].target].health -= 5;
-
-			/* Change they state */
-			s_actor[s_actor[i].target].next_state = STATE_BOUNDED;
-			s_actor[s_actor[i].target].bounded_time = 24; /* One second */
-
-			/* Set if victim died */
-			if (s_actor[s_actor[i].target].health <= 0)
-				s_actor[s_actor[i].target].type = TYPE_DEAD;
-		}
+		com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
+		com->draw_shape.color = color;
+		com->draw_shape.width = width; /* Max of 32 px */
+		com->draw_shape.height = 1;
+		com->draw_shape.x = info[i].base_x + 1;
+		com->draw_shape.y = info[i].base_y + 1;
 	}
+}
 
-	/* Change the background every 10 seconds,
-	   is just to test this functionality */
-	if ((*(uint16_t*)FRAME_COUNTER_OFFSET % 240) == 0)
+
+static void sActorIdle(struct Actor* actor)
+{
+	/* Update idle timer */
+	if (actor->idle_time < (255 - persona[actor->type].idle_time))
 	{
-		if(*(uint16_t*)FRAME_COUNTER_OFFSET == 0)
-		{
-			LoadSprite("assets\\idle.jvn", 0);
-			LoadSprite("assets\\sprite1.jvn", 1);
-			LoadSprite("assets\\sprite2.jvn", 2);
-			LoadSprite("assets\\font2.jvn", 3);
-		}
-
-		switch (Random() % 8)
-		{
-		case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
-		case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
-		case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
-		case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
-		case 4: LoadBackground((uint16_t) "assets\\bkg5.raw"); break;
-		case 5: LoadBackground((uint16_t) "assets\\bkg6.raw"); break;
-		case 6: LoadBackground((uint16_t) "assets\\bkg7.raw"); break;
-		case 7: LoadBackground((uint16_t) "assets\\bkg8.raw");
-		}
-
-		NewCommand(CODE_DRAW_BKG);
-
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = 2;
-		com->draw_text.y = 2;
-		com->draw_text.slot = 3;
-		com->draw_text.text = (uint16_t)"Sakurai, alpha build";
-
-		goto no_clean; /* Because draw an entry background
-		                  left us with the screen clean */
+		if ((CURRENT_FRAME % 2) == 0)
+			actor->idle_time += persona[actor->type].idle_time;
 	}
 
-	/* Draw step */
+	/* Our turn!, time to change into 'charge' state */
+	else
 	{
-		/* Clean space that characters occupy */
-		com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
-		com->draw_shape.x = 0;
-		com->draw_shape.y = 56; /* Minimum value in 's_base_y' in
-		                           relation with following 'height' */
+		actor->charge_time = 0;
+		actor->state = STATE_CHARGE;
 
-		com->draw_shape.width = 20;
-		com->draw_shape.height = 9; /* 144 px */
+		/* Select our attack */
+		actor->attack_type = Random() % UINT8_MAX;
 
-	no_clean:
-
-		for (i = 0; i < ACTORS_NUMBER; i++)
+		/* Select our target... */
 		{
-			if (s_actor[i].type == TYPE_DEAD)
-				continue;
+		again:
+			/* As an enemy */
+			if (actor->type >= HEROES_NO)
+				actor->target = HEROES_NO + (Random() % (ACTORS_NO - HEROES_NO));
 
-			/* Draw character */
-			com = NewCommand(CODE_DRAW_SPRITE);
-			com->draw_sprite.x = s_actor[i].x;
-			com->draw_sprite.y = s_base_y[i];
-
-			if (i < 2)
-			{
-				com->draw_sprite.slot = 0;
-				com->draw_sprite.frame = (*(uint16_t*)FRAME_COUNTER_OFFSET + i + 2) >> 2;
-			}
+			/* As an hero */
 			else
-			{
-				com->draw_sprite.slot = 2;
-				com->draw_sprite.frame = 0;
-			}
+				actor->target = Random() % HEROES_NO;
 
-			/* Draw time meter background */
-			com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
-			com->draw_shape.color = 16;
-			com->draw_shape.x = s_actor[i].x;
-			com->draw_shape.y = s_base_y[i];
-			com->draw_shape.width = 34;
-			com->draw_shape.height = 3;
-
-			/* Draw time meter */
-			switch (s_actor[i].state)
-			{
-			case STATE_IDLE:
-				color = 8;
-				width = (s_actor[i].idle_time >> 3);
-				break;
-			case STATE_CHARGE:
-				color = 41;
-				width = (s_actor[i].charge_time >> 3);
-				break;
-			default: break;
-			}
-
-			if (s_actor[i].state == STATE_BOUNDED)
-			{
-				color = 60;
-
-				if (s_actor[i].idle_time != 255)
-					width = (s_actor[i].idle_time >> 3);
-				else
-					width = (s_actor[i].charge_time >> 3);
-			}
-
-			if (width == 0)
-				continue;
-
-			com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
-			com->draw_shape.color = color;
-			com->draw_shape.width = width; /* 32 px */
-			com->draw_shape.height = 1;
-			com->draw_shape.x = s_actor[i].x + 1;
-			com->draw_shape.y = s_base_y[i] + 1;
+			/* Wait, the target is alive? */
+			if (actor[actor->target].state == STATE_DEAD)
+				goto again;
 		}
 	}
+}
+
+
+static void sActorCharge(struct Actor* actor)
+{
+	/* Oscillate in position */
+	actor->phase += 20;
+
+	/* Update charge timer */
+	if (actor->charge_time < (255 - 8))
+		actor->charge_time += 8;
+
+	/* Attack!!! (TODO) */
+	else
+	{
+		actor->idle_time = 0;
+		actor->state = STATE_IDLE;
+	}
+}
+
+
+/*===========================*/
+
+
+void* MenuState()
+{
+	/* Bye! */
+	NewCommand(CODE_HALT);
+	CleanCommands();
+
+	return MenuState;
+}
+
+
+void* FieldState()
+{
+	uint8_t i = 0;
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (actor[i].state == STATE_DEAD)
+			continue;
+
+		else if (actor[i].state == STATE_IDLE)
+			sActorIdle(&actor[i]);
+		else if (actor[i].state == STATE_CHARGE)
+			sActorCharge(&actor[i]);
+	}
+
+	if ((CURRENT_FRAME % 240) == 0)
+		sResetBackground();
+
+	sDrawActors();
 
 	/* Bye! */
 	NewCommand(CODE_HALT);
 	CleanCommands();
 
-	return 0;
+	return FieldState;
+}
+
+
+void* GameStart()
+{
+	uint8_t i = 0;
+
+	/* TODO, there is no seed() function */
+	for (i = 0; i < 48; i++)
+		Random();
+
+	LoadSprite("assets\\font1.jvn", 31);
+
+	sResetActors();
+	/*sResetBackground();*/
+
+	FieldState();
+	return FieldState;
 }

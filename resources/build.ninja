@@ -46,7 +46,10 @@ build ./sakurai.exe: Assembly ./source/engine/sakurai.asm
 
 # Game
 build ./game.dll: CompileAndLinkC $
+ ./source/game/main.c $
  ./source/game/game.c $
+ ./source/game/test1.c $
+ ./source/game/test2.c $
  ./source/game/utilities.c $
  ./generated/sin.c
 
@@ -63,6 +66,15 @@ build ./generated/sprite1.asm: SpriteLinear ./assets/sprite1.bmp
 build ./generated/sprite2.asm: SpriteLinear ./assets/sprite2.bmp
 build ./generated/player.asm: SpriteLinear ./assets/player.bmp
 
+build ./generated/type-a.asm: SpriteLinear ./assets/type-a.bmp
+build ./generated/type-b.asm: SpriteLinear ./assets/type-b.bmp
+build ./generated/type-c.asm: SpriteLinear ./assets/type-c.bmp
+build ./generated/type-d.asm: SpriteLinear ./assets/type-d.bmp
+build ./generated/type-e.asm: SpriteLinear ./assets/type-e.bmp
+build ./generated/type-f.asm: SpriteLinear ./assets/type-f.bmp
+build ./generated/type-g.asm: SpriteLinear ./assets/type-g.bmp
+
+
 build ./generated/font1.asm: SpriteFont ./assets/font1.bmp
 build ./generated/font2.asm: SpriteFont ./assets/font2.bmp
 
@@ -72,6 +84,15 @@ build ./assets/idle.jvn: AssemblySprite ./generated/idle.asm
 build ./assets/sprite1.jvn: AssemblySprite ./generated/sprite1.asm
 build ./assets/sprite2.jvn: AssemblySprite ./generated/sprite2.asm
 build ./assets/player.jvn: AssemblySprite ./generated/player.asm
+
+build ./assets/type-a.jvn: AssemblySprite ./generated/type-a.asm
+build ./assets/type-b.jvn: AssemblySprite ./generated/type-b.asm
+build ./assets/type-c.jvn: AssemblySprite ./generated/type-c.asm
+build ./assets/type-d.jvn: AssemblySprite ./generated/type-d.asm
+build ./assets/type-e.jvn: AssemblySprite ./generated/type-e.asm
+build ./assets/type-f.jvn: AssemblySprite ./generated/type-f.asm
+build ./assets/type-g.jvn: AssemblySprite ./generated/type-g.asm
+
 
 build ./assets/font1.jvn: AssemblySprite ./generated/font1.asm
 build ./assets/font2.jvn: AssemblySprite ./generated/font2.asm
