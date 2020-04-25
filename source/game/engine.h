@@ -20,10 +20,21 @@ typedef unsigned short uint16_t;
 #define COMMANDS_TABLE_LEN 24
 #define COMMANDS_TABLE_OFFSET 0x0000
 #define FRAME_COUNTER_OFFSET 0x00C0
-#define INT_FD_ARG1 0x00C2
-#define INT_FD_ARG2 0x00C4
-#define INT_FD_ARG3 0x00C6
-#define INT_FD_ARG4 0x00C8
+#define INT_FD_ARG1_OFFSET 0x00C2
+#define INT_FD_ARG2_OFFSET 0x00C4
+#define INT_FD_ARG3_OFFSET 0x00C6
+#define INT_FD_ARG4_OFFSET 0x00C8
+
+#define INPUT_X_OFFSET 0x00CA
+#define INPUT_Y_OFFSET 0x00CA
+#define INPUT_A_OFFSET 0x00CB
+#define INPUT_B_OFFSET 0x00CC
+#define INPUT_UP_OFFSET 0x00CD
+#define INPUT_DOWN_OFFSET 0x00CE
+#define INPUT_LEFT_OFFSET 0x00CF
+#define INPUT_RIGHT_OFFSET 0x00B0
+#define INPUT_SELECT_OFFSET 0x00B1
+#define INPUT_START_OFFSET 0x00B2
 
 #define CODE_HALT 0x00           /* Stops draw routine */
 #define CODE_DRAW_BKG 0x01       /* Draw loaded background into buffer */

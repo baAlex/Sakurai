@@ -54,10 +54,10 @@ struct Information info[ACTORS_NO] = {
     {/* BaseX */ 38, /* BaseY */ 60},
     {/* BaseX */ 8,  /* BaseY */ 100},
 
-    {/* BaseX */ 160, /* BaseY */ 60},
-    {/* BaseX */ 200, /* BaseY */ 73},
-    {/* BaseX */ 225, /* BaseY */ 86},
-    {/* BaseX */ 248, /* BaseY */ 100},
+    {/* BaseX */ 150, /* BaseY */ 60},
+    {/* BaseX */ 180, /* BaseY */ 73},
+    {/* BaseX */ 220, /* BaseY */ 86},
+    {/* BaseX */ 250, /* BaseY */ 100},
 
 };
 

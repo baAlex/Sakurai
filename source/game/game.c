@@ -88,6 +88,9 @@ static void sResetActors()
 	for (i = 0; i < TYPES_NO; i++)
 		loaded[i] = 0; /* TODO, i need a malloc()!! */
 
+	UnloadEverything();
+	LoadSprite("assets\\font1.jvn", 31); /* TODO, not everything :/ (good case to use pool_b) */
+
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		/* Only enemies resets they health and type */
@@ -147,13 +150,24 @@ static void sResetActors()
  sDrawActors()
  - As the name says, plus a time meter bar on top of them
 -----------------------------*/
-static void sDrawActors()
+static void sDrawActors(uint8_t clean_area)
 {
 	union Command* com;
 	uint8_t i = 0;
 	uint8_t color = 0;
 	uint8_t width = 0;
 
+	/* Clean area */
+	if (clean_area == 1)
+	{
+		com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
+		com->draw_shape.x = 0;
+		com->draw_shape.y = 60;
+		com->draw_shape.width = 20; /* 320 px */
+		com->draw_shape.height = 9; /* 144 px */
+	}
+
+	/* Iterate actors */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		if (actor[i].state == STATE_DEAD)
@@ -284,10 +298,16 @@ void* FieldState()
 			sActorCharge(&actor[i]);
 	}
 
-	if ((CURRENT_FRAME % 240) == 0)
+	if (INPUT_X != 0)
+	{
+		sResetActors();
 		sResetBackground();
+		sDrawActors(0);
 
-	sDrawActors();
+		INPUT_X = 0;
+	}
+	else
+		sDrawActors(1);
 
 	/* Bye! */
 	NewCommand(CODE_HALT);
@@ -308,7 +328,7 @@ void* GameStart()
 	LoadSprite("assets\\font1.jvn", 31);
 
 	sResetActors();
-	/*sResetBackground();*/
+	sResetBackground();
 
 	FieldState();
 	return FieldState;

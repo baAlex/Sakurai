@@ -161,25 +161,25 @@ Main_loop_no_sleep:
 		jz near Main_bye
 
 		; Provide input to game logic
-		mov dx, [keyboard_state + 0x01] ; X
+		mov dx, [keyboard_state + 0x2C] ; X
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Y
+		mov dx, [keyboard_state + 0x2D] ; Y
 		push dx
-		mov dx, [keyboard_state + 0x01] ; A
+		mov dx, [keyboard_state + 0x1E] ; A
 		push dx
-		mov dx, [keyboard_state + 0x01] ; B
+		mov dx, [keyboard_state + 0x1F] ; B
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Up
+		mov dx, [keyboard_state + 0x01] ; Up (TODO)
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Down
+		mov dx, [keyboard_state + 0x01] ; Down (TODO)
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Left
+		mov dx, [keyboard_state + 0x01] ; Left (TODO)
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Right
+		mov dx, [keyboard_state + 0x01] ; Right (TODO)
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Select
+		mov dx, [keyboard_state + 0x39] ; Select
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Start
+		mov dx, [keyboard_state + 0x1C] ; Start
 		push dx
 
 		mov dx, seg_game_data
@@ -341,6 +341,8 @@ _IntFDVector:
 	je near GameLoadBackground
 	cmp ax, 0x04
 	je near GameLoadSprite
+	cmp ax, 0x05
+	je near GameUnloadEverything
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html

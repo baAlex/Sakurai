@@ -40,6 +40,8 @@
 ;	ax = [ifd_arg1]
 
 
+include "macros.asm"
+
 ;==============================
 GamePrintString:
 	mov dx, [ifd_arg2]
@@ -63,9 +65,7 @@ GameLoadBackground:
 	mov dx, [ifd_arg2]
 	call near FileOpen ; (ds:dx)
 
-	mov dx, seg_bkg_data
-	mov ds, dx
-	mov dx, 0x0000
+	SetDsDx seg_bkg_data, 0x0000
 	mov cx, BKG_DATA_SIZE
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
@@ -85,13 +85,10 @@ GameLoadSprite:
 	call near FileOpen ; (ds:dx, ax = RETURN)
 
 	mov si, [ifd_arg3]
-	; (TODO: an PoolFree() here please...)
+	; (TODO: an PoolFree() here, some day :) )
 
 	; From here everything happens on 'seg_data'
-	mov dx, seg_data
-	mov ds, dx
-
-	mov dx, str_spr_load
+	SetDsDx seg_data, str_spr_load
 	call near PrintLogString ; (ds:dx)
 
 	; Read sprite header in 'spr_header'
@@ -117,10 +114,7 @@ GameLoadSprite:
 
 	; Allocate memory accordingly
 	; And from here welcome to to 'seg_pool_a'
-	mov dx, seg_pool_a
-	mov ds, dx
-	mov dx, pool_a_data
-
+	SetDsDx seg_pool_a, pool_a_data
 	call near PoolAllocate ; (ds:dx = pool, cx = size, di = RETURN)
 
 	; Fill the already read sprite header
@@ -149,4 +143,16 @@ GameLoadSprite:
 	pop bx
 
 	call near FileClose ; (ax)
+	jmp near _IntFDVector_bye
+
+
+;==============================
+GameUnloadEverything:
+	push cx
+
+	SetDsDx seg_pool_a, pool_a_data
+	mov cx, POOL_A_SIZE
+	call PoolInit ; (ds:dx, cx = size)
+
+	pop cx
 	jmp near _IntFDVector_bye

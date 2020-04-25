@@ -61,8 +61,8 @@ void CleanCommands()
 
 void PrintString(uint16_t string)
 {
-	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
-	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1_OFFSET;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2_OFFSET;
 	*a1 = 0x01;
 	*a2 = string;
 	asm("int 0xFD");
@@ -71,8 +71,8 @@ void PrintString(uint16_t string)
 
 void PrintNumber(uint16_t number)
 {
-	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
-	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1_OFFSET;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2_OFFSET;
 	*a1 = 0x02;
 	*a2 = number;
 	asm("int 0xFD");
@@ -81,8 +81,8 @@ void PrintNumber(uint16_t number)
 
 void LoadBackground(uint16_t filename)
 {
-	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
-	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1_OFFSET;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2_OFFSET;
 	*a1 = 0x03;
 	*a2 = filename;
 	asm("int 0xFD");
@@ -91,11 +91,19 @@ void LoadBackground(uint16_t filename)
 
 void LoadSprite(uint16_t filename, uint16_t slot)
 {
-	uint16_t* a1 = (uint16_t*)INT_FD_ARG1;
-	uint16_t* a2 = (uint16_t*)INT_FD_ARG2;
-	uint16_t* a3 = (uint16_t*)INT_FD_ARG3;
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1_OFFSET;
+	uint16_t* a2 = (uint16_t*)INT_FD_ARG2_OFFSET;
+	uint16_t* a3 = (uint16_t*)INT_FD_ARG3_OFFSET;
 	*a1 = 0x04;
 	*a2 = filename;
 	*a3 = slot;
+	asm("int 0xFD");
+}
+
+
+void UnloadEverything()
+{
+	uint16_t* a1 = (uint16_t*)INT_FD_ARG1_OFFSET;
+	*a1 = 0x05;
 	asm("int 0xFD");
 }
