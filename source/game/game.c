@@ -35,6 +35,13 @@ SOFTWARE.
 #define DEVELOPER
 
 
+/*-----------------------------
+
+ sResetBackground()
+ - Loads a new random background and draws it
+ - Draws a legend on the top ("alpha build")
+ - Draws part of the ui
+-----------------------------*/
 static void sResetBackground()
 {
 	union Command* com;
@@ -57,16 +64,29 @@ static void sResetBackground()
 	com = NewCommand(CODE_DRAW_TEXT);
 	com->draw_text.x = 1;
 	com->draw_text.y = 0;
-	com->draw_text.slot = 1;
+	com->draw_text.slot = 31;
 	com->draw_text.text = (uint16_t) "Sakurai, alpha build";
 #endif
 }
 
 
+/*-----------------------------
+
+ sResetActors()
+ - Iterate the actors array and reset they values
+ - Enemies are chosen and set in a random fashion
+ - Heroes reset all values except for health and type
+ - Finally, unloads all sprites in the engine to then
+   load only the necessary ones (TODO)
+-----------------------------*/
 static void sResetActors()
 {
 	/* TODO: is not the idea to have entirely random enemies */
+	uint8_t loaded[TYPES_NO];
 	uint8_t i = 0;
+
+	for (i = 0; i < TYPES_NO; i++)
+		loaded[i] = 0; /* TODO, i need a malloc()!! */
 
 	for (i = 0; i < ACTORS_NO; i++)
 	{
@@ -79,42 +99,164 @@ static void sResetActors()
 
 			actor[i].health = persona[actor[i].type].health;
 
+			/* A random plus of health, 10 pts */
 			if (actor[i].health <= 90)
 				actor[i].health += (uint8_t)(Random() % 10);
 		}
 
 		actor[i].phase = (uint8_t)Random();
-		actor[i].x = info[i].base_x;
+		actor[i].state = STATE_IDLE;
 
 		/* The rest just need to be zero */
 		actor[i].target = 0;
 		actor[i].attack_type = 0;
-		actor[i].state = 0;
-		actor[i].next_state = 0;
 		actor[i].idle_time = 0;
 		actor[i].charge_time = 0;
 		actor[i].bounded_time = 0;
+
+		/* Load sprites, whitout repeat */
+		if (loaded[actor[i].type] == 0)
+		{
+			if (actor[i].type == TYPE_HERO_A)
+				LoadSprite("assets\\player.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_HERO_B)
+				LoadSprite("assets\\player.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_A)
+				LoadSprite("assets\\type-a.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_B)
+				LoadSprite("assets\\type-b.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_C)
+				LoadSprite("assets\\type-c.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_D)
+				LoadSprite("assets\\type-d.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_E)
+				LoadSprite("assets\\type-e.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_F)
+				LoadSprite("assets\\type-f.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_G)
+				LoadSprite("assets\\type-g.jvn", actor[i].type);
+
+			loaded[actor[i].type] = 1;
+		}
 	}
 }
 
 
+/*-----------------------------
+
+ sDrawActors()
+ - As the name says, plus a time meter bar on top of them
+-----------------------------*/
 static void sDrawActors()
 {
 	union Command* com;
 	uint8_t i = 0;
+	uint8_t color = 0;
+	uint8_t width = 0;
 
 	for (i = 0; i < ACTORS_NO; i++)
 	{
-		com = NewCommand(CODE_DRAW_SPRITE);
-		com->draw_sprite.x = actor[i].x;
-		com->draw_sprite.y = info[i].base_y;
+		if (actor[i].state == STATE_DEAD)
+			continue;
 
-		if (i >= HEROES_NO)
-			com->draw_sprite.slot = 5;
+		/* Sprite */
+		com = NewCommand(CODE_DRAW_SPRITE);
+		com->draw_sprite.x = info[i].base_x;
+		com->draw_sprite.y = info[i].base_y;
+		com->draw_sprite.slot = actor[i].type;
+
+		if (actor[i].state == STATE_CHARGE)
+			com->draw_sprite.x += Sin(actor[i].phase) >> 5;
+
+		/* Time meter background */
+		com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
+		com->draw_shape.color = 16;
+		com->draw_shape.x = info[i].base_x;
+		com->draw_shape.y = info[i].base_y;
+		com->draw_shape.width = 34;
+		com->draw_shape.height = 3;
+
+		/* Time meter */
+		if (actor[i].state == STATE_IDLE)
+		{
+			color = 8;
+			width = (actor[i].idle_time >> 3); /* Max of 32 px */
+		}
 		else
-			com->draw_sprite.slot = 6;
+		{
+			color = 41;
+			width = (actor[i].charge_time >> 3);
+		}
+
+		if (width == 0) /* Too tiny to draw it */
+			continue;
+
+		com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
+		com->draw_shape.color = color;
+		com->draw_shape.width = width; /* Max of 32 px */
+		com->draw_shape.height = 1;
+		com->draw_shape.x = info[i].base_x + 1;
+		com->draw_shape.y = info[i].base_y + 1;
 	}
 }
+
+
+static void sActorIdle(struct Actor* actor)
+{
+	/* Update idle timer */
+	if (actor->idle_time < (255 - persona[actor->type].idle_time))
+	{
+		if ((CURRENT_FRAME % 2) == 0)
+			actor->idle_time += persona[actor->type].idle_time;
+	}
+
+	/* Our turn!, time to change into 'charge' state */
+	else
+	{
+		actor->charge_time = 0;
+		actor->state = STATE_CHARGE;
+
+		/* Select our attack */
+		actor->attack_type = Random() % UINT8_MAX;
+
+		/* Select our target... */
+		{
+		again:
+			/* As an enemy */
+			if (actor->type >= HEROES_NO)
+				actor->target = HEROES_NO + (Random() % (ACTORS_NO - HEROES_NO));
+
+			/* As an hero */
+			else
+				actor->target = Random() % HEROES_NO;
+
+			/* Wait, the target is alive? */
+			if (actor[actor->target].state == STATE_DEAD)
+				goto again;
+		}
+	}
+}
+
+
+static void sActorCharge(struct Actor* actor)
+{
+	/* Oscillate in position */
+	actor->phase += 20;
+
+	/* Update charge timer */
+	if (actor->charge_time < (255 - 8))
+		actor->charge_time += 8;
+
+	/* Attack!!! (TODO) */
+	else
+	{
+		actor->idle_time = 0;
+		actor->state = STATE_IDLE;
+	}
+}
+
+
+/*===========================*/
 
 
 void* MenuState()
@@ -131,10 +273,20 @@ void* FieldState()
 {
 	uint8_t i = 0;
 
-	/* Update logic */
-	for (i = 0; i < ACTORS_NO; i++) {}
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (actor[i].state == STATE_DEAD)
+			continue;
 
-	/* Draw */
+		else if (actor[i].state == STATE_IDLE)
+			sActorIdle(&actor[i]);
+		else if (actor[i].state == STATE_CHARGE)
+			sActorCharge(&actor[i]);
+	}
+
+	if ((CURRENT_FRAME % 240) == 0)
+		sResetBackground();
+
 	sDrawActors();
 
 	/* Bye! */
@@ -147,15 +299,16 @@ void* FieldState()
 
 void* GameStart()
 {
-	LoadSprite("assets\\font1.jvn", 1);
-	LoadSprite("assets\\font2.jvn", 2);
+	uint8_t i = 0;
 
-	LoadSprite("assets\\sprite1.jvn", 4);
-	LoadSprite("assets\\sprite2.jvn", 5);
-	LoadSprite("assets\\idle.jvn", 6);
+	/* TODO, there is no seed() function */
+	for (i = 0; i < 48; i++)
+		Random();
+
+	LoadSprite("assets\\font1.jvn", 31);
 
 	sResetActors();
-	sResetBackground();
+	/*sResetBackground();*/
 
 	FieldState();
 	return FieldState;

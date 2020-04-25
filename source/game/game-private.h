@@ -9,15 +9,17 @@
 
 #include "engine.h"
 
-/* Two of the six actors are heroes */
-#define HEROES_NO 2
+/* How many actors in screen */
 #define ACTORS_NO 6
 
-/* Like DOOM, there are seven actors types, plus the heroes */
+/* Two of the six actors being heroes */
+#define HEROES_NO 2
+
+/* With seven actors type, plus the heroes */
 #define TYPES_NO 9
 
-#define TYPE_HERO_A 0 /* Heroes always at begining! */
-#define TYPE_HERO_B 1
+#define TYPE_HERO_B 0 /* Heroes always at begining, as it let us */
+#define TYPE_HERO_A 1 /* do a cheap 'if less than' to identity them */
 #define TYPE_A 2
 #define TYPE_B 3
 #define TYPE_C 4
@@ -25,6 +27,11 @@
 #define TYPE_E 6
 #define TYPE_F 7
 #define TYPE_G 8
+
+/* States for our actors */
+#define STATE_DEAD 0
+#define STATE_IDLE 1
+#define STATE_CHARGE 2
 
 
 /*
@@ -47,8 +54,8 @@ struct Information info[ACTORS_NO] = {
     {/* BaseX */ 38, /* BaseY */ 60},
     {/* BaseX */ 8,  /* BaseY */ 100},
 
-    {/* BaseX */ 180, /* BaseY */ 60},
-    {/* BaseX */ 202, /* BaseY */ 73},
+    {/* BaseX */ 160, /* BaseY */ 60},
+    {/* BaseX */ 200, /* BaseY */ 73},
     {/* BaseX */ 225, /* BaseY */ 86},
     {/* BaseX */ 248, /* BaseY */ 100},
 
@@ -74,13 +81,10 @@ struct Personality persona[TYPES_NO] = {
 */
 struct Actor
 {
-	uint16_t x;
+	uint8_t state;
 
 	uint8_t target;
 	uint8_t attack_type;
-
-	uint8_t state;
-	uint8_t next_state;
 
 	uint8_t idle_time;    /* Counts from 0 to 255 */
 	uint8_t charge_time;  /* " */
@@ -93,12 +97,7 @@ struct Actor
 };
 
 struct Actor actor[ACTORS_NO] = {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    {0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_A},
+    {0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_B}};
 
 #endif
