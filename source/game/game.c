@@ -32,125 +32,13 @@ SOFTWARE.
 #include "game-private.h"
 #include "utilities.h"
 
-#define DEVELOPER
-
-
-/*-----------------------------
-
- sResetBackground()
- - Loads a new random background and draws it
- - Draws a legend on the top ("alpha build")
- - Draws part of the ui
------------------------------*/
-static void sResetBackground()
-{
-	union Command* com;
-
-	switch (Random() % 8)
-	{
-	case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
-	case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
-	case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
-	case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
-	case 4: LoadBackground((uint16_t) "assets\\bkg8.raw"); break;
-	case 5: LoadBackground((uint16_t) "assets\\bkg7.raw"); break;
-	case 6: LoadBackground((uint16_t) "assets\\bkg6.raw"); break;
-	case 7: LoadBackground((uint16_t) "assets\\bkg5.raw");
-	}
-
-	NewCommand(CODE_DRAW_BKG);
-
-#ifdef DEVELOPER
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = 1;
-	com->draw_text.y = 0;
-	com->draw_text.slot = 31;
-	com->draw_text.text = (uint16_t) "Sakurai, alpha build";
-#endif
-}
-
-
-/*-----------------------------
-
- sResetActors()
- - Iterate the actors array and reset they values
- - Enemies are chosen and set in a random fashion
- - Heroes reset all values except for health and type
- - Finally, unloads all sprites in the engine to then
-   load only the necessary ones (TODO)
------------------------------*/
-static void sResetActors()
-{
-	/* TODO: is not the idea to have entirely random enemies */
-	uint8_t loaded[TYPES_NO];
-	uint8_t i = 0;
-
-	for (i = 0; i < TYPES_NO; i++)
-		loaded[i] = 0; /* TODO, i need a malloc()!! */
-
-	UnloadEverything();
-	LoadSprite("assets\\font1.jvn", 31); /* TODO, not everything :/ (good case to use pool_b) */
-
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		/* Only enemies resets they health and type */
-		if (i >= HEROES_NO)
-		{
-			do
-				actor[i].type = (Random() % TYPES_NO);
-			while (actor[i].type < HEROES_NO);
-
-			actor[i].health = persona[actor[i].type].health;
-
-			/* A random plus of health, 10 pts */
-			if (actor[i].health <= 90)
-				actor[i].health += (uint8_t)(Random() % 10);
-		}
-
-		actor[i].phase = (uint8_t)Random();
-		actor[i].state = STATE_IDLE;
-
-		/* The rest just need to be zero */
-		actor[i].target = 0;
-		actor[i].attack_type = 0;
-		actor[i].idle_time = 0;
-		actor[i].charge_time = 0;
-		actor[i].bounded_time = 0;
-
-		/* Load sprites, whitout repeat */
-		if (loaded[actor[i].type] == 0)
-		{
-			if (actor[i].type == TYPE_HERO_A)
-				LoadSprite("assets\\player.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_HERO_B)
-				LoadSprite("assets\\player.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_A)
-				LoadSprite("assets\\type-a.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_B)
-				LoadSprite("assets\\type-b.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_C)
-				LoadSprite("assets\\type-c.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_D)
-				LoadSprite("assets\\type-d.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_E)
-				LoadSprite("assets\\type-e.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_F)
-				LoadSprite("assets\\type-f.jvn", actor[i].type);
-			else if (actor[i].type == TYPE_G)
-				LoadSprite("assets\\type-g.jvn", actor[i].type);
-
-			loaded[actor[i].type] = 1;
-		}
-	}
-}
-
 
 /*-----------------------------
 
  sDrawActors()
  - As the name says, plus a time meter bar on top of them
 -----------------------------*/
-static void sDrawActors(uint8_t clean_area)
+static void sDrawActors()
 {
 	union Command* com;
 	uint8_t i = 0;
@@ -158,14 +46,11 @@ static void sDrawActors(uint8_t clean_area)
 	uint8_t width = 0;
 
 	/* Clean area */
-	if (clean_area == 1)
-	{
-		com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
-		com->draw_shape.x = 0;
-		com->draw_shape.y = 60;
-		com->draw_shape.width = 20; /* 320 px */
-		com->draw_shape.height = 9; /* 144 px */
-	}
+	com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
+	com->draw_shape.x = 0;
+	com->draw_shape.y = 60;
+	com->draw_shape.width = 20; /* 320 px */
+	com->draw_shape.height = 9; /* 144 px */
 
 	/* Iterate actors */
 	for (i = 0; i < ACTORS_NO; i++)
@@ -273,20 +158,18 @@ static void sActorCharge(struct Actor* actor)
 /*===========================*/
 
 
-void* MenuState()
-{
-	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
-	return MenuState;
-}
-
-
 void* FieldState()
 {
+	void* next_state = FieldState;
 	uint8_t i = 0;
 
+	if (INPUT_X != 0)
+	{
+		next_state = GameStart;
+		goto bye; /* Hack! */
+	}
+
+	/* Logic step */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		if (actor[i].state == STATE_DEAD)
@@ -298,38 +181,199 @@ void* FieldState()
 			sActorCharge(&actor[i]);
 	}
 
-	if (INPUT_X != 0)
-	{
-		sResetActors();
-		sResetBackground();
-		sDrawActors(0);
+	/* Draw step */
+	sDrawActors();
 
-		INPUT_X = 0;
-	}
-	else
-		sDrawActors(1);
-
+bye:
 	/* Bye! */
 	NewCommand(CODE_HALT);
 	CleanCommands();
 
-	return FieldState;
+	return next_state;
+}
+
+
+/*===========================*/
+
+
+static uint8_t s_initialized_types[TYPES_NO];
+static uint8_t s_load_screen_frame;
+
+
+static void sInitializeActor(uint8_t i)
+{
+	/* TODO: is not the idea to have entirely random enemies */
+
+	/* Only enemies resets they health and type */
+	if (i >= HEROES_NO)
+	{
+		do
+			actor[i].type = (Random() % TYPES_NO);
+		while (actor[i].type < HEROES_NO);
+
+		actor[i].health = persona[actor[i].type].health;
+
+		/* A random plus of health, 10 pts */
+		if (actor[i].health <= 90)
+			actor[i].health += (uint8_t)(Random() % 10);
+	}
+
+	actor[i].phase = (uint8_t)Random();
+	actor[i].state = STATE_IDLE;
+
+	/* The rest just need to be zero */
+	actor[i].target = 0;
+	actor[i].attack_type = 0;
+	actor[i].idle_time = 0;
+	actor[i].charge_time = 0;
+	actor[i].bounded_time = 0;
+}
+
+
+void* GameLoadSprites()
+{
+	/* TODO: in the future, rather than count frames is
+	going to be better to measure elapsed miliseconds
+	(currently the engine didn't share them) */
+
+	union Command* com;
+	uint8_t i = 0;
+
+	if (s_load_screen_frame != 0)
+		goto bye;
+
+	for (i = 0; i < TYPES_NO; i++)
+		s_initialized_types[i] = 0; /* TODO, i need a malloc()!! */
+
+	/* Load heroes portraits */
+	LoadSprite("assets\\port-a.jvn", 22);
+	LoadSprite("assets\\port-b.jvn", 23);
+
+	/* Load sprites, whitout repeat */
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (s_initialized_types[actor[i].type] == 0)
+		{
+			if (actor[i].type == TYPE_HERO_A)
+				LoadSprite("assets\\player.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_HERO_B)
+				LoadSprite("assets\\player.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_A)
+				LoadSprite("assets\\type-a.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_B)
+				LoadSprite("assets\\type-b.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_C)
+				LoadSprite("assets\\type-c.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_D)
+				LoadSprite("assets\\type-d.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_E)
+				LoadSprite("assets\\type-e.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_F)
+				LoadSprite("assets\\type-f.jvn", actor[i].type);
+			else if (actor[i].type == TYPE_G)
+				LoadSprite("assets\\type-g.jvn", actor[i].type);
+
+			s_initialized_types[actor[i].type] = 1;
+		}
+	}
+
+bye:
+	/* Bye! */
+	s_load_screen_frame += 1;
+
+	/* Before change into 'field' state we need to
+	display the loading message for 2 seconds */
+	if (s_load_screen_frame >= 48)
+	{
+		NewCommand(CODE_DRAW_BKG);
+
+		/* Draw heroes portrait */
+		com = NewCommand(CODE_DRAW_SPRITE);
+		com->draw_sprite.x = 2;
+		com->draw_sprite.y = 2;
+		com->draw_sprite.slot = 22;
+
+		com = NewCommand(CODE_DRAW_SPRITE);
+		com->draw_sprite.x = 66;
+		com->draw_sprite.y = 2;
+		com->draw_sprite.slot = 23;
+
+		NewCommand(CODE_HALT);
+		CleanCommands();
+		return FieldState;
+	}
+
+	NewCommand(CODE_HALT);
+	CleanCommands();
+	return GameLoadSprites;
 }
 
 
 void* GameStart()
 {
+	union Command* com;
 	uint8_t i = 0;
+	uint16_t text_x = 0;
 
-	/* TODO, there is no seed() function */
-	for (i = 0; i < 48; i++)
-		Random();
+	UnloadEverything(); /* TODO, not everything! */
 
-	LoadSprite("assets\\font1.jvn", 31);
+	/* Load indispensable resources (TODO!) */
+	LoadSprite("assets\\font1.jvn", 20);
+	LoadSprite("assets\\font2.jvn", 21);
 
-	sResetActors();
-	sResetBackground();
+	/* Load an random background and draw it */
+	switch (Random() % 8)
+	{
+	case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
+	case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
+	case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
+	case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
+	case 4: LoadBackground((uint16_t) "assets\\bkg8.raw"); break;
+	case 5: LoadBackground((uint16_t) "assets\\bkg7.raw"); break;
+	case 6: LoadBackground((uint16_t) "assets\\bkg6.raw"); break;
+	case 7: LoadBackground((uint16_t) "assets\\bkg5.raw");
+	}
 
-	FieldState();
-	return FieldState;
+	NewCommand(CODE_DRAW_BKG);
+
+	/* Print "Enemies appear!" */
+	com = NewCommand(CODE_DRAW_RECTANGLE);
+	com->draw_shape.color = 15;
+	com->draw_shape.x = 0;
+	com->draw_shape.y = 100 - 16;
+	com->draw_shape.width = 20; /* 320 px */
+	com->draw_shape.height = 2; /* 32 px */
+
+	com = NewCommand(CODE_DRAW_TEXT);
+	com->draw_text.x = 8;
+	com->draw_text.y = 100 - 16;
+	com->draw_text.slot = 21;
+	com->draw_text.text = (uint16_t) "Enemies appear!";
+
+	text_x = com->draw_text.x;
+
+	/* Initialize actors */
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		sInitializeActor(i);
+
+		/* Print enemy name */
+		if (i < HEROES_NO)
+			continue;
+
+		com = NewCommand(CODE_DRAW_TEXT);
+		com->draw_text.x = text_x;
+		com->draw_text.y = 100 - 16 + 12;
+		com->draw_text.slot = 20;
+		com->draw_text.text = (uint16_t)persona[actor[i].type].name;
+
+		text_x += 76; /* (320 - 8 - 8) / 4 */
+	}
+
+	/* Bye! */
+	s_load_screen_frame = 0;
+
+	NewCommand(CODE_HALT);
+	CleanCommands();
+	return GameLoadSprites;
 }
