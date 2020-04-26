@@ -19,9 +19,20 @@ mmd -i ./sakurai.img ::/assets
 	mcopy -i ./sakurai.img ./assets/bkg7.raw ::/assets/
 	mcopy -i ./sakurai.img ./assets/bkg8.raw ::/assets/
 
-	mcopy -i ./sakurai.img ./assets/idle.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/sprite1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/sprite2.jvn ::/assets/
+
+	mcopy -i ./sakurai.img ./assets/player.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-a.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-b.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-c.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-d.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-e.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-f.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/type-g.jvn ::/assets/
+
+	mcopy -i ./sakurai.img ./assets/port-a.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/port-b.jvn ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/font1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/font2.jvn ::/assets/

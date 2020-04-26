@@ -74,6 +74,9 @@ build ./generated/type-e.asm: SpriteLinear ./assets/type-e.bmp
 build ./generated/type-f.asm: SpriteLinear ./assets/type-f.bmp
 build ./generated/type-g.asm: SpriteLinear ./assets/type-g.bmp
 
+build ./generated/port-a.asm: SpriteLinear ./assets/port-a.bmp
+build ./generated/port-b.asm: SpriteLinear ./assets/port-b.bmp
+
 
 build ./generated/font1.asm: SpriteFont ./assets/font1.bmp
 build ./generated/font2.asm: SpriteFont ./assets/font2.bmp
@@ -92,6 +95,9 @@ build ./assets/type-d.jvn: AssemblySprite ./generated/type-d.asm
 build ./assets/type-e.jvn: AssemblySprite ./generated/type-e.asm
 build ./assets/type-f.jvn: AssemblySprite ./generated/type-f.asm
 build ./assets/type-g.jvn: AssemblySprite ./generated/type-g.asm
+
+build ./assets/port-a.jvn: AssemblySprite ./generated/port-a.asm
+build ./assets/port-b.jvn: AssemblySprite ./generated/port-b.asm
 
 
 build ./assets/font1.jvn: AssemblySprite ./generated/font1.asm

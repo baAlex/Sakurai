@@ -46,6 +46,7 @@ struct Information
 
 struct Personality
 {
+	char name[12];
 	uint8_t idle_time;
 	uint8_t health;
 };
@@ -62,17 +63,25 @@ struct Information info[ACTORS_NO] = {
 };
 
 struct Personality persona[TYPES_NO] = {
-    {/* Idle */ 5, /* Health */ 100},
-    {/* Idle */ 4, /* Health */ 100},
+    {"Sayori", /* Idle */ 5, /* Health */ 100},
+    {"Kuro",   /* Idle */ 4, /* Health */ 100},
 
-    {/* Idle */ 1, /* Health */ 40},
-    {/* Idle */ 1, /* Health */ 50},
-    {/* Idle */ 2, /* Health */ 60},
-    {/* Idle */ 3, /* Health */ 70},
-    {/* Idle */ 4, /* Health */ 80},
-    {/* Idle */ 5, /* Health */ 90},
-    {/* Idle */ 6, /* Health */ 100},
+    {"Ferment",   /* Idle */ 1, /* Health */ 40},
+    {"Wind Eye",  /* Idle */ 1, /* Health */ 50}, /* Phantasy Star */
+    {"Kingpin",   /* Idle */ 2, /* Health */ 60}, /* Half-Life */
+    {"Destroyer", /* Idle */ 3, /* Health */ 70},
+    {"Phibia",    /* Idle */ 4, /* Health */ 80},
+    {"Viridi",    /* Idle */ 5, /* Health */ 90},
+    {"Ni",        /* Idle */ 6, /* Health */ 100},
 };
+
+
+/* TODO: think better names!
+ - Ferment, ok
+ - Destroyer, NOPE
+ - Phibia, a dragon is an amphibian?
+ - Viridi, mehhh... ("viridiplantae")
+ - Ni, lovely */
 
 
 /*

@@ -13,9 +13,20 @@ zip -9 ./sakurai.zip\
 	./assets/bkg7.raw\
 	./assets/bkg8.raw\
 	\
-	./assets/idle.jvn\
 	./assets/sprite1.jvn\
 	./assets/sprite2.jvn\
+	\
+	./assets/player.jvn\
+	./assets/type-a.jvn\
+	./assets/type-b.jvn\
+	./assets/type-c.jvn\
+	./assets/type-d.jvn\
+	./assets/type-e.jvn\
+	./assets/type-f.jvn\
+	./assets/type-g.jvn\
+	\
+	./assets/port-a.jvn\
+	./assets/port-b.jvn\
 	\
 	./assets/font1.jvn\
 	./assets/font2.jvn
