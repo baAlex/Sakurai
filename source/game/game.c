@@ -202,21 +202,27 @@ static uint8_t s_load_screen_frame;
 
 static void sInitializeActor(uint8_t i)
 {
-	/* TODO: is not the idea to have entirely random enemies */
-
 	/* Only enemies resets they health and type */
 	if (i >= HEROES_NO)
 	{
-		do
-			actor[i].type = (Random() % TYPES_NO);
-		while (actor[i].type < HEROES_NO);
+		actor[i].type = current_battle.layout_types[i - HEROES_NO];
 
-		actor[i].health = persona[actor[i].type].health;
+		if (actor[i].type == __NN__)
+		{
+			actor[i].type = (TYPES_NO - 1);
+			actor[i].state = STATE_DEAD;
+			return;
+		}
+		else
+		{
+			actor[i].health = persona[actor[i].type].health;
 
-		/* A random plus of health, 10 pts */
-		if (actor[i].health <= 90)
-			actor[i].health += (uint8_t)(Random() % 10);
+			/* A random plus of health, 10 pts */
+			if (actor[i].health <= 90)
+				actor[i].health += (uint8_t)(Random() % 10);
+		}
 	}
+
 
 	actor[i].phase = (uint8_t)Random();
 	actor[i].state = STATE_IDLE;
@@ -282,8 +288,8 @@ bye:
 	s_load_screen_frame += 1;
 
 	/* Before change into 'field' state we need to
-	display the loading message for 2 seconds */
-	if (s_load_screen_frame >= 48)
+	display the loading message for 1:30 seconds */
+	if (s_load_screen_frame >= 36)
 	{
 		NewCommand(CODE_DRAW_BKG);
 
@@ -314,6 +320,17 @@ void* GameStart()
 	union Command* com;
 	uint8_t i = 0;
 	uint16_t text_x = 0;
+
+
+	/*!!!!!!!!!!!!!!!!!!!!!!*/
+
+	current_battle.layout_types[0] = TYPE_A;
+	current_battle.layout_types[1] = __NN__;
+	current_battle.layout_types[2] = TYPE_A;
+	current_battle.layout_types[3] = __NN__;
+
+	/*!!!!!!!!!!!!!!!!!!!!!!*/
+
 
 	UnloadEverything(); /* TODO, not everything! */
 
@@ -359,6 +376,9 @@ void* GameStart()
 
 		/* Print enemy name */
 		if (i < HEROES_NO)
+			continue;
+
+		if (actor[i].state == STATE_DEAD)
 			continue;
 
 		com = NewCommand(CODE_DRAW_TEXT);
