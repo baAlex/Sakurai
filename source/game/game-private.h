@@ -7,18 +7,29 @@
 #ifndef GAME_PRIVATE_H
 #define GAME_PRIVATE_H
 
-#include "game.h"
+#include "engine.h"
 
 /* How many actors in screen */
 #define ACTORS_NO 6
+#define ENEMIES_NO 4
 
 /* Two of the six actors being heroes */
 #define HEROES_NO 2
 
 /* With seven actors type, plus the heroes */
 #define TYPES_NO 9
+
 #define TYPE_HERO_B 0 /* Heroes always at begining, as it let us */
 #define TYPE_HERO_A 1 /* do a cheap 'if less than' to identity them */
+
+#define TYPE_A 2
+#define TYPE_B 3
+#define TYPE_C 4
+#define TYPE_D 5
+#define TYPE_E 6
+#define TYPE_F 7
+#define TYPE_G 8
+#define __NN__ 0xFF
 
 /* States for our actors */
 #define STATE_DEAD 0
@@ -43,39 +54,6 @@ struct Personality
 	uint8_t health;
 };
 
-struct Information info[ACTORS_NO] =
-{
-	{/* BaseX */ 38, /* BaseY */ 60},
-	{/* BaseX */ 8,  /* BaseY */ 100},
-
-	{/* BaseX */ 150, /* BaseY */ 60},
-	{/* BaseX */ 180, /* BaseY */ 73},
-	{/* BaseX */ 220, /* BaseY */ 86},
-	{/* BaseX */ 250, /* BaseY */ 100},
-
-};
-
-struct Personality persona[TYPES_NO] =
-{
-	{"Sayori", /* Idle */ 5, /* Health */ 100},
-	{"Kuro",   /* Idle */ 4, /* Health */ 100},
-
-	{"Ferment",   /* Idle */ 1, /* Health */ 40},
-	{"Wind Eye",  /* Idle */ 1, /* Health */ 50}, /* Phantasy Star */
-	{"Kingpin",   /* Idle */ 2, /* Health */ 60}, /* Half-Life */
-	{"Destroyer", /* Idle */ 3, /* Health */ 70},
-	{"Phibia",    /* Idle */ 4, /* Health */ 80},
-	{"Viridi",    /* Idle */ 5, /* Health */ 90},
-	{"Ni",        /* Idle */ 6, /* Health */ 100}
-
-	/* TODO: think better names
-	- "Ferment", ok
-	- "Destroyer", nope
-	- "Phibia", a dragon is an amphibian?
-	- "Viridi", mehhh... (viridiplantae)
-	- "Ni", lovely */
-};
-
 
 /*
  Actors state, modified at runtime
@@ -96,12 +74,6 @@ struct Actor
 	int8_t health;
 
 	uint8_t type;
-};
-
-struct Actor actor[ACTORS_NO] =
-{
-	{0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_A},
-	{0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_B}
 };
 
 #endif

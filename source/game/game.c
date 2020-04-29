@@ -33,6 +33,63 @@ SOFTWARE.
 #include "utilities.h"
 
 
+unsigned char Layout(unsigned char i, unsigned char battle_no);
+
+static uint8_t battle_no = 0;
+static uint8_t battle_layout[ENEMIES_NO] = {0, 0, 0, 0};
+
+
+static uint8_t initialized_types[TYPES_NO] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t load_screen_frame = 0;
+
+
+static struct Actor actor[ACTORS_NO] =
+{
+	{0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_A},
+	{0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_B},
+
+	{0, 0, 0, 0, 0, 0, 0, 100, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 100, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 100, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 100, __NN__}
+};
+
+
+static struct Information info[ACTORS_NO] =
+{
+	{/* BaseX */ 38, /* BaseY */ 60},
+	{/* BaseX */ 8,  /* BaseY */ 100},
+
+	{/* BaseX */ 150, /* BaseY */ 60},
+	{/* BaseX */ 180, /* BaseY */ 73},
+	{/* BaseX */ 220, /* BaseY */ 86},
+	{/* BaseX */ 250, /* BaseY */ 100},
+
+};
+
+
+static struct Personality persona[TYPES_NO] =
+{
+	{"Sayori", /* Idle */ 5, /* Health */ 100},
+	{"Kuro",   /* Idle */ 4, /* Health */ 100},
+
+	{"Ferment",   /* Idle */ 1, /* Health */ 40},
+	{"Wind Eye",  /* Idle */ 1, /* Health */ 50}, /* Phantasy Star */
+	{"Kingpin",   /* Idle */ 2, /* Health */ 60}, /* Half-Life */
+	{"Destroyer", /* Idle */ 3, /* Health */ 70},
+	{"Phibia",    /* Idle */ 4, /* Health */ 80},
+	{"Viridi",    /* Idle */ 5, /* Health */ 90},
+	{"Ni",        /* Idle */ 6, /* Health */ 100}
+
+	/* TODO: think better names
+	- "Ferment", ok
+	- "Destroyer", nope
+	- "Phibia", a dragon is an amphibian?
+	- "Viridi", mehhh... (viridiplantae)
+	- "Ni", lovely */
+};
+
+
 /*-----------------------------
 
  sDrawActors()
@@ -163,10 +220,23 @@ void* FieldState()
 	void* next_state = FieldState;
 	uint8_t i = 0;
 
-	if (INPUT_X != 0)
+	if (INPUT_X == 1)
 	{
+		if(battle_no > 0)
+		{
+			battle_no -= 1;
+			next_state = GameStart;
+			goto bye; /*Hack! */
+		}
+	}
+
+	if (INPUT_Y == 1)
+	{
+		if(battle_no < UINT8_MAX)
+			battle_no += 1;
+
 		next_state = GameStart;
-		goto bye; /* Hack! */
+		goto bye; /*Hack! */
 	}
 
 	/* Logic step */
@@ -196,16 +266,24 @@ bye:
 /*===========================*/
 
 
-static uint8_t s_initialized_types[TYPES_NO];
-static uint8_t s_load_screen_frame;
-
-
 static void sInitializeActor(uint8_t i)
 {
 	/* Only enemies resets they health and type */
 	if (i >= HEROES_NO)
 	{
-		actor[i].type = current_battle.layout_types[i - HEROES_NO];
+		if (battle_no < 32) /* HARDCODED! */
+		{
+			actor[i].type = Layout(i - HEROES_NO, battle_no);
+		}
+		else
+		{
+			do
+				actor[i].type = (Random() % TYPES_NO);
+			while (actor[i].type < HEROES_NO);
+		}
+
+		PrintString("# Enemy: ");
+		PrintNumber(actor[i].type);
 
 		if (actor[i].type == __NN__)
 		{
@@ -236,7 +314,7 @@ static void sInitializeActor(uint8_t i)
 }
 
 
-void* GameLoadSprites()
+void* GameLoad()
 {
 	/* TODO: in the future, rather than count frames is
 	going to be better to measure elapsed miliseconds
@@ -245,11 +323,11 @@ void* GameLoadSprites()
 	union Command* com;
 	uint8_t i = 0;
 
-	if (s_load_screen_frame != 0)
+	if (load_screen_frame != 0)
 		goto bye;
 
 	for (i = 0; i < TYPES_NO; i++)
-		s_initialized_types[i] = 0; /* TODO, i need a malloc()!! */
+		initialized_types[i] = 0; /* TODO, i need a malloc()!! */
 
 	/* Load heroes portraits */
 	LoadSprite("assets\\port-a.jvn", 22);
@@ -258,7 +336,7 @@ void* GameLoadSprites()
 	/* Load sprites, whitout repeat */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
-		if (s_initialized_types[actor[i].type] == 0)
+		if (initialized_types[actor[i].type] == 0)
 		{
 			if (actor[i].type == TYPE_HERO_A)
 				LoadSprite("assets\\player.jvn", actor[i].type);
@@ -279,17 +357,17 @@ void* GameLoadSprites()
 			else if (actor[i].type == TYPE_G)
 				LoadSprite("assets\\type-g.jvn", actor[i].type);
 
-			s_initialized_types[actor[i].type] = 1;
+			initialized_types[actor[i].type] = 1;
 		}
 	}
 
 bye:
 	/* Bye! */
-	s_load_screen_frame += 1;
+	load_screen_frame += 1;
 
 	/* Before change into 'field' state we need to
 	display the loading message for 1:30 seconds */
-	if (s_load_screen_frame >= 36)
+	if (load_screen_frame >= 36)
 	{
 		NewCommand(CODE_DRAW_BKG);
 
@@ -306,12 +384,15 @@ bye:
 
 		NewCommand(CODE_HALT);
 		CleanCommands();
+
+		PrintString("# GameLoad() ends: ");
+		PrintNumber(battle_no);
 		return FieldState;
 	}
 
 	NewCommand(CODE_HALT);
 	CleanCommands();
-	return GameLoadSprites;
+	return GameLoad;
 }
 
 
@@ -320,17 +401,6 @@ void* GameStart()
 	union Command* com;
 	uint8_t i = 0;
 	uint16_t text_x = 0;
-
-
-	/*!!!!!!!!!!!!!!!!!!!!!!*/
-
-	current_battle.layout_types[0] = TYPE_A;
-	current_battle.layout_types[1] = __NN__;
-	current_battle.layout_types[2] = TYPE_A;
-	current_battle.layout_types[3] = __NN__;
-
-	/*!!!!!!!!!!!!!!!!!!!!!!*/
-
 
 	UnloadEverything(); /* TODO, not everything! */
 
@@ -391,9 +461,12 @@ void* GameStart()
 	}
 
 	/* Bye! */
-	s_load_screen_frame = 0;
+	load_screen_frame = 0;
 
 	NewCommand(CODE_HALT);
 	CleanCommands();
-	return GameLoadSprites;
+
+	PrintString("# GameStart() ends: ");
+	PrintNumber(battle_no);
+	return GameLoad;
 }

@@ -26,7 +26,7 @@ KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
 
 COMMANDS_TABLE_LEN = 24
 COMMANDS_TABLE_SIZE = 192 ; In bytes
-GAME_SIZE = 4096 ; In bytes
+GAME_SIZE = 8192 ; In bytes
 
 
 ;==============================
@@ -108,7 +108,6 @@ segment seg_game_data
 	ifd_arg2: dw 0x0000                               ; 2
 	ifd_arg3: dw 0x0000                               ; 2
 	ifd_arg4: dw 0x0000                               ; 2
-
 	input_x: db 0x00                                  ; 1
 	input_y: db 0x00                                  ; 1
 	input_a: db 0x00                                  ; 1

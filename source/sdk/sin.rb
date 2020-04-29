@@ -31,7 +31,7 @@ include Math
 ENTRIES = 128
 COLUMNS = 16
 
-print("signed char s_sin_table[#{ENTRIES}] = {")
+print("static signed char s_sin_table[#{ENTRIES}] = {")
 
 for i in 1..ENTRIES
 
@@ -45,7 +45,7 @@ for i in 1..ENTRIES
 	end
 
 	if (i % COLUMNS) == 0 then
-		print("\\\n")
+		print("\n")
 	end
 end
 

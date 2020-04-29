@@ -186,25 +186,25 @@ Main_loop_no_sleep:
 		mov ds, dx
 
 			pop dx
-			mov [input_start], dx
+			mov byte [input_start], dl
 			pop dx
-			mov [input_select], dx
+			mov byte [input_select], dl
 			pop dx
-			mov [input_right], dx
+			mov byte [input_right], dl
 			pop dx
-			mov [input_left], dx
+			mov byte [input_left], dl
 			pop dx
-			mov [input_down], dx
+			mov byte [input_down], dl
 			pop dx
-			mov [input_up], dx
+			mov byte [input_up], dl
 			pop dx
-			mov [input_b], dx
+			mov byte [input_b], dl
 			pop dx
-			mov [input_a], dx
+			mov byte [input_a], dl
 			pop dx
-			mov [input_y], dx
+			mov byte [input_y], dl
 			pop dx
-			mov [input_x], dx
+			mov byte [input_x], dl
 
 		mov dx, seg_data
 		mov ds, dx

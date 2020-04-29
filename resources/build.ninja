@@ -21,7 +21,7 @@ rule AssemblySprite
  command = fasm $in $out
 
 rule CompileAndLinkC
- command = bcc -ansi -0 -Md -O -W -x -i -o $out $in -C -c
+ command = bcc -ansi -0 -Md -O -W -x -i -o $out $in -C -c -I./source/game/
 
 rule SpriteLinear
  command = ruby ./source/sdk/sprite.rb +linear $in > $out
@@ -41,6 +41,9 @@ rule Background
 rule SinTable
  command = ruby ./source/sdk/sin.rb > $out
 
+rule BattlesTable
+ command = ruby ./source/sdk/battles.rb > $out
+
 # Engine
 build ./sakurai.exe: Assembly ./source/engine/sakurai.asm
 
@@ -51,10 +54,12 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/test1.c $
  ./source/game/test2.c $
  ./source/game/utilities.c $
- ./generated/sin.c
+ ./generated/sin.c $
+ ./generated/battles.c
 
 # Generated files
 build ./generated/sin.c: SinTable ./
+build ./generated/battles.c: BattlesTable ./
 
 build ./generated/idle.asm: SpritePingPong $
  ./assets/idle/idle0001.bmp $
