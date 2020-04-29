@@ -33,7 +33,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-unsigned char Layout(unsigned char i, unsigned char battle_no);
+uint8_t Layout(uint8_t battle_no, uint8_t* out);
 
 static uint8_t battle_no = 0;
 static uint8_t battle_layout[ENEMIES_NO] = {0, 0, 0, 0};
@@ -272,9 +272,7 @@ static void sInitializeActor(uint8_t i)
 	if (i >= HEROES_NO)
 	{
 		if (battle_no < 32) /* HARDCODED! */
-		{
-			actor[i].type = Layout(i - HEROES_NO, battle_no);
-		}
+			actor[i].type = battle_layout[i - HEROES_NO];
 		else
 		{
 			do
@@ -435,7 +433,11 @@ void* GameStart()
 	com->draw_text.x = 8;
 	com->draw_text.y = 100 - 16;
 	com->draw_text.slot = 21;
-	com->draw_text.text = (uint16_t) "Enemies appear!";
+
+	if (Layout(battle_no, battle_layout) != 1)
+		com->draw_text.text = (uint16_t) "Monsters appear!";
+	else
+		com->draw_text.text = (uint16_t) "Monster appears!";
 
 	text_x = com->draw_text.x;
 
