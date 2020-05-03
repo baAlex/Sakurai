@@ -149,7 +149,7 @@ end
 chances = Array.new(ENEMIES.size)
 
 print("#include \"utilities.h\"\n")
-print("#include \"game-private.h\"\n\n")
+print("#include \"actor.h\"\n\n")
 print("static uint8_t s_enemies_chances[#{BATTLES_NO * ENEMIES.size}] = {\n")
 
 for b in 0...BATTLES_NO do

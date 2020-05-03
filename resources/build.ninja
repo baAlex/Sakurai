@@ -50,6 +50,7 @@ build ./sakurai.exe: Assembly ./source/engine/sakurai.asm
 # Game
 build ./game.dll: CompileAndLinkC $
  ./source/game/main.c $
+ ./source/game/actor.c $
  ./source/game/game.c $
  ./source/game/test1.c $
  ./source/game/test2.c $
@@ -79,7 +80,8 @@ build ./generated/fx2.asm: SpriteLinear $
  ./assets/fx2-02.bmp $
  ./assets/fx2-03.bmp $
  ./assets/fx2-04.bmp $
- ./assets/fx2-05.bmp
+ ./assets/fx2-05.bmp $
+ ./assets/fx2-06.bmp
 
 build ./generated/sprite1.asm: SpriteLinear ./assets/sprite1.bmp
 build ./generated/sprite2.asm: SpriteLinear ./assets/sprite2.bmp
