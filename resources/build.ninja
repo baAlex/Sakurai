@@ -67,6 +67,20 @@ build ./generated/idle.asm: SpritePingPong $
  ./assets/idle/idle0003.bmp $
  ./assets/idle/idle0004.bmp
 
+build ./generated/fx1.asm: SpriteLinear $
+ ./assets/fx1-01.bmp $
+ ./assets/fx1-02.bmp $
+ ./assets/fx1-03.bmp $
+ ./assets/fx1-04.bmp $
+ ./assets/fx1-05.bmp $
+ ./assets/fx1-06.bmp
+build ./generated/fx2.asm: SpriteLinear $
+ ./assets/fx2-01.bmp $
+ ./assets/fx2-02.bmp $
+ ./assets/fx2-03.bmp $
+ ./assets/fx2-04.bmp $
+ ./assets/fx2-05.bmp
+
 build ./generated/sprite1.asm: SpriteLinear ./assets/sprite1.bmp
 build ./generated/sprite2.asm: SpriteLinear ./assets/sprite2.bmp
 build ./generated/player.asm: SpriteLinear ./assets/player.bmp
@@ -88,6 +102,9 @@ build ./generated/font2.asm: SpriteFont ./assets/font2.bmp
 
 # Assets
 build ./assets/idle.jvn: AssemblySprite ./generated/idle.asm
+
+build ./assets/fx1.jvn: AssemblySprite ./generated/fx1.asm
+build ./assets/fx2.jvn: AssemblySprite ./generated/fx2.asm
 
 build ./assets/sprite1.jvn: AssemblySprite ./generated/sprite1.asm
 build ./assets/sprite2.jvn: AssemblySprite ./generated/sprite2.asm

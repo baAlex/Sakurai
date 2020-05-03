@@ -13,8 +13,8 @@ zip -9 ./sakurai.zip\
 	./assets/bkg7.raw\
 	./assets/bkg8.raw\
 	\
-	./assets/sprite1.jvn\
-	./assets/sprite2.jvn\
+	./assets/fx1.jvn\
+	./assets/fx2.jvn\
 	\
 	./assets/player.jvn\
 	./assets/type-a.jvn\
