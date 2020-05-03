@@ -98,7 +98,7 @@ void* Test2()
 void* Test2Start()
 {
 	LoadSprite("assets\\font1.jvn", 1);
-	LoadSprite("assets\\idle.jvn", 2);
+	LoadSprite("assets\\player.jvn", 2);
 
 	Test2();
 	return Test2;

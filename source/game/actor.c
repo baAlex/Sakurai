@@ -158,6 +158,11 @@ void DrawActors()
 		com->draw_sprite.y = g_info[i].base_y;
 		com->draw_sprite.slot = g_actor[i].type;
 
+		if (g_actor[i].bounded_time == 0)
+			com->draw_sprite.frame = 0;
+		else
+			com->draw_sprite.frame = 1;
+
 		if (g_actor[i].state == ACTOR_STATE_CHARGE)
 			com->draw_sprite.x += Sin(g_actor[i].phase) >> 5;
 
@@ -246,6 +251,13 @@ void ActorIdle(uint8_t index)
 void ActorCharge(uint8_t index)
 {
 	struct Actor* actor = &g_actor[index];
+
+	/* Bounded!, lets wait some time */
+	if (actor->bounded_time > 0)
+	{
+		actor->bounded_time -= 1;
+		return;
+	}
 
 	/* Oscillate in position */
 	actor->phase += 20;

@@ -14,22 +14,19 @@ mmd -i ./sakurai.img ::/assets
 	mcopy -i ./sakurai.img ./assets/bkg2.raw ::/assets/
 	mcopy -i ./sakurai.img ./assets/bkg3.raw ::/assets/
 	mcopy -i ./sakurai.img ./assets/bkg4.raw ::/assets/
-	mcopy -i ./sakurai.img ./assets/bkg5.raw ::/assets/
-	mcopy -i ./sakurai.img ./assets/bkg6.raw ::/assets/
-	mcopy -i ./sakurai.img ./assets/bkg7.raw ::/assets/
-	mcopy -i ./sakurai.img ./assets/bkg8.raw ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/fx1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/fx2.jvn ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/player.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-a.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-b.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-c.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-d.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-e.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-f.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/type-g.jvn ::/assets/
+
+	mcopy -i ./sakurai.img ./assets/enemy-a.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/enemy-b.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/enemy-c.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/enemy-d.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/enemy-e.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/enemy-f.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/enemy-g.jvn ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/port-a.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/port-b.jvn ::/assets/

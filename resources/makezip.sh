@@ -8,22 +8,19 @@ zip -9 ./sakurai.zip\
 	./assets/bkg2.raw\
 	./assets/bkg3.raw\
 	./assets/bkg4.raw\
-	./assets/bkg5.raw\
-	./assets/bkg6.raw\
-	./assets/bkg7.raw\
-	./assets/bkg8.raw\
 	\
 	./assets/fx1.jvn\
 	./assets/fx2.jvn\
 	\
 	./assets/player.jvn\
-	./assets/type-a.jvn\
-	./assets/type-b.jvn\
-	./assets/type-c.jvn\
-	./assets/type-d.jvn\
-	./assets/type-e.jvn\
-	./assets/type-f.jvn\
-	./assets/type-g.jvn\
+	\
+	./assets/enemy-a.jvn\
+	./assets/enemy-b.jvn\
+	./assets/enemy-c.jvn\
+	./assets/enemy-d.jvn\
+	./assets/enemy-e.jvn\
+	./assets/enemy-f.jvn\
+	./assets/enemy-g.jvn\
 	\
 	./assets/port-a.jvn\
 	./assets/port-b.jvn\

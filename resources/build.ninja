@@ -55,85 +55,87 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/test1.c $
  ./source/game/test2.c $
  ./source/game/utilities.c $
- ./generated/sin.c $
- ./generated/battles.c
+ ./objects/sin.c $
+ ./objects/battles.c
 
-# Generated files
-build ./generated/sin.c: SinTable ./
-build ./generated/battles.c: BattlesTable ./
+# Objects/generated files
+build ./objects/sin.c: SinTable ./
+build ./objects/battles.c: BattlesTable ./
 
-build ./generated/idle.asm: SpritePingPong $
- ./assets/idle/idle0001.bmp $
- ./assets/idle/idle0002.bmp $
- ./assets/idle/idle0003.bmp $
- ./assets/idle/idle0004.bmp
+build ./objects/fx1.asm: SpriteLinear $
+ ./assets-dev/fx1.001.bmp $
+ ./assets-dev/fx1.002.bmp $
+ ./assets-dev/fx1.003.bmp $
+ ./assets-dev/fx1.004.bmp $
+ ./assets-dev/fx1.005.bmp $
+ ./assets-dev/fx1.006.bmp
+build ./objects/fx2.asm: SpriteLinear $
+ ./assets-dev/fx2.001.bmp $
+ ./assets-dev/fx2.002.bmp $
+ ./assets-dev/fx2.003.bmp $
+ ./assets-dev/fx2.004.bmp $
+ ./assets-dev/fx2.005.bmp $
+ ./assets-dev/fx2.006.bmp
 
-build ./generated/fx1.asm: SpriteLinear $
- ./assets/fx1-01.bmp $
- ./assets/fx1-02.bmp $
- ./assets/fx1-03.bmp $
- ./assets/fx1-04.bmp $
- ./assets/fx1-05.bmp $
- ./assets/fx1-06.bmp
-build ./generated/fx2.asm: SpriteLinear $
- ./assets/fx2-01.bmp $
- ./assets/fx2-02.bmp $
- ./assets/fx2-03.bmp $
- ./assets/fx2-04.bmp $
- ./assets/fx2-05.bmp $
- ./assets/fx2-06.bmp
+build ./objects/sprite1.asm: SpriteLinear ./assets-dev/sprite1.bmp
+build ./objects/sprite2.asm: SpriteLinear ./assets-dev/sprite2.bmp
 
-build ./generated/sprite1.asm: SpriteLinear ./assets/sprite1.bmp
-build ./generated/sprite2.asm: SpriteLinear ./assets/sprite2.bmp
-build ./generated/player.asm: SpriteLinear ./assets/player.bmp
+build ./objects/player.asm: SpriteLinear ./assets-dev/player.bmp
 
-build ./generated/type-a.asm: SpriteLinear ./assets/type-a.bmp
-build ./generated/type-b.asm: SpriteLinear ./assets/type-b.bmp
-build ./generated/type-c.asm: SpriteLinear ./assets/type-c.bmp
-build ./generated/type-d.asm: SpriteLinear ./assets/type-d.bmp
-build ./generated/type-e.asm: SpriteLinear ./assets/type-e.bmp
-build ./generated/type-f.asm: SpriteLinear ./assets/type-f.bmp
-build ./generated/type-g.asm: SpriteLinear ./assets/type-g.bmp
+build ./objects/enemy-a.asm: SpriteLinear $
+ ./assets-dev/enemy-a.001.bmp $
+ ./assets-dev/enemy-a.002.bmp
+build ./objects/enemy-b.asm: SpriteLinear $
+ ./assets-dev/enemy-b.001.bmp $
+ ./assets-dev/enemy-b.002.bmp
+build ./objects/enemy-c.asm: SpriteLinear $
+ ./assets-dev/enemy-c.001.bmp $
+ ./assets-dev/enemy-c.002.bmp
+build ./objects/enemy-d.asm: SpriteLinear $
+ ./assets-dev/enemy-d.001.bmp $
+ ./assets-dev/enemy-d.002.bmp
+build ./objects/enemy-e.asm: SpriteLinear $
+ ./assets-dev/enemy-e.001.bmp $
+ ./assets-dev/enemy-e.002.bmp
+build ./objects/enemy-f.asm: SpriteLinear $
+ ./assets-dev/enemy-f.001.bmp $
+ ./assets-dev/enemy-f.002.bmp
+build ./objects/enemy-g.asm: SpriteLinear $
+ ./assets-dev/enemy-g.001.bmp $
+ ./assets-dev/enemy-g.002.bmp
 
-build ./generated/port-a.asm: SpriteLinear ./assets/port-a.bmp
-build ./generated/port-b.asm: SpriteLinear ./assets/port-b.bmp
+build ./objects/port-a.asm: SpriteLinear ./assets-dev/port-a.bmp
+build ./objects/port-b.asm: SpriteLinear ./assets-dev/port-b.bmp
 
-
-build ./generated/font1.asm: SpriteFont ./assets/font1.bmp
-build ./generated/font2.asm: SpriteFont ./assets/font2.bmp
+build ./objects/font1.asm: SpriteFont ./assets-dev/font1.bmp
+build ./objects/font2.asm: SpriteFont ./assets-dev/font2.bmp
 
 # Assets
-build ./assets/idle.jvn: AssemblySprite ./generated/idle.asm
+build ./assets/fx1.jvn: AssemblySprite ./objects/fx1.asm
+build ./assets/fx2.jvn: AssemblySprite ./objects/fx2.asm
 
-build ./assets/fx1.jvn: AssemblySprite ./generated/fx1.asm
-build ./assets/fx2.jvn: AssemblySprite ./generated/fx2.asm
+build ./assets/sprite1.jvn: AssemblySprite ./objects/sprite1.asm
+build ./assets/sprite2.jvn: AssemblySprite ./objects/sprite2.asm
 
-build ./assets/sprite1.jvn: AssemblySprite ./generated/sprite1.asm
-build ./assets/sprite2.jvn: AssemblySprite ./generated/sprite2.asm
-build ./assets/player.jvn: AssemblySprite ./generated/player.asm
+build ./assets/player.jvn: AssemblySprite ./objects/player.asm
 
-build ./assets/type-a.jvn: AssemblySprite ./generated/type-a.asm
-build ./assets/type-b.jvn: AssemblySprite ./generated/type-b.asm
-build ./assets/type-c.jvn: AssemblySprite ./generated/type-c.asm
-build ./assets/type-d.jvn: AssemblySprite ./generated/type-d.asm
-build ./assets/type-e.jvn: AssemblySprite ./generated/type-e.asm
-build ./assets/type-f.jvn: AssemblySprite ./generated/type-f.asm
-build ./assets/type-g.jvn: AssemblySprite ./generated/type-g.asm
+build ./assets/enemy-a.jvn: AssemblySprite ./objects/enemy-a.asm
+build ./assets/enemy-b.jvn: AssemblySprite ./objects/enemy-b.asm
+build ./assets/enemy-c.jvn: AssemblySprite ./objects/enemy-c.asm
+build ./assets/enemy-d.jvn: AssemblySprite ./objects/enemy-d.asm
+build ./assets/enemy-e.jvn: AssemblySprite ./objects/enemy-e.asm
+build ./assets/enemy-f.jvn: AssemblySprite ./objects/enemy-f.asm
+build ./assets/enemy-g.jvn: AssemblySprite ./objects/enemy-g.asm
 
-build ./assets/port-a.jvn: AssemblySprite ./generated/port-a.asm
-build ./assets/port-b.jvn: AssemblySprite ./generated/port-b.asm
+build ./assets/port-a.jvn: AssemblySprite ./objects/port-a.asm
+build ./assets/port-b.jvn: AssemblySprite ./objects/port-b.asm
 
+build ./assets/font1.jvn: AssemblySprite ./objects/font1.asm
+build ./assets/font2.jvn: AssemblySprite ./objects/font2.asm
 
-build ./assets/font1.jvn: AssemblySprite ./generated/font1.asm
-build ./assets/font2.jvn: AssemblySprite ./generated/font2.asm
+build ./assets/palette.raw: Palette ./assets-dev/palette.bmp
 
-build ./assets/palette.raw: Palette ./assets/palette.bmp
-
-build ./assets/bkg1.raw: Background ./assets/bkg1.bmp
-build ./assets/bkg2.raw: Background ./assets/bkg2.bmp
-build ./assets/bkg3.raw: Background ./assets/bkg3.bmp
-build ./assets/bkg4.raw: Background ./assets/bkg4.bmp
-build ./assets/bkg5.raw: Background ./assets/bkg5.bmp
-build ./assets/bkg6.raw: Background ./assets/bkg6.bmp
-build ./assets/bkg7.raw: Background ./assets/bkg7.bmp
-build ./assets/bkg8.raw: Background ./assets/bkg8.bmp
+build ./assets/bkg1.raw: Background ./assets-dev/bkg1.bmp
+build ./assets/bkg2.raw: Background ./assets-dev/bkg2.bmp
+build ./assets/bkg3.raw: Background ./assets-dev/bkg3.bmp
+build ./assets/bkg4.raw: Background ./assets-dev/bkg4.bmp

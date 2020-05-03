@@ -182,19 +182,19 @@ void* GameLoad()
 			else if (g_actor[i].type == TYPE_HERO_B)
 				LoadSprite("assets\\player.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_A)
-				LoadSprite("assets\\type-a.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-a.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_B)
-				LoadSprite("assets\\type-b.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-b.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_C)
-				LoadSprite("assets\\type-c.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-c.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_D)
-				LoadSprite("assets\\type-d.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-d.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_E)
-				LoadSprite("assets\\type-e.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-e.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_F)
-				LoadSprite("assets\\type-f.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-f.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_G)
-				LoadSprite("assets\\type-g.jvn", g_actor[i].type);
+				LoadSprite("assets\\enemy-g.jvn", g_actor[i].type);
 
 			GameLoad_initialized[g_actor[i].type] = 1;
 		}
@@ -252,16 +252,12 @@ void* GameStart()
 	LoadSprite("assets\\font2.jvn", 21);
 
 	/* Load an random background and draw it */
-	switch (Random() % 8)
+	switch (Random() % 4)
 	{
 	case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
 	case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
 	case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
 	case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
-	case 4: LoadBackground((uint16_t) "assets\\bkg8.raw"); break;
-	case 5: LoadBackground((uint16_t) "assets\\bkg7.raw"); break;
-	case 6: LoadBackground((uint16_t) "assets\\bkg6.raw"); break;
-	case 7: LoadBackground((uint16_t) "assets\\bkg5.raw");
 	}
 
 	NewCommand(CODE_DRAW_BKG);
