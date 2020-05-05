@@ -9,5 +9,6 @@
 
 void* Test1Start();
 void* Test2Start();
+void* Test3Start();
 
 #endif

@@ -30,10 +30,11 @@ SOFTWARE.
 
 #include "game.h"
 #include "actor.h"
+#include "ui.h"
 #include "utilities.h"
 
 
-#define DEV
+/*#define DEV*/
 
 
 uint8_t Layout(uint8_t battle_no, uint8_t* out);
@@ -86,6 +87,58 @@ void* AnimationState()
 /*===========================*/
 
 
+static uint8_t UIState_actor = 0;
+static uint8_t UIState_frame = 0;
+static uint8_t UIState_selection = 0;
+
+void* UIState()
+{
+	void* next_state = UIState;
+	union Command* com;
+
+	/* First frame only... */
+	if (UIState_frame == 0)
+		DrawStaticUI(22);
+
+	/* Every single one */
+	{
+		if (INPUT_START == 1)
+		{
+			CleanStaticUI();
+			DrawHUD(22);
+			next_state = FieldState;
+			goto bye;
+		}
+
+		if (INPUT_A == 1)
+		{
+			if (UIState_selection > 0)
+				UIState_selection -= 1;
+		}
+
+		if (INPUT_B == 1)
+		{
+			if (UIState_selection < 2)
+				UIState_selection += 1;
+		}
+
+		DrawDynamicUI(UIState_selection, 26);
+	}
+
+bye:
+	/* Bye! */
+	NewCommand(CODE_HALT);
+	CleanCommands();
+
+	UIState_frame += 1;
+
+	return next_state;
+}
+
+
+/*===========================*/
+
+
 void* FieldState()
 {
 	void* next_state = FieldState;
@@ -129,7 +182,19 @@ void* FieldState()
 		else if (g_actor[i].state == ACTOR_STATE_CHARGE)
 			ActorCharge(i);
 		else
+		{
 			ActorIdle(i);
+
+			if(i < HEROES_NO)
+			if(g_actor[i].state != ACTOR_STATE_IDLE)
+			{
+				UIState_actor = i;
+				UIState_frame = 0;
+				UIState_selection = 0;
+				next_state = UIState;
+				goto bye;
+			}
+		}
 	}
 
 	/* Draw step */
@@ -167,8 +232,8 @@ void* GameLoad()
 		GameLoad_initialized[i] = 0; /* TODO, I need a malloc()!! */
 
 	/* Load remaining resources */
-	LoadSprite("assets\\port-a.jvn", 22);
-	LoadSprite("assets\\port-b.jvn", 23);
+	LoadSprite("assets\\ui-ports.jvn", 22);
+	LoadSprite("assets\\ui-items.jvn", 26);
 	LoadSprite("assets\\fx1.jvn", 24);
 	LoadSprite("assets\\fx2.jvn", 25);
 
@@ -213,17 +278,7 @@ bye:
 #endif
 	{
 		NewCommand(CODE_DRAW_BKG);
-
-		/* Draw heroes portrait */
-		com = NewCommand(CODE_DRAW_SPRITE);
-		com->draw_sprite.x = 2;
-		com->draw_sprite.y = 2;
-		com->draw_sprite.slot = 22;
-
-		com = NewCommand(CODE_DRAW_SPRITE);
-		com->draw_sprite.x = 66;
-		com->draw_sprite.y = 2;
-		com->draw_sprite.slot = 23;
+		DrawHUD(22);
 
 		NewCommand(CODE_HALT);
 		CleanCommands();

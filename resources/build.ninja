@@ -54,6 +54,8 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/game.c $
  ./source/game/test1.c $
  ./source/game/test2.c $
+ ./source/game/test3.c $
+ ./source/game/ui.c $
  ./source/game/utilities.c $
  ./objects/sin.c $
  ./objects/battles.c
@@ -82,6 +84,11 @@ build ./objects/sprite2.asm: SpriteLinear ./assets-dev/sprite2.bmp
 
 build ./objects/player.asm: SpriteLinear ./assets-dev/player.bmp
 
+build ./objects/ui-ports.asm: SpriteLinear ./assets-dev/ui-ports.bmp
+build ./objects/ui-items.asm: SpriteLinear $
+ ./assets-dev/ui-items.001.bmp $
+ ./assets-dev/ui-items.002.bmp
+
 build ./objects/enemy-a.asm: SpriteLinear $
  ./assets-dev/enemy-a.001.bmp $
  ./assets-dev/enemy-a.002.bmp
@@ -104,9 +111,6 @@ build ./objects/enemy-g.asm: SpriteLinear $
  ./assets-dev/enemy-g.001.bmp $
  ./assets-dev/enemy-g.002.bmp
 
-build ./objects/port-a.asm: SpriteLinear ./assets-dev/port-a.bmp
-build ./objects/port-b.asm: SpriteLinear ./assets-dev/port-b.bmp
-
 build ./objects/font1.asm: SpriteFont ./assets-dev/font1.bmp
 build ./objects/font2.asm: SpriteFont ./assets-dev/font2.bmp
 
@@ -119,6 +123,9 @@ build ./assets/sprite2.jvn: AssemblySprite ./objects/sprite2.asm
 
 build ./assets/player.jvn: AssemblySprite ./objects/player.asm
 
+build ./assets/ui-ports.jvn: AssemblySprite ./objects/ui-ports.asm
+build ./assets/ui-items.jvn: AssemblySprite ./objects/ui-items.asm
+
 build ./assets/enemy-a.jvn: AssemblySprite ./objects/enemy-a.asm
 build ./assets/enemy-b.jvn: AssemblySprite ./objects/enemy-b.asm
 build ./assets/enemy-c.jvn: AssemblySprite ./objects/enemy-c.asm
@@ -126,9 +133,6 @@ build ./assets/enemy-d.jvn: AssemblySprite ./objects/enemy-d.asm
 build ./assets/enemy-e.jvn: AssemblySprite ./objects/enemy-e.asm
 build ./assets/enemy-f.jvn: AssemblySprite ./objects/enemy-f.asm
 build ./assets/enemy-g.jvn: AssemblySprite ./objects/enemy-g.asm
-
-build ./assets/port-a.jvn: AssemblySprite ./objects/port-a.asm
-build ./assets/port-b.jvn: AssemblySprite ./objects/port-b.asm
 
 build ./assets/font1.jvn: AssemblySprite ./objects/font1.asm
 build ./assets/font2.jvn: AssemblySprite ./objects/font2.asm

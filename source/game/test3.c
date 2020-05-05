@@ -24,29 +24,67 @@ SOFTWARE.
 
 -------------------------------
 
- [main.c]
+ [test3.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "engine.h"
-#include "game.h"
 #include "tests.h"
+#include "utilities.h"
 
-#define GAME
-
-#ifdef TEST1
-int (*next_function)() = Test1Start;
-#elif defined(TEST2)
-int (*next_function)() = Test2Start;
-#elif defined(TEST3)
-int (*next_function)() = Test3Start;
-#elif defined(GAME)
-int (*next_function)() = GameStart;
-#endif
+#include "ui.h"
 
 
-int main()
+uint8_t Test3_frame = 0;
+uint8_t Test3_selection = 0;
+
+
+void* Test3()
 {
-	next_function = next_function();
-	return 0;
+	union Command* com;
+
+	/* First frame only... */
+	if (Test3_frame == 0)
+		DrawStaticUI(3);
+
+	/* Every single one */
+	{
+		if (INPUT_A == 1)
+		{
+			if (Test3_selection > 0)
+				Test3_selection -= 1;
+		}
+
+		if (INPUT_B == 1)
+		{
+			if (Test3_selection < 2)
+				Test3_selection += 1;
+		}
+
+		DrawDynamicUI(Test3_selection, 4);
+	}
+
+	/* Bye! */
+	NewCommand(CODE_HALT);
+	CleanCommands();
+
+	Test3_frame += 1;
+
+	return Test3;
+}
+
+
+void* Test3Start()
+{
+	LoadSprite("assets\\font1.jvn", 1);
+	LoadSprite("assets\\font2.jvn", 21);
+	LoadSprite("assets\\ui-ports.jvn", 3);
+	LoadSprite("assets\\ui-items.jvn", 4);
+
+	LoadBackground((uint16_t) "assets\\bkg1.raw");
+
+	Test3_frame = 0;
+	Test3_selection = 0;
+
+	Test3();
+	return Test3;
 }
