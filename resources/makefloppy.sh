@@ -18,7 +18,11 @@ mmd -i ./sakurai.img ::/assets
 	mcopy -i ./sakurai.img ./assets/fx1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/fx2.jvn ::/assets/
 
-	mcopy -i ./sakurai.img ./assets/player.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/sayori.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/kuro.jvn ::/assets/
+
+	mcopy -i ./sakurai.img ./assets/ui-ports.jvn ::/assets/
+	mcopy -i ./sakurai.img ./assets/ui-items.jvn ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/enemy-a.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/enemy-b.jvn ::/assets/
@@ -27,9 +31,6 @@ mmd -i ./sakurai.img ::/assets
 	mcopy -i ./sakurai.img ./assets/enemy-e.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/enemy-f.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/enemy-g.jvn ::/assets/
-
-	mcopy -i ./sakurai.img ./assets/port-a.jvn ::/assets/
-	mcopy -i ./sakurai.img ./assets/port-b.jvn ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/font1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/font2.jvn ::/assets/

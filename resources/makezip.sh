@@ -12,7 +12,11 @@ zip -9 ./sakurai.zip\
 	./assets/fx1.jvn\
 	./assets/fx2.jvn\
 	\
-	./assets/player.jvn\
+	./assets/sayori.jvn\
+	./assets/kuro.jvn\
+	\
+	./assets/ui-ports.jvn\
+	./assets/ui-items.jvn\
 	\
 	./assets/enemy-a.jvn\
 	./assets/enemy-b.jvn\
@@ -21,9 +25,6 @@ zip -9 ./sakurai.zip\
 	./assets/enemy-e.jvn\
 	./assets/enemy-f.jvn\
 	./assets/enemy-g.jvn\
-	\
-	./assets/port-a.jvn\
-	./assets/port-b.jvn\
 	\
 	./assets/font1.jvn\
 	./assets/font2.jvn
