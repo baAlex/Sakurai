@@ -72,14 +72,20 @@ void* AnimationState()
 		com->draw_sprite.slot = 25;
 
 	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
 	AnimationState_frame += 1;
 
 	if (AnimationState_frame >= 6)
-		return FieldState;
+	{
+		if (AnimationState_actor >= HEROES_NO)
+			DrawHUD(22); /* To update damages */
 
+		NewCommand(CODE_HALT);
+		CleanCommands();
+		return FieldState;
+	}
+
+	NewCommand(CODE_HALT);
+	CleanCommands();
 	return AnimationState;
 }
 
@@ -98,11 +104,11 @@ void* UIState()
 
 	/* First frame only... */
 	if (UIState_frame == 0)
-		DrawStaticUI(22);
+		DrawStaticUI(22, UIState_actor);
 
 	/* Every single one */
 	{
-		if (INPUT_START == 1)
+		if (INPUT_START == 1 || INPUT_B == 1)
 		{
 			CleanStaticUI();
 			DrawHUD(22);
@@ -110,19 +116,24 @@ void* UIState()
 			goto bye;
 		}
 
-		if (INPUT_A == 1)
-		{
-			if (UIState_selection > 0)
-				UIState_selection -= 1;
-		}
+		if (INPUT_UP == 1)
+			UIState_selection -= 2;
 
-		if (INPUT_B == 1)
-		{
-			if (UIState_selection < 2)
-				UIState_selection += 1;
-		}
+		if (INPUT_DOWN == 1)
+			UIState_selection += 2;
 
-		DrawDynamicUI(UIState_selection, 26);
+		if (INPUT_LEFT == 1)
+			UIState_selection -= 1;
+
+		if (INPUT_RIGHT == 1)
+			UIState_selection += 1;
+
+		if (UIState_selection > 128)
+			UIState_selection = 0;
+		else if (UIState_selection > 4)
+			UIState_selection = 4;
+
+		DrawDynamicUI(UIState_selection, 26, UIState_actor);
 	}
 
 bye:
@@ -143,6 +154,7 @@ void* FieldState()
 {
 	void* next_state = FieldState;
 	uint8_t i = 0;
+	uint8_t we_win = 1;
 
 	/* Developers, Developers, Developers */
 	if (INPUT_X == 1)
@@ -169,7 +181,6 @@ void* FieldState()
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
-
 		else if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
 			ActorAttack(i);
@@ -195,7 +206,21 @@ void* FieldState()
 				goto bye;
 			}
 		}
+
+		if (i >= HEROES_NO) /* This dude is alive */
+			we_win = 0;
 	}
+
+	/* Enemies dead? */
+	if (we_win == 1)
+	{
+		if (s_battle_no < UINT8_MAX)
+			s_battle_no += 1;
+
+		next_state = GameStart;
+		goto bye;
+	}
+
 
 	/* Draw step */
 	DrawActors();
@@ -243,9 +268,9 @@ void* GameLoad()
 		if (GameLoad_initialized[g_actor[i].type] == 0)
 		{
 			if (g_actor[i].type == TYPE_HERO_A)
-				LoadSprite("assets\\kuro.jvn", g_actor[i].type);
-			else if (g_actor[i].type == TYPE_HERO_B)
 				LoadSprite("assets\\sayori.jvn", g_actor[i].type);
+			else if (g_actor[i].type == TYPE_HERO_B)
+				LoadSprite("assets\\kuro.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_A)
 				LoadSprite("assets\\enemy-a.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_B)

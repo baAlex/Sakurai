@@ -169,13 +169,13 @@ Main_loop_no_sleep:
 		push dx
 		mov dx, [keyboard_state + 0x1F] ; B
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Up (TODO)
+		mov dx, [keyboard_state + 0x48] ; Up
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Down (TODO)
+		mov dx, [keyboard_state + 0x50] ; Down
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Left (TODO)
+		mov dx, [keyboard_state + 0x4B] ; Left
 		push dx
-		mov dx, [keyboard_state + 0x01] ; Right (TODO)
+		mov dx, [keyboard_state + 0x4D] ; Right
 		push dx
 		mov dx, [keyboard_state + 0x39] ; Select
 		push dx

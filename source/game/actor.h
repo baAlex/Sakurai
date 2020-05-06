@@ -15,8 +15,8 @@
 
 #define TYPES_NO 9
 
-#define TYPE_HERO_B 0
-#define TYPE_HERO_A 1
+#define TYPE_HERO_A 0
+#define TYPE_HERO_B 1
 #define TYPE_A 2
 #define TYPE_B 3
 #define TYPE_C 4
@@ -43,6 +43,7 @@ struct Personality
 	uint8_t idle_time;
 	uint8_t bounded_time;
 	uint8_t health;
+	uint8_t damage;
 };
 
 struct Actor
@@ -58,7 +59,9 @@ struct Actor
 	uint8_t bounded_time; /* Counts towards 0 */
 
 	uint8_t phase;
+
 	int8_t health;
+	int8_t magic;
 
 	uint8_t type;
 };

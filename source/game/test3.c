@@ -44,23 +44,28 @@ void* Test3()
 
 	/* First frame only... */
 	if (Test3_frame == 0)
-		DrawStaticUI(3);
+		DrawStaticUI(3, 0);
 
 	/* Every single one */
 	{
-		if (INPUT_A == 1)
-		{
-			if (Test3_selection > 0)
-				Test3_selection -= 1;
-		}
+		if (INPUT_UP == 1)
+			Test3_selection -= 2;
 
-		if (INPUT_B == 1)
-		{
-			if (Test3_selection < 2)
-				Test3_selection += 1;
-		}
+		if (INPUT_DOWN == 1)
+			Test3_selection += 2;
 
-		DrawDynamicUI(Test3_selection, 4);
+		if (INPUT_LEFT == 1)
+			Test3_selection -= 1;
+
+		if (INPUT_RIGHT == 1)
+			Test3_selection += 1;
+
+		if (Test3_selection > 128)
+			Test3_selection = 0;
+		else if (Test3_selection > 4)
+			Test3_selection = 4;
+
+		DrawDynamicUI(Test3_selection, 4, 0);
 	}
 
 	/* Bye! */
@@ -75,7 +80,7 @@ void* Test3()
 
 void* Test3Start()
 {
-	LoadSprite("assets\\font1.jvn", 1);
+	LoadSprite("assets\\font1.jvn", 20);
 	LoadSprite("assets\\font2.jvn", 21);
 	LoadSprite("assets\\ui-ports.jvn", 3);
 	LoadSprite("assets\\ui-items.jvn", 4);

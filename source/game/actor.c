@@ -34,13 +34,13 @@ SOFTWARE.
 
 struct Actor g_actor[ACTORS_NO] =
 {
-	{0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_A},
-	{0, 0, 0, 0, 0, 0, 0, 100, TYPE_HERO_B},
+	{0, 0, 0, 0, 0, 0, 0, 100, 50, TYPE_HERO_B},
+	{0, 0, 0, 0, 0, 0, 0, 100, 50, TYPE_HERO_A},
 
-	{0, 0, 0, 0, 0, 0, 0, 100, __NN__},
-	{0, 0, 0, 0, 0, 0, 0, 100, __NN__},
-	{0, 0, 0, 0, 0, 0, 0, 100, __NN__},
-	{0, 0, 0, 0, 0, 0, 0, 100, __NN__}
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__}
 };
 
 struct Information g_info[ACTORS_NO] =
@@ -56,24 +56,24 @@ struct Information g_info[ACTORS_NO] =
 
 struct Personality g_persona[TYPES_NO] =
 {
-	{"Sayori", /* Idle */ 5, /* Bounded */ 60, /* Health */ 100},
-	{"Kuro",   /* Idle */ 4, /* Bounded */ 60, /* Health */ 100},
+	{"Sayori", /* Idle */ 5, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 20},
+	{"Kuro",   /* Idle */ 2, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 20},
 
 	/* Well balanced */
-	{"Ferment",   /* Idle */ 5, /* Bounded */ 60, /* Health */ 30},
-	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 30, /* Health */ 50}, /* Phantasy Star */
+	{"Ferment",   /* Idle */ 5, /* Bounded */ 60, /* Health */ 30, /* Damage */ 15},
+	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 30, /* Health */ 50, /* Damage */ 10}, /* Phantasy Star */
 
 	/* Slow bullet sponges */
-	{"Kingpin",   /* Idle */ 1, /* Bounded */ 80, /* Health */ 80}, /* Half-Life */
-	{"Destroyer", /* Idle */ 2, /* Bounded */ 80, /* Health */ 100},
+	{"Kingpin",   /* Idle */ 1, /* Bounded */ 80, /* Health */ 80, /* Damage */ 40}, /* Half-Life */
+	{"Destroyer", /* Idle */ 2, /* Bounded */ 80, /* Health */ 100, /* Damage */ 30},
 
 	/* Fast and delicate one */
-	{"Phibia",    /* Idle */ 8, /* Bounded */ 15, /* Health */ 70},
+	{"Phibia",    /* Idle */ 8, /* Bounded */ 15, /* Health */ 70, /* Damage */ 5},
 
 	/* Well balanced, at this point of the game the enemies
 	   number makes the actual challenge */
-	{"Viridi",    /* Idle */ 4, /* Bounded */ 50, /* Health */ 90},
-	{"Ni",        /* Idle */ 5, /* Bounded */ 50, /* Health */ 100}
+	{"Viridi",    /* Idle */ 4, /* Bounded */ 50, /* Health */ 90, /* Damage */ 15},
+	{"Ni",        /* Idle */ 5, /* Bounded */ 50, /* Health */ 100, /* Damage */ 15}
 
 	/* TODO: think better names
 	- "Ferment", ok
@@ -280,6 +280,17 @@ void ActorAttack(uint8_t index)
 	struct Actor* target = &g_actor[actor->target];
 
 	target->bounded_time = g_persona[actor->target].bounded_time;
+
+	/* TODO, check if the target is still alive */
+
+	if(target->health > g_persona[actor->type].damage)
+		target->health -= g_persona[actor->type].damage;
+	else
+	{
+		target->health = 0;
+		target->state = ACTOR_STATE_DEAD;
+	}
+
 
 	actor->idle_time = 0;
 	actor->state = ACTOR_STATE_IDLE;
