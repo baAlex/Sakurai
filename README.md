@@ -3,7 +3,7 @@ Tanaka's magical business
 (codename: Sakurai)
 =========================
 
-Turn based role-playing game for DOS.
+Turn based role-playing game for real mode DOS.
 Submission for [MS-DOS game jam #2](https://itch.io/jam/dos-game-jam-2).
 
 **Currently in development**.
@@ -48,4 +48,4 @@ Copyright (c) 2020 Alexander Brandt.
 
 Source code under MIT License.
 
-Files in folder "assets" distributed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License. For more information see https://creativecommons.org/licenses/by-nc-sa/4.0/.
+Files in folders "assets" and "assets-dev" distributed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License. For more information see https://creativecommons.org/licenses/by-nc-sa/4.0/.
