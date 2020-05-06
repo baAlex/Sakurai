@@ -55,6 +55,7 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/test1.c $
  ./source/game/test2.c $
  ./source/game/test3.c $
+ ./source/game/intro.c $
  ./source/game/ui.c $
  ./source/game/utilities.c $
  ./objects/sin.c $
@@ -145,3 +146,4 @@ build ./assets/bkg1.raw: Background ./assets-dev/bkg1.bmp
 build ./assets/bkg2.raw: Background ./assets-dev/bkg2.bmp
 build ./assets/bkg3.raw: Background ./assets-dev/bkg3.bmp
 build ./assets/bkg4.raw: Background ./assets-dev/bkg4.bmp
+build ./assets/tittle.raw: Background ./assets-dev/tittle.bmp

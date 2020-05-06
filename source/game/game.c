@@ -34,7 +34,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define DEV
+/*#define DEV*/
 
 
 uint8_t Layout(uint8_t battle_no, uint8_t* out);

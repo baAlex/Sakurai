@@ -30,11 +30,12 @@ SOFTWARE.
 
 #include "engine.h"
 #include "game.h"
+#include "intro.h"
 #include "tests.h"
 
-#define GAME
+/*#define GAME*/
 
-#ifdef TEST1
+#if TEST1
 int (*next_function)() = Test1Start;
 #elif defined(TEST2)
 int (*next_function)() = Test2Start;
@@ -42,6 +43,8 @@ int (*next_function)() = Test2Start;
 int (*next_function)() = Test3Start;
 #elif defined(GAME)
 int (*next_function)() = GameStart;
+#else
+	int (*next_function)() = IntroStart;
 #endif
 
 
