@@ -1,13 +1,14 @@
 
-Sakurai
-=======
+Tanaka's magical business
+(codename: Sakurai)
+=========================
 
 Turn based role-playing game for DOS.
 Submission for [MS-DOS game jam #2](https://itch.io/jam/dos-game-jam-2).
 
 **Currently in development**.
 
-![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/screenshot.png)
+![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/screenshots.png)
 
 
 Requirements
