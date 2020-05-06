@@ -45,7 +45,7 @@ struct Actor g_actor[ACTORS_NO] =
 
 struct Information g_info[ACTORS_NO] =
 {
-	{/* BaseX */ 38, /* BaseY */ 60},
+	{/* BaseX */ 45, /* BaseY */ 60},
 	{/* BaseX */ 8,  /* BaseY */ 100},
 
 	{/* BaseX */ 150, /* BaseY */ 60},
@@ -56,24 +56,24 @@ struct Information g_info[ACTORS_NO] =
 
 struct Personality g_persona[TYPES_NO] =
 {
-	{"Sayori", /* Idle */ 5, /* Bounded */ 48, /* Health */ 100},
-	{"Kuro",   /* Idle */ 4, /* Bounded */ 48, /* Health */ 100},
+	{"Sayori", /* Idle */ 5, /* Bounded */ 60, /* Health */ 100},
+	{"Kuro",   /* Idle */ 4, /* Bounded */ 60, /* Health */ 100},
 
 	/* Well balanced */
-	{"Ferment",   /* Idle */ 5, /* Bounded */ 48, /* Health */ 30},
-	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 24, /* Health */ 50}, /* Phantasy Star */
+	{"Ferment",   /* Idle */ 5, /* Bounded */ 60, /* Health */ 30},
+	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 30, /* Health */ 50}, /* Phantasy Star */
 
 	/* Slow bullet sponges */
-	{"Kingpin",   /* Idle */ 1, /* Bounded */ 60, /* Health */ 80}, /* Half-Life */
-	{"Destroyer", /* Idle */ 2, /* Bounded */ 70, /* Health */ 100},
+	{"Kingpin",   /* Idle */ 1, /* Bounded */ 80, /* Health */ 80}, /* Half-Life */
+	{"Destroyer", /* Idle */ 2, /* Bounded */ 80, /* Health */ 100},
 
 	/* Fast and delicate one */
-	{"Phibia",    /* Idle */ 8, /* Bounded */ 16, /* Health */ 70},
+	{"Phibia",    /* Idle */ 8, /* Bounded */ 15, /* Health */ 70},
 
 	/* Well balanced, at this point of the game the enemies
 	   number makes the actual challenge */
-	{"Viridi",    /* Idle */ 4, /* Bounded */ 32, /* Health */ 90},
-	{"Ni",        /* Idle */ 5, /* Bounded */ 48, /* Health */ 100}
+	{"Viridi",    /* Idle */ 4, /* Bounded */ 50, /* Health */ 90},
+	{"Ni",        /* Idle */ 5, /* Bounded */ 50, /* Health */ 100}
 
 	/* TODO: think better names
 	- "Ferment", ok
@@ -264,7 +264,7 @@ void ActorCharge(uint8_t index)
 
 	/* Update charge timer */
 	if (actor->charge_time < (255 - 8))
-		actor->charge_time += 8;
+		actor->charge_time += 4;
 
 	/* Attack!!! */
 	else

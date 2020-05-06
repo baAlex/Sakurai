@@ -34,7 +34,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-/*#define DEV*/
+#define DEV
 
 
 uint8_t Layout(uint8_t battle_no, uint8_t* out);
@@ -243,9 +243,9 @@ void* GameLoad()
 		if (GameLoad_initialized[g_actor[i].type] == 0)
 		{
 			if (g_actor[i].type == TYPE_HERO_A)
-				LoadSprite("assets\\player.jvn", g_actor[i].type);
+				LoadSprite("assets\\kuro.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_HERO_B)
-				LoadSprite("assets\\player.jvn", g_actor[i].type);
+				LoadSprite("assets\\sayori.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_A)
 				LoadSprite("assets\\enemy-a.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_B)
