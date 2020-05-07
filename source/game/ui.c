@@ -30,6 +30,7 @@ SOFTWARE.
 
 #include "actor.h"
 #include "utilities.h"
+#include "attacks.h"
 
 #define UI_WIDTH 19 /* 304 px */
 #define UI_HEIGHT 3 /* 48 px */
@@ -203,7 +204,7 @@ void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index)
 
 static uint8_t DrawActionUI_prev_selection = 255;
 
-void DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_index)
+uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_index)
 {
 	union Command* com;
 
@@ -223,6 +224,11 @@ void DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_in
 	com->draw_shape.height = UI_HEIGHT;
 
 	/* Selection arrow */
+	if (selection > 128)
+		selection = 0;
+	else if (selection > 4)
+		selection = 4;
+
 	com = NewCommand(CODE_DRAW_SPRITE);
 	com->draw_sprite.slot = item_slot;
 	com->draw_sprite.frame = (CURRENT_FRAME >> 2) % 2;
@@ -257,7 +263,7 @@ void DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_in
 		else if (selection == 1)
 			com->draw_text.text = (uint16_t) "Combined attack, uses 20 MP.";
 		else if (selection == 4)
-			com->draw_text.text = (uint16_t) "Hold position, mitigates damage of imminent attack.";
+			com->draw_text.text = (uint16_t) "Hold position, mitigates damage from imminent attack.";
 
 		if (actor_index == 0)
 		{
@@ -271,9 +277,11 @@ void DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_in
 			if (selection == 2)
 				com->draw_text.text = (uint16_t) "Immobilizes target, uses 30 MP.";
 			else if (selection == 3)
-				com->draw_text.text = (uint16_t) "Attacks multiple targets at once, uses 50 MP.";
+				com->draw_text.text = (uint16_t) "Desintegrates target, uses 60 MP.";
 		}
 	}
+
+	return selection;
 }
 
 
@@ -311,7 +319,7 @@ void DrawTargetUI_static(uint8_t portraits_slot)
 	com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
 	com->draw_text.slot = 20;
 
-	if ((Random() % 100) > 10)
+	if ((Random() % 100) > 2)
 		com->draw_text.text = "Select your target.";
 	else
 		com->draw_text.text = "Senpai!, select our target."; /* TODO, too stupid, right? */
@@ -339,6 +347,9 @@ uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
 	}
 
 	/* Active arrow */
+	if(selection == 0)
+		selection = HEROES_NO;
+
 	while (g_actor[selection].state == ACTOR_STATE_DEAD)
 	{
 		if (selection > DrawTargetUI_prev_selection)

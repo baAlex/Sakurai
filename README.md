@@ -19,10 +19,12 @@ Requirements
 - 2 MiB of hard disk space
 - MS-DOS 3.20 or compatible
 
+Or an emulator like Dosbox!.
+
 
 Releases
 --------
-No releases at the moment.
+Please visit the [game website](https://baalex.itch.io/tanakas-magical-business), the first alpha is already there.
 
 
 Compilation
@@ -37,9 +39,13 @@ To clone and compile the repository with:
 ```
 git clone https://github.com/baAlex/Sakurai.git
 cd Sakurai
-
 ninja -f ./resources/build.ninja
 ```
+
+Contact
+-------
+- You can found me in [Mastodon.social@baAlex](https://mastodon.social/@baAlex)
+- Or my blog, [TheAlpacaJumps](https://thealpacajumps.neocities.org/)
 
 
 License

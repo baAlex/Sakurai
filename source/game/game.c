@@ -30,9 +30,9 @@ SOFTWARE.
 
 #include "game.h"
 #include "actor.h"
+#include "attacks.h"
 #include "ui.h"
 #include "utilities.h"
-
 
 /*#define DEV*/
 
@@ -74,7 +74,8 @@ void* AnimationState()
 	/* Bye! */
 	AnimationState_frame += 1;
 
-	if (AnimationState_frame >= 6)
+	if ((g_actor[AnimationState_actor].attack_type == ATTACK_SIMPLE && AnimationState_frame >= 6) ||
+	    AnimationState_frame >= 24)
 	{
 		if (AnimationState_actor >= HEROES_NO)
 			DrawHUD(22); /* To update damages */
@@ -95,78 +96,144 @@ void* AnimationState()
 
 static uint8_t UIState_actor = 0;
 static uint16_t UIState_screen = 0;
-static uint8_t UIState_selection = 0;
+
+static uint8_t UIState_action = 0;
+static uint8_t UIState_target = 0;
+
+#define SCREEN_ACTION 0
+#define SCREEN_ACTION_DONE 1
+#define SCREEN_TARGET 2
+#define SCREEN_TARGET_DONE 3
+
 
 void* UIState()
 {
 	void* next_state = UIState;
 	union Command* com;
 
-	/* First frame only... */
-	if (UIState_screen == 0)
+	/* Only draw static elements on the first frame */
+	if (UIState_screen == SCREEN_ACTION)
 	{
 		DrawActionUI_static(22, UIState_actor);
-		UIState_screen = 1;
+		UIState_screen = SCREEN_ACTION_DONE;
 	}
-
-	if (UIState_screen == 2)
+	else if (UIState_screen == SCREEN_TARGET)
 	{
 		DrawTargetUI_static(22);
-		UIState_screen = 3;
+		UIState_screen = SCREEN_TARGET_DONE;
 	}
 
-	/* Every single one */
+	/* Player press ENTER */
+	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1)
 	{
-		if (INPUT_START == 1 || INPUT_B == 1)
+		/* Return to the field */
+		if (UIState_screen == SCREEN_TARGET_DONE)
 		{
-			if (UIState_screen == 3)
+			g_actor[UIState_actor].target = UIState_target;
+
+			CleanUI();
+			DrawHUD(22);
+			next_state = FieldState;
+			goto bye;
+		}
+
+		/* Advance to the target screen, if necessary or possible*/
+		{
+			g_actor[UIState_actor].attack_type = UIState_action;
+
+			if (UIState_action == ATTACK_SIMPLE)
 			{
+				g_actor[UIState_actor].charge_vel = g_persona[g_actor[UIState_actor].type].charge_vel;
+
+				/* Advance to target screen */
+				UIState_screen = SCREEN_TARGET;
+				goto bye;
+			}
+
+			if (UIState_action == ATTACK_COMBINED && g_actor[UIState_actor].magic >= 20)
+			{
+				g_actor[UIState_actor].charge_vel = g_persona[g_actor[UIState_actor].type].charge_vel >> 1;
+
+				/* Check magic first, then to the target screen */
+				g_actor[UIState_actor].magic -= 20;
+				UIState_screen = SCREEN_TARGET;
+				goto bye;
+			}
+
+			if (UIState_action == ATTACK_HOLD)
+			{
+				g_actor[UIState_actor].charge_vel = 8;
+
+				/* Skip directly to the field */
 				CleanUI();
 				DrawHUD(22);
-
-				g_actor[UIState_actor].target = UIState_selection;
-
 				next_state = FieldState;
 				goto bye;
 			}
-			else if (UIState_screen == 1)
+
+			/* Kuro */
+			if (UIState_actor == 0)
 			{
-				UIState_screen = 2;
-				goto bye;
+				if (UIState_action == ATTACK_HEAL || UIState_action == ATTACK_MEDITATE)
+				{
+					g_actor[0].charge_vel = 24;
+
+					/* Skip directly to the field */
+					CleanUI();
+					DrawHUD(22);
+					next_state = FieldState;
+					goto bye;
+				}
+			}
+
+			/* Sayori */
+			else if (UIState_actor == 1)
+			{
+				if (UIState_action == ATTACK_SHOCK && g_actor[1].magic >= 30)
+				{
+					g_actor[1].charge_vel = g_persona[g_actor[1].type].charge_vel;
+
+					/* Check magic first, then to the target screen */
+					g_actor[1].magic -= 30;
+					UIState_screen = SCREEN_TARGET;
+					goto bye;
+				}
+
+				if (UIState_action == ATTACK_THUNDER && g_actor[1].magic >= 60)
+				{
+					g_actor[1].charge_vel = 2;
+
+					/* Check magic first, then to the target screen */
+					g_actor[1].magic -= 60;
+					UIState_screen = SCREEN_TARGET;
+					goto bye;
+				}
 			}
 		}
+	}
 
-		if (UIState_screen == 1)
-		{
-			if (INPUT_UP == 1)
-				UIState_selection -= 2;
+	/* Draw dynamic elements every single frame */
+	if (UIState_screen == SCREEN_ACTION_DONE)
+	{
+		if (INPUT_UP == 1)
+			UIState_action -= 2;
+		if (INPUT_DOWN == 1)
+			UIState_action += 2;
+		if (INPUT_LEFT == 1)
+			UIState_action -= 1;
+		if (INPUT_RIGHT == 1)
+			UIState_action += 1;
 
-			if (INPUT_DOWN == 1)
-				UIState_selection += 2;
+		UIState_action = DrawActionUI_dynamic(UIState_action, 26, UIState_actor);
+	}
+	else
+	{
+		if (INPUT_LEFT == 1 || INPUT_UP == 1)
+			UIState_target -= 1;
+		if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
+			UIState_target += 1;
 
-			if (INPUT_LEFT == 1)
-				UIState_selection -= 1;
-
-			if (INPUT_RIGHT == 1)
-				UIState_selection += 1;
-
-			if (UIState_selection > 128)
-				UIState_selection = 0;
-			else if (UIState_selection > 4)
-				UIState_selection = 4;
-
-			DrawActionUI_dynamic(UIState_selection, 26, UIState_actor);
-		}
-		else
-		{
-			if (INPUT_LEFT == 1 || INPUT_UP == 1)
-				UIState_selection -= 1;
-
-			if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
-				UIState_selection += 1;
-
-			UIState_selection = DrawTargetUI_dynamic(UIState_selection, 26);
-		}
+		UIState_target = DrawTargetUI_dynamic(UIState_target, 26);
 	}
 
 bye:
@@ -185,20 +252,36 @@ void* FieldState()
 {
 	void* next_state = FieldState;
 	uint8_t i = 0;
-	uint8_t we_win = 1;
 
-	/* Developers, Developers, Developers */
+	/* Developers, Developers, Developers
 	if (INPUT_X == 1)
 	{
-		if (s_battle_no > 0)
-		{
-			s_battle_no -= 1;
-			next_state = GameStart;
-			goto bye;
-		}
+	    if (s_battle_no > 0)
+	    {
+	        s_battle_no -= 1;
+	        next_state = GameStart;
+	        goto bye;
+	    }
 	}
 
 	if (INPUT_Y == 1)
+	{
+	    if (s_battle_no < UINT8_MAX)
+	        s_battle_no += 1;
+
+	    next_state = GameStart;
+	    goto bye;
+	}*/
+
+	/* HACKKKK!, before any logic calculation we
+	need to be 100% sure that there are some enemy */
+	for (i = HEROES_NO; i < ACTORS_NO; i++)
+	{
+		if (g_actor[i].state != ACTOR_STATE_DEAD)
+			goto logic; /* Fantastic! */
+	}
+
+	/* Lest asume that we win */
 	{
 		if (s_battle_no < UINT8_MAX)
 			s_battle_no += 1;
@@ -207,6 +290,7 @@ void* FieldState()
 		goto bye;
 	}
 
+logic:
 	/* Logic step */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
@@ -214,6 +298,55 @@ void* FieldState()
 			continue;
 		else if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
+
+			/* Wait, is Kuro doing magic */
+			if (i == 0 && (g_actor[0].attack_type == ATTACK_HEAL || g_actor[0].attack_type == ATTACK_MEDITATE))
+			{
+				if (g_actor[0].attack_type == ATTACK_HEAL)
+				{
+					g_actor[0].health += 50;
+
+					if (g_actor[0].health > 100)
+						g_actor[0].health = 100;
+
+					if (g_actor[1].state != ACTOR_STATE_DEAD)
+						g_actor[1].health += 50;
+
+					if (g_actor[1].health > 100)
+						g_actor[1].health = 100;
+				}
+
+				if (g_actor[0].attack_type == ATTACK_MEDITATE)
+				{
+					g_actor[0].magic += 50;
+
+					if (g_actor[0].magic > 100)
+						g_actor[0].magic = 100;
+
+					if (g_actor[1].state != ACTOR_STATE_DEAD)
+						g_actor[1].magic += 50;
+
+					if (g_actor[1].magic > 100)
+						g_actor[1].magic = 100;
+				}
+
+				DrawHUD(22);
+
+				/* Back to idle */
+				g_actor[i].idle_time = 0;
+				g_actor[i].state = ACTOR_STATE_IDLE;
+				continue;
+			}
+
+			/* Wait, the actor is holding position */
+			else if (g_actor[i].attack_type == ATTACK_HOLD)
+			{
+				/* Back to idle */
+				g_actor[i].idle_time = 0;
+				g_actor[i].state = ACTOR_STATE_IDLE;
+				continue;
+			}
+
 			ActorAttack(i);
 
 			AnimationState_actor = i;
@@ -232,26 +365,13 @@ void* FieldState()
 				{
 					UIState_actor = i;
 					UIState_screen = 0;
-					UIState_selection = 0;
+					UIState_action = 0;
+					UIState_target = 0;
 					next_state = UIState;
 					goto bye;
 				}
 		}
-
-		if (i >= HEROES_NO) /* This dude is alive */
-			we_win = 0;
 	}
-
-	/* Enemies dead? */
-	if (we_win == 1)
-	{
-		if (s_battle_no < UINT8_MAX)
-			s_battle_no += 1;
-
-		next_state = GameStart;
-		goto bye;
-	}
-
 
 	/* Draw step */
 	DrawActors();

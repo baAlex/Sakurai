@@ -31,16 +31,18 @@ SOFTWARE.
 #include "actor.h"
 #include "utilities.h"
 
+#include "attacks.h"
+
 
 struct Actor g_actor[ACTORS_NO] =
 {
-	{0, 0, 0, 0, 0, 0, 0, 100, 50, TYPE_HERO_B},
-	{0, 0, 0, 0, 0, 0, 0, 100, 50, TYPE_HERO_A},
+	{ACTOR_STATE_IDLE, 0, 0, 0, 0, 0, 0, 0, 100, 0, TYPE_HERO_B},
+	{ACTOR_STATE_IDLE, 0, 0, 0, 0, 0, 0, 0, 100, 30, TYPE_HERO_A},
 
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__}
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, __NN__}
 };
 
 struct Information g_info[ACTORS_NO] =
@@ -54,26 +56,28 @@ struct Information g_info[ACTORS_NO] =
 	{/* BaseX */ 250, /* BaseY */ 100}
 };
 
+#define SHOCK_BOUNDED_TIME 240
+
 struct Personality g_persona[TYPES_NO] =
 {
-	{"Sayori", /* Idle */ 5, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 20},
-	{"Kuro",   /* Idle */ 2, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 20},
+	{"Sayori", /* Idle */ 5, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 20, /* Charge */ 6},
+	{"Kuro",   /* Idle */ 2, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 30, /* Charge */ 7},
 
 	/* Well balanced */
-	{"Ferment",   /* Idle */ 5, /* Bounded */ 60, /* Health */ 30, /* Damage */ 15},
-	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 30, /* Health */ 50, /* Damage */ 10}, /* Phantasy Star */
+	{"Ferment",   /* Idle */ 5, /* Bounded */ 60, /* Health */ 50, /* Damage */ 15, /* Charge */ 3},
+	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 30, /* Health */ 30, /* Damage */ 10, /* Charge */ 4}, /* Phantasy Star */
 
 	/* Slow bullet sponges */
-	{"Kingpin",   /* Idle */ 1, /* Bounded */ 80, /* Health */ 80, /* Damage */ 40}, /* Half-Life */
-	{"Destroyer", /* Idle */ 2, /* Bounded */ 80, /* Health */ 100, /* Damage */ 30},
+	{"Kingpin",   /* Idle */ 2, /* Bounded */ 80, /* Health */ 80, /* Damage */ 50, /* Charge */ 2}, /* Half-Life */
+	{"Destroyer", /* Idle */ 2, /* Bounded */ 80, /* Health */ 100, /* Damage */ 30, /* Charge */ 3},
 
 	/* Fast and delicate one */
-	{"Phibia",    /* Idle */ 8, /* Bounded */ 15, /* Health */ 70, /* Damage */ 5},
+	{"Phibia",    /* Idle */ 8, /* Bounded */ 15, /* Health */ 70, /* Damage */ 5, /* Charge */ 3},
 
 	/* Well balanced, at this point of the game the enemies
 	   number makes the actual challenge */
-	{"Viridi",    /* Idle */ 4, /* Bounded */ 50, /* Health */ 90, /* Damage */ 15},
-	{"Ni",        /* Idle */ 5, /* Bounded */ 50, /* Health */ 100, /* Damage */ 15}
+	{"Viridi",    /* Idle */ 4, /* Bounded */ 50, /* Health */ 90, /* Damage */ 15, /* Charge */ 5},
+	{"Ni",        /* Idle */ 5, /* Bounded */ 50, /* Health */ 100, /* Damage */ 15, /* Charge */ 5}
 
 	/* TODO: think better names
 	- "Ferment", ok
@@ -89,6 +93,8 @@ void InitializeActor(uint8_t i, uint8_t* layout)
 	/* Only enemies resets they health and type */
 	if (i >= HEROES_NO)
 	{
+		g_actor[i].state = ACTOR_STATE_IDLE;
+
 		if (layout != NULL)
 			g_actor[i].type = layout[i - HEROES_NO];
 		else
@@ -117,10 +123,15 @@ void InitializeActor(uint8_t i, uint8_t* layout)
 	}
 
 	g_actor[i].phase = (uint8_t)Random();
-	g_actor[i].state = ACTOR_STATE_IDLE;
+	g_actor[i].charge_vel = g_persona[g_actor[i].type].charge_vel;
 
 	if (i < HEROES_NO)
+	{
 		g_actor[i].idle_time = (uint8_t)(Random() % 64);
+
+		if (g_actor[i].state != ACTOR_STATE_DEAD)
+			g_actor[i].state = ACTOR_STATE_IDLE;
+	}
 	else
 		g_actor[i].idle_time = 0;
 
@@ -163,7 +174,7 @@ void DrawActors()
 		else
 			com->draw_sprite.frame = 1;
 
-		if (g_actor[i].state == ACTOR_STATE_CHARGE)
+		if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].attack_type != ATTACK_HOLD)
 			com->draw_sprite.x += Sin(g_actor[i].phase) >> 5;
 
 		/* Time meter background */
@@ -227,7 +238,7 @@ void ActorIdle(uint8_t index)
 		actor->state = ACTOR_STATE_CHARGE;
 
 		/* Select our attack */
-		actor->attack_type = Random() % UINT8_MAX;
+		actor->attack_type = ATTACK_SIMPLE;
 
 		/* Select our target... */
 		{
@@ -260,11 +271,12 @@ void ActorCharge(uint8_t index)
 	}
 
 	/* Oscillate in position */
-	actor->phase += 20;
+	if (actor->attack_type != ATTACK_HOLD)
+		actor->phase += 20;
 
 	/* Update charge timer */
-	if (actor->charge_time < (255 - 8))
-		actor->charge_time += 4;
+	if (actor->charge_time < (255 - actor->charge_vel))
+		actor->charge_time += actor->charge_vel;
 
 	/* Attack!!! */
 	else
@@ -279,19 +291,35 @@ void ActorAttack(uint8_t index)
 	struct Actor* actor = &g_actor[index];
 	struct Actor* target = &g_actor[actor->target];
 
-	target->bounded_time = g_persona[actor->target].bounded_time;
+	uint8_t damage = 0;
+
+	actor->idle_time = 0;
+	actor->state = ACTOR_STATE_IDLE;
 
 	/* TODO, check if the target is still alive */
 
-	if(target->health > g_persona[actor->type].damage)
-		target->health -= g_persona[actor->type].damage;
+	if (target->attack_type == ATTACK_HOLD)
+		return;
+
+	target->bounded_time = g_persona[actor->target].bounded_time;
+
+	if (actor->attack_type == ATTACK_SIMPLE) /* Monsters only use this one */
+		damage = g_persona[actor->type].damage;
+	else if (actor->attack_type == ATTACK_COMBINED)
+		damage = g_persona[actor->type].damage << 1;
+	else if (actor->attack_type == ATTACK_SHOCK)
+	{
+		damage = g_persona[actor->type].damage >> 2;
+		target->bounded_time = SHOCK_BOUNDED_TIME;
+	}
+	else if (actor->attack_type == ATTACK_THUNDER)
+		damage = 255;
+
+	if (target->health > damage)
+		target->health -= damage;
 	else
 	{
 		target->health = 0;
 		target->state = ACTOR_STATE_DEAD;
 	}
-
-
-	actor->idle_time = 0;
-	actor->state = ACTOR_STATE_IDLE;
 }

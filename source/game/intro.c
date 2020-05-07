@@ -62,6 +62,11 @@ static char* Intro_text[] = {
     0x00,
     0x00,
 
+    "[Kuro]",
+    "Well...",
+    0x00,
+    0x00,
+
     /* Wall text here because even if this prototype is an incomplete mess,
     at least I want that the player note this core feature
     (this broken sentence makes any sense?) */
@@ -120,7 +125,8 @@ void* Title()
 		com->draw_text.slot = 21;
 		com->draw_text.text = (uint16_t) "Press a key to continue...";
 
-		if (INPUT_X == 1 || INPUT_Y == 1)
+		if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_LEFT == 1 ||
+		    INPUT_RIGHT == 1 || INPUT_UP == 1 || INPUT_DOWN == 1)
 		{
 			NewCommand(CODE_HALT);
 			CleanCommands();
@@ -142,19 +148,20 @@ void* Intro()
 
 	if (Intro_line % 4 == 3)
 	{
-		if (INPUT_X == 1)
+		if (INPUT_LEFT == 1 || INPUT_UP == 1)
 		{
 			if (Intro_line >= 7)
 				Intro_line -= 7;
 		}
 
-		if (INPUT_Y == 1)
+		if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_RIGHT == 1 ||
+		    INPUT_DOWN == 1)
 		{
 			Intro_frame = 0;
 			Intro_line += 1;
 		}
 
-		if (Intro_line > 44)
+		if (Intro_line > 48)
 		{
 			NewCommand(CODE_DRAW_BKG);
 			Intro_frame = 0;

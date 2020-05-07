@@ -44,6 +44,7 @@ struct Personality
 	uint8_t bounded_time;
 	uint8_t health;
 	uint8_t damage;
+	uint8_t charge_vel; /* HACKKK! */
 };
 
 struct Actor
@@ -59,6 +60,7 @@ struct Actor
 	uint8_t bounded_time; /* Counts towards 0 */
 
 	uint8_t phase;
+	uint8_t charge_vel;
 
 	int8_t health;
 	int8_t magic;
