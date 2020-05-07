@@ -11,9 +11,12 @@
 
 void DrawHUD(uint8_t portraits_slot);
 
-void DrawStaticUI(uint8_t portraits_slot, uint8_t actor_index);
-void DrawDynamicUI(uint8_t selection, uint8_t item_slot, uint8_t actor_index);
+void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index);
+void DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_index);
 
-void CleanStaticUI();
+void DrawTargetUI_static(uint8_t portraits_slot);
+uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot);
+
+void CleanUI();
 
 #endif

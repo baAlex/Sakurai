@@ -10,5 +10,6 @@
 void* Test1Start();
 void* Test2Start();
 void* Test3Start();
+void* Test4Start();
 
 #endif

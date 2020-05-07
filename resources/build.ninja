@@ -55,6 +55,7 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/test1.c $
  ./source/game/test2.c $
  ./source/game/test3.c $
+ ./source/game/test4.c $
  ./source/game/intro.c $
  ./source/game/ui.c $
  ./source/game/utilities.c $
@@ -89,7 +90,8 @@ build ./objects/kuro.asm: SpriteLinear ./assets-dev/kuro.bmp
 build ./objects/ui-ports.asm: SpriteLinear ./assets-dev/ui-ports.bmp
 build ./objects/ui-items.asm: SpriteLinear $
  ./assets-dev/ui-items.001.bmp $
- ./assets-dev/ui-items.002.bmp
+ ./assets-dev/ui-items.002.bmp $
+ ./assets-dev/ui-items.003.bmp
 
 build ./objects/enemy-a.asm: SpriteLinear $
  ./assets-dev/enemy-a.001.bmp $
@@ -146,4 +148,4 @@ build ./assets/bkg1.raw: Background ./assets-dev/bkg1.bmp
 build ./assets/bkg2.raw: Background ./assets-dev/bkg2.bmp
 build ./assets/bkg3.raw: Background ./assets-dev/bkg3.bmp
 build ./assets/bkg4.raw: Background ./assets-dev/bkg4.bmp
-build ./assets/tittle.raw: Background ./assets-dev/tittle.bmp
+build ./assets/title.raw: Background ./assets-dev/title.bmp

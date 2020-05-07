@@ -26,7 +26,7 @@ KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
 
 COMMANDS_TABLE_LEN = 24
 COMMANDS_TABLE_SIZE = 192 ; In bytes
-GAME_SIZE = 8192 ; In bytes
+GAME_SIZE = 16392 ; In bytes
 
 
 ;==============================

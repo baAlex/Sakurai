@@ -106,7 +106,7 @@ static char* Intro_text[] = {
 };
 
 
-void* Tittle()
+void* Title()
 {
 	union Command* com;
 
@@ -131,7 +131,7 @@ void* Tittle()
 	NewCommand(CODE_HALT);
 	CleanCommands();
 
-	return Tittle;
+	return Title;
 }
 
 
@@ -158,7 +158,7 @@ void* Intro()
 		{
 			NewCommand(CODE_DRAW_BKG);
 			Intro_frame = 0;
-			next_state = Tittle;
+			next_state = Title;
 			goto bye;
 		}
 	}
@@ -198,7 +198,7 @@ bye:
 
 void* IntroLoad()
 {
-	LoadBackground("assets\\tittle.raw");
+	LoadBackground("assets\\title.raw");
 	LoadSprite("assets\\font2.jvn", 21);
 
 	Intro_frame = 0;

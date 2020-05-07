@@ -94,7 +94,7 @@ void* AnimationState()
 
 
 static uint8_t UIState_actor = 0;
-static uint8_t UIState_frame = 0;
+static uint16_t UIState_screen = 0;
 static uint8_t UIState_selection = 0;
 
 void* UIState()
@@ -103,45 +103,76 @@ void* UIState()
 	union Command* com;
 
 	/* First frame only... */
-	if (UIState_frame == 0)
-		DrawStaticUI(22, UIState_actor);
+	if (UIState_screen == 0)
+	{
+		DrawActionUI_static(22, UIState_actor);
+		UIState_screen = 1;
+	}
+
+	if (UIState_screen == 2)
+	{
+		DrawTargetUI_static(22);
+		UIState_screen = 3;
+	}
 
 	/* Every single one */
 	{
 		if (INPUT_START == 1 || INPUT_B == 1)
 		{
-			CleanStaticUI();
-			DrawHUD(22);
-			next_state = FieldState;
-			goto bye;
+			if (UIState_screen == 3)
+			{
+				CleanUI();
+				DrawHUD(22);
+
+				g_actor[UIState_actor].target = UIState_selection;
+
+				next_state = FieldState;
+				goto bye;
+			}
+			else if (UIState_screen == 1)
+			{
+				UIState_screen = 2;
+				goto bye;
+			}
 		}
 
-		if (INPUT_UP == 1)
-			UIState_selection -= 2;
+		if (UIState_screen == 1)
+		{
+			if (INPUT_UP == 1)
+				UIState_selection -= 2;
 
-		if (INPUT_DOWN == 1)
-			UIState_selection += 2;
+			if (INPUT_DOWN == 1)
+				UIState_selection += 2;
 
-		if (INPUT_LEFT == 1)
-			UIState_selection -= 1;
+			if (INPUT_LEFT == 1)
+				UIState_selection -= 1;
 
-		if (INPUT_RIGHT == 1)
-			UIState_selection += 1;
+			if (INPUT_RIGHT == 1)
+				UIState_selection += 1;
 
-		if (UIState_selection > 128)
-			UIState_selection = 0;
-		else if (UIState_selection > 4)
-			UIState_selection = 4;
+			if (UIState_selection > 128)
+				UIState_selection = 0;
+			else if (UIState_selection > 4)
+				UIState_selection = 4;
 
-		DrawDynamicUI(UIState_selection, 26, UIState_actor);
+			DrawActionUI_dynamic(UIState_selection, 26, UIState_actor);
+		}
+		else
+		{
+			if (INPUT_LEFT == 1 || INPUT_UP == 1)
+				UIState_selection -= 1;
+
+			if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
+				UIState_selection += 1;
+
+			UIState_selection = DrawTargetUI_dynamic(UIState_selection, 26);
+		}
 	}
 
 bye:
 	/* Bye! */
 	NewCommand(CODE_HALT);
 	CleanCommands();
-
-	UIState_frame += 1;
 
 	return next_state;
 }
@@ -196,15 +227,15 @@ void* FieldState()
 		{
 			ActorIdle(i);
 
-			if(i < HEROES_NO)
-			if(g_actor[i].state != ACTOR_STATE_IDLE)
-			{
-				UIState_actor = i;
-				UIState_frame = 0;
-				UIState_selection = 0;
-				next_state = UIState;
-				goto bye;
-			}
+			if (i < HEROES_NO)
+				if (g_actor[i].state != ACTOR_STATE_IDLE)
+				{
+					UIState_actor = i;
+					UIState_screen = 0;
+					UIState_selection = 0;
+					next_state = UIState;
+					goto bye;
+				}
 		}
 
 		if (i >= HEROES_NO) /* This dude is alive */

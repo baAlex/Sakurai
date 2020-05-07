@@ -44,7 +44,7 @@ void* Test3()
 
 	/* First frame only... */
 	if (Test3_frame == 0)
-		DrawStaticUI(3, 0);
+		DrawActionUI_static(3, 0);
 
 	/* Every single one */
 	{
@@ -65,7 +65,7 @@ void* Test3()
 		else if (Test3_selection > 4)
 			Test3_selection = 4;
 
-		DrawDynamicUI(Test3_selection, 4, 0);
+		DrawActionUI_dynamic(Test3_selection, 4, 0);
 	}
 
 	/* Bye! */

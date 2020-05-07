@@ -24,34 +24,66 @@ SOFTWARE.
 
 -------------------------------
 
- [main.c]
+ [test4.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "engine.h"
-#include "game.h"
-#include "intro.h"
 #include "tests.h"
+#include "utilities.h"
 
-/*#define GAME*/
-
-#if TEST1
-int (*next_function)() = Test1Start;
-#elif defined(TEST2)
-int (*next_function)() = Test2Start;
-#elif defined(TEST3)
-int (*next_function)() = Test3Start;
-#elif defined(TEST4)
-int (*next_function)() = Test4Start;
-#elif defined(GAME)
-int (*next_function)() = GameStart;
-#else
-	int (*next_function)() = IntroStart;
-#endif
+#include "ui.h"
 
 
-int main()
+uint16_t Test4_frame = 0;
+uint8_t Test4_selection = 0;
+
+
+void* Test4()
 {
-	next_function = next_function();
-	return 0;
+	union Command* com;
+
+	/* First frame only... */
+	if (Test4_frame == 0)
+		DrawTargetUI_static(3);
+
+	/* Every single one */
+	{
+		if (INPUT_UP == 1)
+			Test4_selection -= 2;
+
+		if (INPUT_DOWN == 1)
+			Test4_selection += 2;
+
+		if (Test4_selection > 128)
+			Test4_selection = 0;
+		else if (Test4_selection > 3)
+			Test4_selection = 3;
+
+		DrawTargetUI_dynamic(Test4_selection, 4);
+	}
+
+	/* Bye! */
+	NewCommand(CODE_HALT);
+	CleanCommands();
+
+	Test4_frame += 1;
+
+	return Test4;
+}
+
+
+void* Test4Start()
+{
+	LoadSprite("assets\\font1.jvn", 20);
+	LoadSprite("assets\\font2.jvn", 21);
+	LoadSprite("assets\\ui-ports.jvn", 3);
+	LoadSprite("assets\\ui-items.jvn", 4);
+
+	LoadBackground((uint16_t) "assets\\bkg2.raw");
+
+	Test4_frame = 0;
+	Test4_selection = 0;
+
+	Test4();
+	return Test4;
 }
