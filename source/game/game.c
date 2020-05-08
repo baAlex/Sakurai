@@ -49,6 +49,38 @@ static uint8_t s_battle_layout[ENEMIES_NO] = {0, 0, 0, 0};
 /*===========================*/
 
 
+uint16_t GameOver_frame = 0;
+
+void* GameOver()
+{
+	union Command* com;
+	uint8_t i = 0;
+
+	com = NewCommand(CODE_DRAW_RECTANGLE);
+	com->draw_shape.color = 15;
+	com->draw_shape.x = 0;
+	com->draw_shape.y = 100 - 16;
+	com->draw_shape.width = 20; /* 320 px */
+	com->draw_shape.height = 2; /* 32 px */
+
+	com = NewCommand(CODE_DRAW_TEXT);
+	com->draw_text.x = 8;
+	com->draw_text.y = 100 - 16;
+	com->draw_text.slot = 21;
+	com->draw_text.text = (uint16_t) "Game over";
+
+	/* Bye! */
+	NewCommand(CODE_HALT);
+	CleanCommands();
+
+	GameOver_frame += 1;
+	return GameOver;
+}
+
+
+/*===========================*/
+
+
 static uint8_t AnimationState_frame = 0;
 static uint8_t AnimationState_actor = 0;
 
@@ -273,6 +305,13 @@ void* FieldState()
 	    goto bye;
 	}*/
 
+	/* Hack! */
+	if (g_actor[0].state == ACTOR_STATE_DEAD && g_actor[1].state == ACTOR_STATE_DEAD)
+	{
+		next_state = GameOver;
+		goto bye;
+	}
+
 	/* HACKKKK!, before any logic calculation we
 	need to be 100% sure that there are some enemy */
 	for (i = HEROES_NO; i < ACTORS_NO; i++)
@@ -281,7 +320,7 @@ void* FieldState()
 			goto logic; /* Fantastic! */
 	}
 
-	/* Lest asume that we win */
+	/* Lest assume that we win */
 	{
 		if (s_battle_no < UINT8_MAX)
 			s_battle_no += 1;

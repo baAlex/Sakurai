@@ -45,7 +45,7 @@ ninja -f ./resources/build.ninja
 Contact
 -------
 - You can found me in [Mastodon.social@baAlex](https://mastodon.social/@baAlex)
-- Or my blog, [TheAlpacaJumps](https://thealpacajumps.neocities.org/)
+- Or my blog, [The Alpaca Jumps](https://thealpacajumps.neocities.org/)
 
 
 License

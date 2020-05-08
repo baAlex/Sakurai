@@ -61,7 +61,7 @@ struct Information g_info[ACTORS_NO] =
 struct Personality g_persona[TYPES_NO] =
 {
 	{"Sayori", /* Idle */ 5, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 20, /* Charge */ 6},
-	{"Kuro",   /* Idle */ 2, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 30, /* Charge */ 7},
+	{"Kuro",   /* Idle */ 3, /* Bounded */ 60, /* Health in g_actor[] */ 0, /* Default damage */ 30, /* Charge */ 7},
 
 	/* Well balanced */
 	{"Ferment",   /* Idle */ 5, /* Bounded */ 60, /* Health */ 50, /* Damage */ 15, /* Charge */ 3},

@@ -84,7 +84,10 @@ build ./objects/fx2.asm: SpriteLinear $
 build ./objects/sprite1.asm: SpriteLinear ./assets-dev/sprite1.bmp
 build ./objects/sprite2.asm: SpriteLinear ./assets-dev/sprite2.bmp
 
-build ./objects/sayori.asm: SpriteLinear ./assets-dev/sayori.bmp
+build ./objects/sayori.asm: SpriteLinear $
+ ./assets-dev/sayori.001.bmp $
+ ./assets-dev/sayori.002.bmp
+
 build ./objects/kuro.asm: SpriteLinear ./assets-dev/kuro.bmp
 
 build ./objects/ui-ports.asm: SpriteLinear ./assets-dev/ui-ports.bmp
