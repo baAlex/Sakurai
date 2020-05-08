@@ -8,6 +8,7 @@ zip -9 ./sakurai.zip\
 	./assets/bkg2.raw\
 	./assets/bkg3.raw\
 	./assets/bkg4.raw\
+	./assets/title.raw\
 	\
 	./assets/fx1.jvn\
 	./assets/fx2.jvn\

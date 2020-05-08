@@ -145,10 +145,10 @@ Main_loop:
 		mov al, bl
 
 		call near TimeSleep ; (ax, ds implicit)
-		jmp near Main_loop_no_sleep
+		;jmp near Main_loop_no_sleep
 
 Main_loop_time:
-		call near PrintLogNumber ; (ax)
+		;call near PrintLogNumber ; (ax)
 
 Main_loop_no_sleep:
 

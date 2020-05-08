@@ -13,7 +13,7 @@ Submission for [MS-DOS game jam #2](https://itch.io/jam/dos-game-jam-2).
 
 Requirements
 ------------
-- CPU: i386DX at 20 MHz or compatible
+- CPU: i386DX at 33 MHz or compatible
 - RAM: 576 KiB of conventional memory
 - VGA compatible video card
 - 2 MiB of hard disk space

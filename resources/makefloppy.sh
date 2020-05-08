@@ -14,6 +14,7 @@ mmd -i ./sakurai.img ::/assets
 	mcopy -i ./sakurai.img ./assets/bkg2.raw ::/assets/
 	mcopy -i ./sakurai.img ./assets/bkg3.raw ::/assets/
 	mcopy -i ./sakurai.img ./assets/bkg4.raw ::/assets/
+	mcopy -i ./sakurai.img ./assets/title.raw ::/assets/
 
 	mcopy -i ./sakurai.img ./assets/fx1.jvn ::/assets/
 	mcopy -i ./sakurai.img ./assets/fx2.jvn ::/assets/

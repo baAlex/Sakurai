@@ -68,7 +68,7 @@ struct Personality g_persona[TYPES_NO] =
 	{"Wind Eye",  /* Idle */ 4, /* Bounded */ 30, /* Health */ 30, /* Damage */ 10, /* Charge */ 4}, /* Phantasy Star */
 
 	/* Slow bullet sponges */
-	{"Kingpin",   /* Idle */ 2, /* Bounded */ 80, /* Health */ 80, /* Damage */ 50, /* Charge */ 2}, /* Half-Life */
+	{"Kingpin",   /* Idle */ 2, /* Bounded */ 90, /* Health */ 80, /* Damage */ 50, /* Charge */ 2}, /* Half-Life */
 	{"Destroyer", /* Idle */ 2, /* Bounded */ 80, /* Health */ 100, /* Damage */ 30, /* Charge */ 3},
 
 	/* Fast and delicate one */
