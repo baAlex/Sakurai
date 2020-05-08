@@ -1,5 +1,5 @@
-zip -9 ./sakurai.zip\
-	./sakurai.exe\
+zip -9 ./tanakas.zip\
+	./tanakas.exe\
 	./game.dll\
 	./README.md\
 	\
