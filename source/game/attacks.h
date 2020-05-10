@@ -4,10 +4,8 @@
  - Alexander Brandt 2020
 -----------------------------*/
 
-#ifndef _H
+#ifndef ATTACKS_H
 #define ATTACKS_H
-
-#include "engine.h"
 
 #define ATTACK_SIMPLE 0 /* Monsters use this one only */
 #define ATTACK_COMBINED 1

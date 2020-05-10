@@ -29,8 +29,8 @@ SOFTWARE.
 -----------------------------*/
 
 #include "actor.h"
-#include "utilities.h"
 #include "attacks.h"
+#include "utilities.h"
 
 #define UI_WIDTH 19 /* 304 px */
 #define UI_HEIGHT 3 /* 48 px */
@@ -73,50 +73,28 @@ static uint16_t sToDecimalString(uint8_t no, uint8_t* out)
 
 static sDrawPortraits(uint8_t clean, uint8_t portraits_slot)
 {
-	union Command* com;
+	char* c;
 
 	/* Background */
 	if (clean == 1)
-	{
-		com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
-		com->draw_shape.color = UI_BACK_COLOR + 1;
-		com->draw_shape.x = UI_X + 2;
-		com->draw_shape.y = UI_Y + 2;
-		com->draw_shape.width = 6;  /* 96 px */
-		com->draw_shape.height = 3; /* 48 px */
-	}
+		CmdDrawRectangleBkg(6 /* 96 px */, 3 /* 48 px */, UI_X + 2, UI_Y + 2);
 
 	/* Portraits */
-	com = NewCommand(CODE_DRAW_SPRITE);
-	com->draw_sprite.x = UI_X + 2;
-	com->draw_sprite.y = UI_Y + 2;
-	com->draw_sprite.slot = portraits_slot;
+	CmdDrawSprite(portraits_slot, UI_X + 2, UI_Y + 2, 0);
 
 	/* Kuro stats */
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + 43;
-	com->draw_text.y = UI_Y + 32;
-	com->draw_text.slot = 21;
-	com->draw_text.text = sToDecimalString(g_actor[0].health, s_buffer1);
+	c = (char*)sToDecimalString(g_actor[0].health, s_buffer1);
+	CmdDrawText(21, UI_X + 43, UI_Y + 32, c);
 
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + 43 + 28;
-	com->draw_text.y = UI_Y + 32;
-	com->draw_text.slot = 21;
-	com->draw_text.text = sToDecimalString(g_actor[0].magic, s_buffer2);
+	c = (char*)sToDecimalString(g_actor[0].magic, s_buffer2);
+	CmdDrawText(21, UI_X + 43 + 28, UI_Y + 32, c);
 
 	/* Sayori stats */
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + 43;
-	com->draw_text.y = UI_Y + 9;
-	com->draw_text.slot = 21;
-	com->draw_text.text = sToDecimalString(g_actor[1].health, s_buffer3);
+	c = (char*)sToDecimalString(g_actor[1].health, s_buffer3);
+	CmdDrawText(21, UI_X + 43, UI_Y + 9, c);
 
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + 43 + 28;
-	com->draw_text.y = UI_Y + 9;
-	com->draw_text.slot = 21;
-	com->draw_text.text = sToDecimalString(g_actor[1].magic, s_buffer4);
+	c = (char*)sToDecimalString(g_actor[1].magic, s_buffer4);
+	CmdDrawText(21, UI_X + 43 + 28, UI_Y + 9, c);
 }
 
 
@@ -128,76 +106,34 @@ void DrawHUD(uint8_t portraits_slot)
 
 void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index)
 {
-	union Command* com;
 	struct Actor* actor = &g_actor[actor_index];
 
 	/* UI background */
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = UI_BACK_COLOR;
-	com->draw_shape.x = UI_X;
-	com->draw_shape.y = UI_Y;
-	com->draw_shape.width = UI_WIDTH;
-	com->draw_shape.height = UI_HEIGHT;
+	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
 
 	/* Portraits */
 	sDrawPortraits(0, portraits_slot);
 
 	/* Hero name */
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + UI_COLUMN_2_X;
-	com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
-	com->draw_text.slot = 21;
-	com->draw_text.text = (uint16_t)g_persona[actor->type].name;
+	CmdDrawText(21, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, g_persona[actor->type].name);
 
 	/* Common actions */
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + UI_COLUMN_3_X;
-	com->draw_text.y = UI_Y + UI_PADDING_Y;
-	com->draw_text.slot = 21;
-	com->draw_text.text = (uint16_t) "Attack";
-
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + UI_COLUMN_4_X;
-	com->draw_text.y = UI_Y + UI_PADDING_Y;
-	com->draw_text.slot = 21;
-	com->draw_text.text = (uint16_t) "A. Combined";
-
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + UI_COLUMN_3_X;
-	com->draw_text.y = UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1);
-	com->draw_text.slot = 21;
-	com->draw_text.text = (uint16_t) "Hold";
+	CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y, "Attack");
+	CmdDrawText(21, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y, "A. Combined");
+	CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
 	if (actor_index == 0)
 	{
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = UI_X + UI_COLUMN_3_X;
-		com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
-		com->draw_text.slot = 21;
-		com->draw_text.text = (uint16_t) "Heal";
-
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = UI_X + UI_COLUMN_4_X;
-		com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
-		com->draw_text.slot = 21;
-		com->draw_text.text = (uint16_t) "Meditate";
+		CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Heal");
+		CmdDrawText(21, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Meditate");
 	}
 
 	/* Sayori */
 	else
 	{
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = UI_X + UI_COLUMN_3_X;
-		com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
-		com->draw_text.slot = 21;
-		com->draw_text.text = (uint16_t) "Shock";
-
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = UI_X + UI_COLUMN_4_X;
-		com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
-		com->draw_text.slot = 21;
-		com->draw_text.text = (uint16_t) "Thunder";
+		CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Shock");
+		CmdDrawText(21, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Thunder");
 	}
 }
 
@@ -206,22 +142,10 @@ static uint8_t DrawActionUI_prev_selection = 255;
 
 uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_index)
 {
-	union Command* com;
 
 	/* Background, two columns */
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = UI_BACK_COLOR;
-	com->draw_sprite.x = UI_X + UI_COLUMN_3_X - 16;
-	com->draw_sprite.y = UI_Y;
-	com->draw_shape.width = 1; /* 16 px */
-	com->draw_shape.height = UI_HEIGHT;
-
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = UI_BACK_COLOR;
-	com->draw_sprite.x = UI_X + UI_COLUMN_4_X - 16;
-	com->draw_sprite.y = UI_Y;
-	com->draw_shape.width = 1; /* 16 px */
-	com->draw_shape.height = UI_HEIGHT;
+	CmdDrawRectangle(1 /* 16 px */, UI_HEIGHT, UI_X + UI_COLUMN_3_X - 16, UI_Y, UI_BACK_COLOR);
+	CmdDrawRectangle(1 /* 16 px */, UI_HEIGHT, UI_X + UI_COLUMN_4_X - 16, UI_Y, UI_BACK_COLOR);
 
 	/* Selection arrow */
 	if (selection > 128)
@@ -229,15 +153,12 @@ uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor
 	else if (selection > 4)
 		selection = 4;
 
-	com = NewCommand(CODE_DRAW_SPRITE);
-	com->draw_sprite.slot = item_slot;
-	com->draw_sprite.frame = (CURRENT_FRAME >> 2) % 2;
-	com->draw_sprite.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1);
-
 	if ((selection % 2) == 1)
-		com->draw_sprite.x = UI_X + UI_COLUMN_4_X - 16;
+		CmdDrawSprite(item_slot, UI_X + UI_COLUMN_4_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
+		              (CURRENT_FRAME >> 2) % 2);
 	else
-		com->draw_sprite.x = UI_X + UI_COLUMN_3_X - 16;
+		CmdDrawSprite(item_slot, UI_X + UI_COLUMN_3_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
+		              (CURRENT_FRAME >> 2) % 2);
 
 	/* Draw a tip at the bottom of the screen */
 	if (selection != DrawActionUI_prev_selection)
@@ -245,39 +166,29 @@ uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor
 		DrawActionUI_prev_selection = selection;
 
 		/* Background */
-		com = NewCommand(CODE_DRAW_RECTANGLE);
-		com->draw_shape.color = UI_BACK_COLOR;
-		com->draw_sprite.x = 0;
-		com->draw_sprite.y = 184;
-		com->draw_shape.width = 20;
-		com->draw_shape.height = 1;
+		CmdDrawRectangle(20 /* 320 */, 1 /* 16 px */, 0, 200 - 16, UI_BACK_COLOR);
 
 		/* Text */
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = 8;
-		com->draw_text.y = 184;
-		com->draw_text.slot = 20;
-
 		if (selection == 0)
-			com->draw_text.text = (uint16_t) "Simple attack.";
+			CmdDrawText(20, 8, 200 - 16, "Simple attack.");
 		else if (selection == 1)
-			com->draw_text.text = (uint16_t) "Combined attack, uses 20 MP.";
+			CmdDrawText(20, 8, 200 - 16, "Combined attack, uses 20 MP.");
 		else if (selection == 4)
-			com->draw_text.text = (uint16_t) "Hold position, mitigates damage from imminent attack.";
+			CmdDrawText(20, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
 
 		if (actor_index == 0)
 		{
 			if (selection == 2)
-				com->draw_text.text = (uint16_t) "Restores party HP.";
+				CmdDrawText(20, 8, 200 - 16, "Restores party HP.");
 			else if (selection == 3)
-				com->draw_text.text = (uint16_t) "Restores party MP.";
+				CmdDrawText(20, 8, 200 - 16, "Restores party MP.");
 		}
 		else
 		{
 			if (selection == 2)
-				com->draw_text.text = (uint16_t) "Immobilizes target, uses 30 MP.";
+				CmdDrawText(20, 8, 200 - 16, "Immobilizes target, uses 30 MP.");
 			else if (selection == 3)
-				com->draw_text.text = (uint16_t) "Desintegrates target, uses 60 MP.";
+				CmdDrawText(20, 8, 200 - 16, "Desintegrates target, uses 60 MP.");
 		}
 	}
 
@@ -287,42 +198,20 @@ uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor
 
 void CleanUI()
 {
-	union Command* com;
-
-	com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
-	com->draw_shape.color = UI_BACK_COLOR;
-	com->draw_shape.x = UI_X;
-	com->draw_shape.y = UI_Y;
-	com->draw_shape.width = UI_WIDTH;
-	com->draw_shape.height = UI_HEIGHT;
+	CmdDrawRectangleBkg(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y);
 }
 
 
 void DrawTargetUI_static(uint8_t portraits_slot)
 {
-	union Command* com;
-
 	/* UI background */
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = UI_BACK_COLOR;
-	com->draw_shape.x = UI_X;
-	com->draw_shape.y = UI_Y;
-	com->draw_shape.width = UI_WIDTH;
-	com->draw_shape.height = UI_HEIGHT;
+	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
 
 	/* Portraits */
 	sDrawPortraits(0, portraits_slot);
 
 	/* Instruction */
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = UI_X + UI_COLUMN_2_X;
-	com->draw_text.y = UI_Y + UI_PADDING_Y + UI_LINE_SPACE;
-	com->draw_text.slot = 20;
-
-	if ((Random() % 100) > 2)
-		com->draw_text.text = "Select your target.";
-	else
-		com->draw_text.text = "Senpai!, select our target."; /* TODO, too stupid, right? */
+	CmdDrawText(20, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Select your target.");
 }
 
 
@@ -330,7 +219,6 @@ static uint8_t DrawTargetUI_prev_selection = 255;
 
 uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
 {
-	union Command* com;
 	uint8_t i = 0;
 
 	/* Black arrow, to clean previous frame */
@@ -339,15 +227,11 @@ uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		com = NewCommand(CODE_DRAW_SPRITE);
-		com->draw_sprite.slot = item_slot;
-		com->draw_sprite.frame = 2;
-		com->draw_sprite.x = g_info[i].base_x;
-		com->draw_sprite.y = g_info[i].base_y + 40;
+		CmdDrawSprite(item_slot, g_info[i].base_x, g_info[i].base_y + 40, 2);
 	}
 
 	/* Active arrow */
-	if(selection == 0)
+	if (selection == 0)
 		selection = HEROES_NO;
 
 	while (g_actor[selection].state == ACTOR_STATE_DEAD)
@@ -371,11 +255,7 @@ uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
 			selection -= 1;
 	}
 
-	com = NewCommand(CODE_DRAW_SPRITE);
-	com->draw_sprite.slot = item_slot;
-	com->draw_sprite.frame = (CURRENT_FRAME >> 2) % 2;
-	com->draw_sprite.x = g_info[selection].base_x;
-	com->draw_sprite.y = g_info[selection].base_y + 40;
+	CmdDrawSprite(item_slot, g_info[selection].base_x, g_info[selection].base_y + 40, (CURRENT_FRAME >> 2) % 2);
 
 	DrawTargetUI_prev_selection = selection;
 	return selection;

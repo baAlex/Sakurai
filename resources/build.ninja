@@ -52,11 +52,8 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/main.c $
  ./source/game/actor.c $
  ./source/game/game.c $
- ./source/game/test1.c $
- ./source/game/test2.c $
- ./source/game/test3.c $
- ./source/game/test4.c $
  ./source/game/intro.c $
+ ./source/game/sakurai.c $
  ./source/game/ui.c $
  ./source/game/utilities.c $
  ./objects/sin.c $

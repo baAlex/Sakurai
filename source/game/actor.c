@@ -29,10 +29,8 @@ SOFTWARE.
 -----------------------------*/
 
 #include "actor.h"
-#include "utilities.h"
-
 #include "attacks.h"
-
+#include "utilities.h"
 
 struct Actor g_actor[ACTORS_NO] =
 {
@@ -104,8 +102,8 @@ void InitializeActor(uint8_t i, uint8_t* layout)
 			while (g_actor[i].type < TYPE_A);
 		}
 
-		PrintString("# Enemy: ");
-		PrintNumber(g_actor[i].type);
+		IntPrintText("# Enemy: ");
+		IntPrintNumber(g_actor[i].type);
 
 		if (g_actor[i].type == __NN__)
 		{
@@ -145,17 +143,14 @@ void InitializeActor(uint8_t i, uint8_t* layout)
 
 void DrawActors()
 {
-	union Command* com;
 	uint8_t i = 0;
 	uint8_t color = 0;
 	uint8_t width = 0;
+	uint8_t frame = 0;
+	uint16_t sin = 0;
 
 	/* Clean area */
-	com = NewCommand(CODE_DRAW_RECTANGLE_BKG);
-	com->draw_shape.x = 0;
-	com->draw_shape.y = 60;
-	com->draw_shape.width = 20; /* 320 px */
-	com->draw_shape.height = 9; /* 144 px */
+	CmdDrawRectangleBkg(20 /* 320 px */, 9 /* 144 px */, 0, 60);
 
 	/* Draw actors */
 	for (i = 0; i < ACTORS_NO; i++)
@@ -164,26 +159,16 @@ void DrawActors()
 			continue;
 
 		/* Sprite */
-		com = NewCommand(CODE_DRAW_SPRITE);
-		com->draw_sprite.x = g_info[i].base_x;
-		com->draw_sprite.y = g_info[i].base_y;
-		com->draw_sprite.slot = g_actor[i].type;
-
-		if (g_actor[i].bounded_time == 0)
-			com->draw_sprite.frame = 0;
-		else
-			com->draw_sprite.frame = 1;
+		sin = 0;
+		frame = (g_actor[i].bounded_time == 0) ? 0 : 1;
 
 		if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].attack_type != ATTACK_HOLD)
-			com->draw_sprite.x += Sin(g_actor[i].phase) >> 5;
+			sin = Sin(g_actor[i].phase) >> 5;
+
+		CmdDrawSprite(g_actor[i].type, g_info[i].base_x + sin, g_info[i].base_y, frame);
 
 		/* Time meter background */
-		com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
-		com->draw_shape.color = 16;
-		com->draw_shape.x = g_info[i].base_x;
-		com->draw_shape.y = g_info[i].base_y;
-		com->draw_shape.width = 34;
-		com->draw_shape.height = 3;
+		CmdDrawRectanglePrecise(34, 3, g_info[i].base_x, g_info[i].base_y, 16);
 
 		/* Time meter */
 		if (g_actor[i].state == ACTOR_STATE_IDLE)
@@ -203,12 +188,7 @@ void DrawActors()
 		if (g_actor[i].bounded_time > 0)
 			color = 60;
 
-		com = NewCommand(CODE_DRAW_RECTANGLE_PRECISE);
-		com->draw_shape.color = color;
-		com->draw_shape.width = width;
-		com->draw_shape.height = 1;
-		com->draw_shape.x = g_info[i].base_x + 1;
-		com->draw_shape.y = g_info[i].base_y + 1;
+		CmdDrawRectanglePrecise(width, 1, g_info[i].base_x + 1, g_info[i].base_y + 1, color);
 	}
 }
 

@@ -7,7 +7,7 @@
 #ifndef UI_H
 #define UI_H
 
-#include "engine.h"
+#include "sakurai.h"
 
 void DrawHUD(uint8_t portraits_slot);
 

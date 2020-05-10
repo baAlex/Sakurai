@@ -28,11 +28,9 @@ SOFTWARE.
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "tests.h"
-#include "utilities.h"
-
 #include "game.h"
-
+#include "sakurai.h"
+#include "utilities.h"
 
 static uint16_t Intro_frame = 0;
 static uint8_t Intro_line = 0;
@@ -113,30 +111,21 @@ static char* Intro_text[] = {
 
 void* Title()
 {
-	union Command* com;
-
 	Intro_frame += 1;
 
 	if (Intro_frame > 72)
 	{
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = 100;
-		com->draw_text.y = 140;
-		com->draw_text.slot = 21;
-		com->draw_text.text = (uint16_t) "Press a key to continue...";
+		CmdDrawText(21, 100, 140, "Press a key to continue...");
 
 		if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_LEFT == 1 ||
 		    INPUT_RIGHT == 1 || INPUT_UP == 1 || INPUT_DOWN == 1)
 		{
-			NewCommand(CODE_HALT);
-			CleanCommands();
+			CmdHalt();
 			return GameStart;
 		}
 	}
 
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
+	CmdHalt();
 	return Title;
 }
 
@@ -144,7 +133,6 @@ void* Title()
 void* Intro()
 {
 	void* next_state = Intro;
-	union Command* com;
 
 	if (Intro_line % 4 == 3)
 	{
@@ -163,7 +151,7 @@ void* Intro()
 
 		if (Intro_line > 48)
 		{
-			NewCommand(CODE_DRAW_BKG);
+			CmdDrawBackground();
 			Intro_frame = 0;
 			next_state = Title;
 			goto bye;
@@ -173,20 +161,9 @@ void* Intro()
 	if ((Intro_frame % 4) == 0)
 	{
 		if ((Intro_line % 4) == 0)
-		{
-			com = NewCommand(CODE_DRAW_RECTANGLE);
-			com->draw_shape.color = 64;
-			com->draw_shape.x = 0;
-			com->draw_shape.y = 0;
-			com->draw_shape.width = 20;
-			com->draw_shape.height = 13;
-		}
+			CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64);
 
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = 12;
-		com->draw_text.y = 140 + (12 * (Intro_line % 4));
-		com->draw_text.slot = 21;
-		com->draw_text.text = (uint16_t)Intro_text[Intro_line];
+		CmdDrawText(21, 12, 140 + (12 * (Intro_line % 4)), Intro_text[Intro_line]);
 
 		if ((Intro_line + 1) % 4 != 0)
 			Intro_line += 1;
@@ -194,19 +171,17 @@ void* Intro()
 
 bye:
 	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
 	Intro_frame += 1;
 
+	CmdHalt();
 	return next_state;
 }
 
 
 void* IntroLoad()
 {
-	LoadBackground("assets\\title.raw");
-	LoadSprite("assets\\font2.jvn", 21);
+	IntLoadBackground("assets\\title.raw");
+	IntLoadSprite("assets\\font2.jvn", 21);
 
 	Intro_frame = 0;
 	return Intro;
@@ -215,14 +190,6 @@ void* IntroLoad()
 
 void* IntroStart()
 {
-	union Command* com;
-
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = 64;
-	com->draw_shape.x = 0;
-	com->draw_shape.y = 0;
-	com->draw_shape.width = 20;
-	com->draw_shape.height = 13;
-
+	CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64);
 	return IntroLoad;
 }

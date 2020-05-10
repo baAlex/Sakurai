@@ -31,11 +31,11 @@ SOFTWARE.
 #include "game.h"
 #include "actor.h"
 #include "attacks.h"
+#include "sakurai.h"
 #include "ui.h"
 #include "utilities.h"
 
 /*#define DEV*/
-
 
 uint8_t Layout(uint8_t battle_no, uint8_t* out);
 
@@ -53,27 +53,13 @@ uint16_t GameOver_frame = 0;
 
 void* GameOver()
 {
-	union Command* com;
-	uint8_t i = 0;
-
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = 15;
-	com->draw_shape.x = 0;
-	com->draw_shape.y = 100 - 16;
-	com->draw_shape.width = 20; /* 320 px */
-	com->draw_shape.height = 2; /* 32 px */
-
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = 8;
-	com->draw_text.y = 100 - 16;
-	com->draw_text.slot = 21;
-	com->draw_text.text = (uint16_t) "Game over";
+	CmdDrawRectangle(20 /* 320 px */, 2 /* 32 px */, 0, 100 - 16, 15);
+	CmdDrawText(21, 8, 100 - 16, "Game Over");
 
 	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
 	GameOver_frame += 1;
+
+	CmdHalt();
 	return GameOver;
 }
 
@@ -86,22 +72,16 @@ static uint8_t AnimationState_actor = 0;
 
 void* AnimationState()
 {
-	union Command* com = NULL;
 	uint8_t target = g_actor[AnimationState_actor].target;
 
 	/* Draw actors normally */
 	DrawActors();
 
 	/* Draw some fancy animation */
-	com = NewCommand(CODE_DRAW_SPRITE);
-	com->draw_sprite.x = g_info[target].base_x;
-	com->draw_sprite.y = g_info[target].base_y;
-	com->draw_sprite.frame = AnimationState_frame;
-
 	if (AnimationState_actor < HEROES_NO)
-		com->draw_sprite.slot = 24;
+		CmdDrawSprite(24, g_info[target].base_x, g_info[target].base_y, AnimationState_frame);
 	else
-		com->draw_sprite.slot = 25;
+		CmdDrawSprite(25, g_info[target].base_x, g_info[target].base_y, AnimationState_frame);
 
 	/* Bye! */
 	AnimationState_frame += 1;
@@ -112,13 +92,11 @@ void* AnimationState()
 		if (AnimationState_actor >= HEROES_NO)
 			DrawHUD(22); /* To update damages */
 
-		NewCommand(CODE_HALT);
-		CleanCommands();
+		CmdHalt();
 		return FieldState;
 	}
 
-	NewCommand(CODE_HALT);
-	CleanCommands();
+	CmdHalt();
 	return AnimationState;
 }
 
@@ -141,7 +119,6 @@ static uint8_t UIState_target = 0;
 void* UIState()
 {
 	void* next_state = UIState;
-	union Command* com;
 
 	/* Only draw static elements on the first frame */
 	if (UIState_screen == SCREEN_ACTION)
@@ -270,9 +247,7 @@ void* UIState()
 
 bye:
 	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
+	CmdHalt();
 	return next_state;
 }
 
@@ -417,9 +392,7 @@ logic:
 
 bye:
 	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
+	CmdHalt();
 	return next_state;
 }
 
@@ -437,7 +410,6 @@ void* GameLoad()
 	going to be better to measure miliseconds
 	(currently the engine didn't share them) */
 
-	union Command* com;
 	uint8_t i = 0;
 
 	if (GameLoad_frame != 0)
@@ -447,10 +419,10 @@ void* GameLoad()
 		GameLoad_initialized[i] = 0; /* TODO, I need a malloc()!! */
 
 	/* Load remaining resources */
-	LoadSprite("assets\\ui-ports.jvn", 22);
-	LoadSprite("assets\\ui-items.jvn", 26);
-	LoadSprite("assets\\fx1.jvn", 24);
-	LoadSprite("assets\\fx2.jvn", 25);
+	IntLoadSprite("assets\\ui-ports.jvn", 22);
+	IntLoadSprite("assets\\ui-items.jvn", 26);
+	IntLoadSprite("assets\\fx1.jvn", 24);
+	IntLoadSprite("assets\\fx2.jvn", 25);
 
 	/* Load sprites, whitout repeat */
 	for (i = 0; i < ACTORS_NO; i++)
@@ -458,23 +430,23 @@ void* GameLoad()
 		if (GameLoad_initialized[g_actor[i].type] == 0)
 		{
 			if (g_actor[i].type == TYPE_HERO_A)
-				LoadSprite("assets\\sayori.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\sayori.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_HERO_B)
-				LoadSprite("assets\\kuro.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\kuro.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_A)
-				LoadSprite("assets\\enemy-a.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-a.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_B)
-				LoadSprite("assets\\enemy-b.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-b.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_C)
-				LoadSprite("assets\\enemy-c.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-c.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_D)
-				LoadSprite("assets\\enemy-d.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-d.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_E)
-				LoadSprite("assets\\enemy-e.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-e.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_F)
-				LoadSprite("assets\\enemy-f.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-f.jvn", g_actor[i].type);
 			else if (g_actor[i].type == TYPE_G)
-				LoadSprite("assets\\enemy-g.jvn", g_actor[i].type);
+				IntLoadSprite("assets\\enemy-g.jvn", g_actor[i].type);
 
 			GameLoad_initialized[g_actor[i].type] = 1;
 		}
@@ -492,65 +464,52 @@ bye:
 	if (GameLoad_frame >= 36)
 #endif
 	{
-		NewCommand(CODE_DRAW_BKG);
+		CmdDrawBackground();
 		DrawHUD(22);
 
-		NewCommand(CODE_HALT);
-		CleanCommands();
+		CmdHalt();
 
-		PrintString("# GameLoad() ends: ");
-		PrintNumber(s_battle_no);
+		IntPrintText("# GameLoad() ends: ");
+		IntPrintNumber(s_battle_no);
 		return FieldState;
 	}
 
-	NewCommand(CODE_HALT);
-	CleanCommands();
+	CmdHalt();
 	return GameLoad;
 }
 
 
 void* GameStart()
 {
-	union Command* com;
 	uint8_t i = 0;
 	uint16_t text_x = 0;
 
 	/* Load indispensable resources (TODO!) */
-	UnloadEverything(); /* TODO, not everything! */
+	IntUnloadAll(); /* TODO, not everything! */
 
-	LoadSprite("assets\\font1.jvn", 20);
-	LoadSprite("assets\\font2.jvn", 21);
+	IntLoadSprite("assets\\font1.jvn", 20);
+	IntLoadSprite("assets\\font2.jvn", 21);
 
 	/* Load an random background and draw it */
 	switch (Random() % 4)
 	{
-	case 0: LoadBackground((uint16_t) "assets\\bkg1.raw"); break;
-	case 1: LoadBackground((uint16_t) "assets\\bkg2.raw"); break;
-	case 2: LoadBackground((uint16_t) "assets\\bkg3.raw"); break;
-	case 3: LoadBackground((uint16_t) "assets\\bkg4.raw"); break;
+	case 0: IntLoadBackground("assets\\bkg1.raw"); break;
+	case 1: IntLoadBackground("assets\\bkg2.raw"); break;
+	case 2: IntLoadBackground("assets\\bkg3.raw"); break;
+	case 3: IntLoadBackground("assets\\bkg4.raw"); break;
 	}
 
-	NewCommand(CODE_DRAW_BKG);
+	CmdDrawBackground();
 
 	/* Print "Enemies appear!" */
-	com = NewCommand(CODE_DRAW_RECTANGLE);
-	com->draw_shape.color = 15;
-	com->draw_shape.x = 0;
-	com->draw_shape.y = 100 - 16;
-	com->draw_shape.width = 20; /* 320 px */
-	com->draw_shape.height = 2; /* 32 px */
-
-	com = NewCommand(CODE_DRAW_TEXT);
-	com->draw_text.x = 8;
-	com->draw_text.y = 100 - 16;
-	com->draw_text.slot = 21;
+	CmdDrawRectangle(20 /* 320 px */, 2 /* 32 px */, 0, 100 - 16, 15);
 
 	if (Layout(s_battle_no, s_battle_layout) != 1)
-		com->draw_text.text = (uint16_t) "Monsters appear!";
+		CmdDrawText(21, 8, 100 - 16, "Monsters appear!");
 	else
-		com->draw_text.text = (uint16_t) "Monster appears!";
+		CmdDrawText(21, 8, 100 - 16, "Monster appears!");
 
-	text_x = com->draw_text.x;
+	text_x = 8;
 
 	/* Initialize actors */
 	for (i = 0; i < ACTORS_NO; i++)
@@ -564,22 +523,16 @@ void* GameStart()
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		com = NewCommand(CODE_DRAW_TEXT);
-		com->draw_text.x = text_x;
-		com->draw_text.y = 100 - 16 + 12;
-		com->draw_text.slot = 20;
-		com->draw_text.text = (uint16_t)g_persona[g_actor[i].type].name;
-
+		CmdDrawText(20, text_x, 100 - 16 + 12, g_persona[g_actor[i].type].name);
 		text_x += 76; /* (320 - 8 - 8) / 4 */
 	}
 
 	/* Bye! */
-	NewCommand(CODE_HALT);
-	CleanCommands();
-
-	PrintString("# GameStart() ends: ");
-	PrintNumber(s_battle_no);
-
 	GameLoad_frame = 0;
+
+	IntPrintText("# GameStart() ends: ");
+	IntPrintNumber(s_battle_no);
+
+	CmdHalt();
 	return GameLoad;
 }

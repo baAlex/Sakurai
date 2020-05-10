@@ -28,25 +28,15 @@ SOFTWARE.
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "engine.h"
 #include "game.h"
 #include "intro.h"
-#include "tests.h"
 
-/*#define GAME*/
+#define GAME
 
-#if TEST1
-int (*next_function)() = Test1Start;
-#elif defined(TEST2)
-int (*next_function)() = Test2Start;
-#elif defined(TEST3)
-int (*next_function)() = Test3Start;
-#elif defined(TEST4)
-int (*next_function)() = Test4Start;
-#elif defined(GAME)
+#if defined(GAME)
 int (*next_function)() = GameStart;
 #else
-	int (*next_function)() = IntroStart;
+int (*next_function)() = IntroStart;
 #endif
 
 
