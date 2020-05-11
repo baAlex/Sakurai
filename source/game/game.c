@@ -31,7 +31,7 @@ SOFTWARE.
 #include "game.h"
 #include "actor.h"
 #include "attacks.h"
-#include "sakurai.h"
+#include "engine.h"
 #include "ui.h"
 #include "utilities.h"
 
@@ -90,7 +90,7 @@ void* AnimationState()
 	    AnimationState_frame >= 24)
 	{
 		if (AnimationState_actor >= HEROES_NO)
-			DrawHUD(22); /* To update damages */
+			HudDraw(22, &g_actor[0], &g_actor[1]); /* To update damages */
 
 		CmdHalt();
 		return FieldState;
@@ -123,12 +123,12 @@ void* UIState()
 	/* Only draw static elements on the first frame */
 	if (UIState_screen == SCREEN_ACTION)
 	{
-		DrawActionUI_static(22, UIState_actor);
+		MenuActionDraw_static(22, &g_actor[UIState_actor], &g_actor[0], &g_actor[1]);
 		UIState_screen = SCREEN_ACTION_DONE;
 	}
 	else if (UIState_screen == SCREEN_TARGET)
 	{
-		DrawTargetUI_static(22);
+		MenuTargetDraw_static(22, &g_actor[0], &g_actor[1]);
 		UIState_screen = SCREEN_TARGET_DONE;
 	}
 
@@ -140,8 +140,8 @@ void* UIState()
 		{
 			g_actor[UIState_actor].target = UIState_target;
 
-			CleanUI();
-			DrawHUD(22);
+			MenuClean();
+			HudDraw(22, &g_actor[0], &g_actor[1]);
 			next_state = FieldState;
 			goto bye;
 		}
@@ -174,8 +174,8 @@ void* UIState()
 				g_actor[UIState_actor].charge_vel = 8;
 
 				/* Skip directly to the field */
-				CleanUI();
-				DrawHUD(22);
+				MenuClean();
+				HudDraw(22, &g_actor[0], &g_actor[1]);
 				next_state = FieldState;
 				goto bye;
 			}
@@ -188,8 +188,8 @@ void* UIState()
 					g_actor[0].charge_vel = 24;
 
 					/* Skip directly to the field */
-					CleanUI();
-					DrawHUD(22);
+					MenuClean();
+					HudDraw(22, &g_actor[0], &g_actor[1]);
 					next_state = FieldState;
 					goto bye;
 				}
@@ -233,7 +233,7 @@ void* UIState()
 		if (INPUT_RIGHT == 1)
 			UIState_action += 1;
 
-		UIState_action = DrawActionUI_dynamic(UIState_action, 26, UIState_actor);
+		UIState_action = MenuActionDraw_dynamic(26, &g_actor[UIState_actor], UIState_action);
 	}
 	else
 	{
@@ -242,7 +242,7 @@ void* UIState()
 		if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
 			UIState_target += 1;
 
-		UIState_target = DrawTargetUI_dynamic(UIState_target, 26);
+		UIState_target = MenuTargetDraw_dynamic(26, UIState_target);
 	}
 
 bye:
@@ -344,7 +344,7 @@ logic:
 						g_actor[1].magic = 100;
 				}
 
-				DrawHUD(22);
+				HudDraw(22, &g_actor[0], &g_actor[1]);
 
 				/* Back to idle */
 				g_actor[i].idle_time = 0;
@@ -415,8 +415,7 @@ void* GameLoad()
 	if (GameLoad_frame != 0)
 		goto bye;
 
-	for (i = 0; i < TYPES_NO; i++)
-		GameLoad_initialized[i] = 0; /* TODO, I need a malloc()!! */
+	Clear(GameLoad_initialized, TYPES_NO);
 
 	/* Load remaining resources */
 	IntLoadSprite("assets\\ui-ports.jvn", 22);
@@ -465,7 +464,7 @@ bye:
 #endif
 	{
 		CmdDrawBackground();
-		DrawHUD(22);
+		HudDraw(22, &g_actor[0], &g_actor[1]);
 
 		CmdHalt();
 

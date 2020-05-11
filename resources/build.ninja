@@ -38,9 +38,6 @@ rule Palette
 rule Background
  command = ruby ./source/sdk/background.rb $in > $out
 
-rule SinTable
- command = ruby ./source/sdk/sin.rb > $out
-
 rule BattlesTable
  command = ruby ./source/sdk/battles.rb > $out
 
@@ -53,14 +50,12 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/actor.c $
  ./source/game/game.c $
  ./source/game/intro.c $
- ./source/game/sakurai.c $
+ ./source/game/engine.c $
  ./source/game/ui.c $
  ./source/game/utilities.c $
- ./objects/sin.c $
  ./objects/battles.c
 
 # Objects/generated files
-build ./objects/sin.c: SinTable ./
 build ./objects/battles.c: BattlesTable ./
 
 build ./objects/fx1.asm: SpriteLinear $

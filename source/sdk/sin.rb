@@ -31,7 +31,7 @@ include Math
 ENTRIES = 128
 COLUMNS = 16
 
-print("static signed char s_sin_table[#{ENTRIES}] = {")
+print("static int8_t s_sin_table[#{ENTRIES}] = {")
 
 for i in 1..ENTRIES
 
@@ -50,9 +50,3 @@ for i in 1..ENTRIES
 end
 
 print("};\n")
-
-print("\nsigned char Sin(signed char a)\n\
-{\n\
-	signed char r = s_sin_table[a % 128];\n\
-	return (a > 128) ? -r : r;\n\
-}\n")

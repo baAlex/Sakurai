@@ -26,10 +26,12 @@ SOFTWARE.
 
  [ui.c]
  - Alexander Brandt 2020
+
+* TODO: remove reads to 'g_info' and 'g_actor'
+* Plus other TODOs below :)
 -----------------------------*/
 
-#include "actor.h"
-#include "attacks.h"
+#include "ui.h"
 #include "utilities.h"
 
 #define UI_WIDTH 19 /* 304 px */
@@ -48,74 +50,66 @@ SOFTWARE.
 #define UI_COLUMN_4_X (UI_COLUMN_3_X + 60)
 
 
-static uint8_t s_buffer1[4] = {0, 0, 0, 0};
-static uint8_t s_buffer2[4] = {0, 0, 0, 0};
-static uint8_t s_buffer3[4] = {0, 0, 0, 0};
-static uint8_t s_buffer4[4] = {0, 0, 0, 0};
+/*-----------------------------
 
+ sPortraitsDraw()
+-----------------------------*/
+static char s_buffer1[4] = {0, 0, 0, 0};
+static char s_buffer2[4] = {0, 0, 0, 0};
+static char s_buffer3[4] = {0, 0, 0, 0};
+static char s_buffer4[4] = {0, 0, 0, 0};
 
-static uint16_t sToDecimalString(uint8_t no, uint8_t* out)
-{
-	/* https://stackoverflow.com/a/32871108 */
-	uint8_t* c = out + 3;
-
-	do
-	{
-		c -= 1;
-		*c = 0x30 + (no % 10);
-		no /= 10;
-
-	} while (no != 0);
-
-	return (uint16_t)(c);
-}
-
-
-static sDrawPortraits(uint8_t clean, uint8_t portraits_slot)
+static void sPortraitsDraw(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
 {
 	char* c;
 
-	/* Background */
-	if (clean == 1)
-		CmdDrawRectangleBkg(6 /* 96 px */, 3 /* 48 px */, UI_X + 2, UI_Y + 2);
+	CmdDrawSprite(portraits_sprite, UI_X + 2, UI_Y + 2, 0);
 
-	/* Portraits */
-	CmdDrawSprite(portraits_slot, UI_X + 2, UI_Y + 2, 0);
-
-	/* Kuro stats */
-	c = (char*)sToDecimalString(g_actor[0].health, s_buffer1);
+	/* Actor A */
+	c = NumberToString((uint8_t)a->health, s_buffer1);
 	CmdDrawText(21, UI_X + 43, UI_Y + 32, c);
 
-	c = (char*)sToDecimalString(g_actor[0].magic, s_buffer2);
+	c = NumberToString((uint8_t)a->magic, s_buffer2);
 	CmdDrawText(21, UI_X + 43 + 28, UI_Y + 32, c);
 
-	/* Sayori stats */
-	c = (char*)sToDecimalString(g_actor[1].health, s_buffer3);
+	/* Actor B */
+	c = NumberToString((uint8_t)b->health, s_buffer3);
 	CmdDrawText(21, UI_X + 43, UI_Y + 9, c);
 
-	c = (char*)sToDecimalString(g_actor[1].magic, s_buffer4);
+	c = NumberToString((uint8_t)b->magic, s_buffer4);
 	CmdDrawText(21, UI_X + 43 + 28, UI_Y + 9, c);
 }
 
 
-void DrawHUD(uint8_t portraits_slot)
+/*-----------------------------
+
+ Hud
+-----------------------------*/
+void HudDraw(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
 {
-	sDrawPortraits(1, portraits_slot);
+	CmdDrawRectangleBkg(6 /* 96 px */, 3 /* 48 px */, UI_X + 2, UI_Y + 2);
+	sPortraitsDraw(portraits_sprite, a, b);
 }
 
 
-void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index)
+/*-----------------------------
+
+ Action menu
+------------------------------*/
+static uint8_t s_prev_action_selection = 255;
+
+void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* current, struct Actor* a, struct Actor* b)
 {
-	struct Actor* actor = &g_actor[actor_index];
+	/*
+	TODO, in the future the actors themself should have an entry: 'actor->action[]'
+	      so I can delete all the following harcoded values.
+	*/
 
-	/* UI background */
 	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
-
-	/* Portraits */
-	sDrawPortraits(0, portraits_slot);
+	sPortraitsDraw(portraits_sprite, a, b);
 
 	/* Hero name */
-	CmdDrawText(21, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, g_persona[actor->type].name);
+	CmdDrawText(21, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, g_persona[current->type].name);
 
 	/* Common actions */
 	CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y, "Attack");
@@ -123,7 +117,7 @@ void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index)
 	CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
-	if (actor_index == 0)
+	if (current->type == TYPE_HERO_B)
 	{
 		CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Heal");
 		CmdDrawText(21, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Meditate");
@@ -137,13 +131,12 @@ void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index)
 	}
 }
 
-
-static uint8_t DrawActionUI_prev_selection = 255;
-
-uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_index)
+uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, struct Actor* current, uint8_t selection)
 {
+	/*
+	TODO, same as before, every action should be in companion with a tip.
+	*/
 
-	/* Background, two columns */
 	CmdDrawRectangle(1 /* 16 px */, UI_HEIGHT, UI_X + UI_COLUMN_3_X - 16, UI_Y, UI_BACK_COLOR);
 	CmdDrawRectangle(1 /* 16 px */, UI_HEIGHT, UI_X + UI_COLUMN_4_X - 16, UI_Y, UI_BACK_COLOR);
 
@@ -154,21 +147,18 @@ uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor
 		selection = 4;
 
 	if ((selection % 2) == 1)
-		CmdDrawSprite(item_slot, UI_X + UI_COLUMN_4_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
+		CmdDrawSprite(arrow_sprite, UI_X + UI_COLUMN_4_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
 		              (CURRENT_FRAME >> 2) % 2);
 	else
-		CmdDrawSprite(item_slot, UI_X + UI_COLUMN_3_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
+		CmdDrawSprite(arrow_sprite, UI_X + UI_COLUMN_3_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
 		              (CURRENT_FRAME >> 2) % 2);
 
 	/* Draw a tip at the bottom of the screen */
-	if (selection != DrawActionUI_prev_selection)
+	if (selection != s_prev_action_selection)
 	{
-		DrawActionUI_prev_selection = selection;
-
-		/* Background */
 		CmdDrawRectangle(20 /* 320 */, 1 /* 16 px */, 0, 200 - 16, UI_BACK_COLOR);
+		s_prev_action_selection = selection;
 
-		/* Text */
 		if (selection == 0)
 			CmdDrawText(20, 8, 200 - 16, "Simple attack.");
 		else if (selection == 1)
@@ -176,7 +166,7 @@ uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor
 		else if (selection == 4)
 			CmdDrawText(20, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
 
-		if (actor_index == 0)
+		if (current->type == TYPE_HERO_B)
 		{
 			if (selection == 2)
 				CmdDrawText(20, 8, 200 - 16, "Restores party HP.");
@@ -196,29 +186,27 @@ uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor
 }
 
 
-void CleanUI()
-{
-	CmdDrawRectangleBkg(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y);
-}
+/*-----------------------------
 
+ Target menu
+-----------------------------*/
+static uint8_t s_prev_target_selection = 255;
 
-void DrawTargetUI_static(uint8_t portraits_slot)
+void MenuTargetDraw_static(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
 {
-	/* UI background */
 	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
+	sPortraitsDraw(portraits_sprite, a, b);
 
-	/* Portraits */
-	sDrawPortraits(0, portraits_slot);
-
-	/* Instruction */
 	CmdDrawText(20, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Select your target.");
 }
 
-
-static uint8_t DrawTargetUI_prev_selection = 255;
-
-uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
+uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {
+	/*
+	TODO, determinate if an actor selection is a valid one should be responsability of
+	      the actor module. Here we simply should ask something like: 'GetNearValidActor()'
+	*/
+
 	uint8_t i = 0;
 
 	/* Black arrow, to clean previous frame */
@@ -227,16 +215,17 @@ uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		CmdDrawSprite(item_slot, g_info[i].base_x, g_info[i].base_y + 40, 2);
+		CmdDrawSprite(arrow_sprite, g_info[i].base_x, g_info[i].base_y + 40, 2);
 	}
 
-	/* Active arrow */
+	/* Validate selection, we dont' want
+	attack our allies or dead enemies */
 	if (selection == 0)
 		selection = HEROES_NO;
 
 	while (g_actor[selection].state == ACTOR_STATE_DEAD)
 	{
-		if (selection > DrawTargetUI_prev_selection)
+		if (selection > s_prev_target_selection)
 			selection += 1;
 		else
 			selection -= 1;
@@ -255,8 +244,19 @@ uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot)
 			selection -= 1;
 	}
 
-	CmdDrawSprite(item_slot, g_info[selection].base_x, g_info[selection].base_y + 40, (CURRENT_FRAME >> 2) % 2);
+	/* Active arrow */
+	CmdDrawSprite(arrow_sprite, g_info[selection].base_x, g_info[selection].base_y + 40, (CURRENT_FRAME >> 2) % 2);
 
-	DrawTargetUI_prev_selection = selection;
+	s_prev_target_selection = selection;
 	return selection;
+}
+
+
+/*-----------------------------
+
+ MenuClean()
+-----------------------------*/
+void MenuClean()
+{
+	CmdDrawRectangleBkg(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y);
 }

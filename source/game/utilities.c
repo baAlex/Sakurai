@@ -30,14 +30,74 @@ SOFTWARE.
 
 #include "utilities.h"
 
-static uint16_t s_marsaglia = 1;
+static uint16_t s_random_state = 1;
+static int8_t s_sin_table[128] = {
+    3,   6,   9,   12,  15,  18,  21,  24,  27,  30,  33,  36,  39,  42,  45,  48,  51,  54,  57,  59,  62,  65,
+    67,  70,  73,  75,  78,  80,  82,  85,  87,  89,  91,  94,  96,  98,  100, 102, 103, 105, 107, 108, 110, 112,
+    113, 114, 116, 117, 118, 119, 120, 121, 122, 123, 123, 124, 125, 125, 126, 126, 126, 126, 126, 127, 126, 126,
+    126, 126, 126, 125, 125, 124, 123, 123, 122, 121, 120, 119, 118, 117, 116, 114, 113, 112, 110, 108, 107, 105,
+    103, 102, 100, 98,  96,  94,  91,  89,  87,  85,  82,  80,  78,  75,  73,  70,  67,  65,  62,  59,  57,  54,
+    51,  48,  45,  42,  39,  36,  33,  30,  27,  24,  21,  18,  15,  12,  9,   6,   3,   0};
+
+
+void Seed(uint16_t value)
+{
+	s_random_state = value;
+}
 
 
 uint16_t Random()
 {
 	/* http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html */
-	s_marsaglia ^= s_marsaglia << 7;
-	s_marsaglia ^= s_marsaglia >> 9;
-	s_marsaglia ^= s_marsaglia << 8;
-	return s_marsaglia;
+	s_random_state ^= s_random_state << 7;
+	s_random_state ^= s_random_state >> 9;
+	s_random_state ^= s_random_state << 8;
+	return s_random_state;
+}
+
+
+int8_t Sin(uint8_t x)
+{
+	return (x > 128) ? -(s_sin_table[x % 128]) : s_sin_table[x % 128];
+}
+
+
+void Clear(void* dest, uint16_t size)
+{
+	void* end;
+
+	if ((size % 2) != 0)
+	{
+		*((uint8_t*)dest) = 0;
+		dest = (uint8_t*)dest + 1;
+		size -= 1;
+	}
+
+	if (size == 0)
+		return;
+
+	end = (uint8_t*)dest + size;
+
+	while (dest != end)
+	{
+		*((uint16_t*)dest) = 0;
+		dest = (uint16_t*)dest + 1;
+	}
+}
+
+
+char* NumberToString(uint8_t no, char* out)
+{
+	/* https://stackoverflow.com/a/32871108 */
+	char* c = out + 3;
+
+	do
+	{
+		c -= 1;
+		*c = 0x30 + (no % 10); /* NOLINT: bugprone-narrowing-conversions */
+		no /= 10;
+
+	} while (no != 0);
+
+	return c;
 }

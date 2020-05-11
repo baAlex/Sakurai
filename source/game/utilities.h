@@ -7,9 +7,12 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-#include "sakurai.h"
+#include "engine.h"
 
+void Seed(uint16_t value);
 uint16_t Random();
-int8_t Sin(uint8_t a);
+int8_t Sin(uint8_t x);
+void Clear(void* dest, uint16_t size);
+char* NumberToString(uint8_t no, char* out);
 
 #endif

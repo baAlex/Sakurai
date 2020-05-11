@@ -7,16 +7,17 @@
 #ifndef UI_H
 #define UI_H
 
-#include "sakurai.h"
+#include "actor.h"
+#include "engine.h"
 
-void DrawHUD(uint8_t portraits_slot);
+void HudDraw(uint8_t portraits_sprite, struct Actor* a, struct Actor* b);
 
-void DrawActionUI_static(uint8_t portraits_slot, uint8_t actor_index);
-uint8_t DrawActionUI_dynamic(uint8_t selection, uint8_t item_slot, uint8_t actor_index);
+void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* current, struct Actor* a, struct Actor* b);
+uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, struct Actor* current, uint8_t selection);
 
-void DrawTargetUI_static(uint8_t portraits_slot);
-uint8_t DrawTargetUI_dynamic(uint8_t selection, uint8_t item_slot);
+void MenuTargetDraw_static(uint8_t portraits_sprite, struct Actor* a, struct Actor* b);
+uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection);
 
-void CleanUI();
+void MenuClean(); /* For MenuAction and MenuTarget */
 
 #endif

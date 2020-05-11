@@ -7,7 +7,7 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
-#include "sakurai.h"
+#include "engine.h"
 
 #define ACTORS_NO 6
 #define ENEMIES_NO 4

@@ -24,13 +24,17 @@ SOFTWARE.
 
 -------------------------------
 
- [sakurai.c]
+ [engine.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "sakurai.h"
+#include "engine.h"
 
+#if defined(__BCC__) && defined(__MSDOS__)
 #define COMMANDS_TABLE_OFFSET 0x0000
+#else
+#define COMMANDS_TABLE_OFFSET 0x0001 /* Hack to silent clang-tidy */
+#endif
 
 #define INT_FD_ARG1_OFFSET 0x00C2
 #define INT_FD_ARG2_OFFSET 0x00C4

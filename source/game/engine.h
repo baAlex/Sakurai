@@ -1,14 +1,16 @@
 /*-----------------------------
 
- [sakurai.h]
+ [engine.h]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#ifndef SAKURAI_H
-#define SAKURAI_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
 
 /* Improvised Std */
+
+#if defined(__BCC__) && defined(__MSDOS__)
 
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
@@ -19,6 +21,11 @@ typedef unsigned short uint16_t;
 #define UINT8_MAX 255
 #define UINT16_MAX 65535
 #define NULL 0x0000
+
+#else
+#include <stddef.h>
+#include <stdint.h>
+#endif
 
 
 /* Engine internals */

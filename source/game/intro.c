@@ -29,7 +29,7 @@ SOFTWARE.
 -----------------------------*/
 
 #include "game.h"
-#include "sakurai.h"
+#include "engine.h"
 #include "utilities.h"
 
 static uint16_t Intro_frame = 0;
