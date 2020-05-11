@@ -42,7 +42,7 @@ rule BattlesTable
  command = ruby ./source/sdk/battles.rb > $out
 
 # Engine
-build ./tanakas.exe: Assembly ./source/engine/sakurai.asm
+build ./tanakas.exe: Assembly ./source/engine-dos/sakurai.asm
 
 # Game
 build ./game.dll: CompileAndLinkC $
