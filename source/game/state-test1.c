@@ -24,25 +24,42 @@ SOFTWARE.
 
 -------------------------------
 
- [main.c]
+ [state-test1.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
 #include "state.h"
+#include "utilities.h"
 
-#define TEST2
+#define TEST_TEXT\
+	"[Sayori]\n\
+But being as this is a Schwarz Sechs Prototype MkII, the\n\
+most powerful device ever conceived, and would vanish\n\
+you out from this world clean off, you've got to ask\n\
+yourself one question: \"Do I feel lucky?\".\n\
+\n\
+Well, do ya, punk?"
 
-#if defined(GAME)
-static void* (*s_next_function)() = StateGame;
-#elif defined(TEST2)
-static void* (*s_next_function)() = StateTest2;
-#else
-static void* (*s_next_function)() = StateTest1;
-#endif
 
-
-int main()
+static void* sFrame()
 {
-	s_next_function = (void *(*)())s_next_function(); /* void *(*)() !!! */
-	return 0;
+	if ((CURRENT_FRAME % 96) == 0) /* Every 4 seconds */
+	{
+		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
+
+		CmdDrawText(SPRITE_FONT1, 10, 0, TEST_TEXT);
+		CmdDrawText(SPRITE_FONT2, 10, 100, TEST_TEXT);
+	}
+
+	CmdHalt();
+	return (void*)sFrame;
+}
+
+
+void* StateTest1()
+{
+	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
+	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
+
+	return sFrame();
 }

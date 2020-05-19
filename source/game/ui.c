@@ -59,24 +59,24 @@ static char s_buffer2[4] = {0, 0, 0, 0};
 static char s_buffer3[4] = {0, 0, 0, 0};
 static char s_buffer4[4] = {0, 0, 0, 0};
 
-static void sPortraitsDraw(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
+static void sPortraitsDraw(uint8_t portraits_sprite, struct Actor* actor_a, struct Actor* actor_b)
 {
 	char* c;
 
 	CmdDrawSprite(portraits_sprite, UI_X + 2, UI_Y + 2, 0);
 
 	/* Actor A */
-	c = NumberToString((uint8_t)a->health, s_buffer1);
+	c = NumberToString(actor_a->health, s_buffer1);
 	CmdDrawText(21, UI_X + 43, UI_Y + 32, c);
 
-	c = NumberToString((uint8_t)a->magic, s_buffer2);
+	c = NumberToString(actor_a->magic, s_buffer2);
 	CmdDrawText(21, UI_X + 43 + 28, UI_Y + 32, c);
 
 	/* Actor B */
-	c = NumberToString((uint8_t)b->health, s_buffer3);
+	c = NumberToString(actor_b->health, s_buffer3);
 	CmdDrawText(21, UI_X + 43, UI_Y + 9, c);
 
-	c = NumberToString((uint8_t)b->magic, s_buffer4);
+	c = NumberToString(actor_b->magic, s_buffer4);
 	CmdDrawText(21, UI_X + 43 + 28, UI_Y + 9, c);
 }
 
@@ -85,10 +85,10 @@ static void sPortraitsDraw(uint8_t portraits_sprite, struct Actor* a, struct Act
 
  Hud
 -----------------------------*/
-void HudDraw(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
+void HudDraw(uint8_t portraits_sprite, struct Actor* actor_a, struct Actor* actor_b)
 {
 	CmdDrawRectangleBkg(6 /* 96 px */, 3 /* 48 px */, UI_X + 2, UI_Y + 2);
-	sPortraitsDraw(portraits_sprite, a, b);
+	sPortraitsDraw(portraits_sprite, actor_a, actor_b);
 }
 
 
@@ -98,7 +98,7 @@ void HudDraw(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
 ------------------------------*/
 static uint8_t s_prev_action_selection = 255;
 
-void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* current, struct Actor* a, struct Actor* b)
+void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* actor, struct Actor* hud_a, struct Actor* hud_b)
 {
 	/*
 	TODO, in the future the actors themself should have an entry: 'actor->action[]'
@@ -106,10 +106,10 @@ void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* current, stru
 	*/
 
 	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
-	sPortraitsDraw(portraits_sprite, a, b);
+	sPortraitsDraw(portraits_sprite, hud_a, hud_b);
 
 	/* Hero name */
-	CmdDrawText(21, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, g_persona[current->type].name);
+	CmdDrawText(21, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, actor->persona->name);
 
 	/* Common actions */
 	CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y, "Attack");
@@ -117,7 +117,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* current, stru
 	CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
-	if (current->type == TYPE_HERO_B)
+	if (actor->persona == &g_persona[PERSONA_KURO])
 	{
 		CmdDrawText(21, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Heal");
 		CmdDrawText(21, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Meditate");
@@ -131,7 +131,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, struct Actor* current, stru
 	}
 }
 
-uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, struct Actor* current, uint8_t selection)
+uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, struct Actor* actor, uint8_t selection)
 {
 	/*
 	TODO, same as before, every action should be in companion with a tip.
@@ -166,7 +166,7 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, struct Actor* current, uint
 		else if (selection == 4)
 			CmdDrawText(20, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
 
-		if (current->type == TYPE_HERO_B)
+		if (actor->persona == &g_persona[PERSONA_KURO])
 		{
 			if (selection == 2)
 				CmdDrawText(20, 8, 200 - 16, "Restores party HP.");
@@ -192,10 +192,10 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, struct Actor* current, uint
 -----------------------------*/
 static uint8_t s_prev_target_selection = 255;
 
-void MenuTargetDraw_static(uint8_t portraits_sprite, struct Actor* a, struct Actor* b)
+void MenuTargetDraw_static(uint8_t portraits_sprite, struct Actor* hud_a, struct Actor* hud_b)
 {
 	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
-	sPortraitsDraw(portraits_sprite, a, b);
+	sPortraitsDraw(portraits_sprite, hud_a, hud_b);
 
 	CmdDrawText(20, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Select your target.");
 }
@@ -215,7 +215,7 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		CmdDrawSprite(arrow_sprite, g_info[i].base_x, g_info[i].base_y + 40, 2);
+		CmdDrawSprite(arrow_sprite, g_actor[i].x, g_actor[i].y + 40, 2);
 	}
 
 	/* Validate selection, we dont' want
@@ -245,7 +245,7 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 	}
 
 	/* Active arrow */
-	CmdDrawSprite(arrow_sprite, g_info[selection].base_x, g_info[selection].base_y + 40, (CURRENT_FRAME >> 2) % 2);
+	CmdDrawSprite(arrow_sprite, g_actor[selection].x, g_actor[selection].y + 40, (CURRENT_FRAME >> 2) % 2);
 
 	s_prev_target_selection = selection;
 	return selection;

@@ -17,9 +17,6 @@
 rule Assembly
  command = fasm $in $out
 
-rule AssemblySprite
- command = fasm $in $out
-
 rule CompileAndLinkC
  command = bcc -ansi -0 -Md -O -W -x -i -o $out $in -C -c -I./source/game/
 
@@ -38,9 +35,6 @@ rule Palette
 rule Background
  command = ruby ./source/sdk/background.rb $in > $out
 
-rule BattlesTable
- command = ruby ./source/sdk/battles.rb > $out
-
 # Engine
 build ./tanakas.exe: Assembly ./source/engine-dos/sakurai.asm
 
@@ -48,16 +42,14 @@ build ./tanakas.exe: Assembly ./source/engine-dos/sakurai.asm
 build ./game.dll: CompileAndLinkC $
  ./source/game/main.c $
  ./source/game/actor.c $
- ./source/game/game.c $
- ./source/game/intro.c $
+ ./source/game/actor-traits.c $
  ./source/game/engine.c $
+ ./source/game/state-test1.c $
+ ./source/game/state-test2.c $
  ./source/game/ui.c $
- ./source/game/utilities.c $
- ./objects/battles.c
+ ./source/game/utilities.c
 
-# Objects/generated files
-build ./objects/battles.c: BattlesTable ./
-
+# Objects files
 build ./objects/fx1.asm: SpriteLinear $
  ./assets-dev/fx1.001.bmp $
  ./assets-dev/fx1.002.bmp $
@@ -114,28 +106,28 @@ build ./objects/font1.asm: SpriteFont ./assets-dev/font1.bmp
 build ./objects/font2.asm: SpriteFont ./assets-dev/font2.bmp
 
 # Assets
-build ./assets/fx1.jvn: AssemblySprite ./objects/fx1.asm
-build ./assets/fx2.jvn: AssemblySprite ./objects/fx2.asm
+build ./assets/fx1.jvn: Assembly ./objects/fx1.asm
+build ./assets/fx2.jvn: Assembly ./objects/fx2.asm
 
-build ./assets/sprite1.jvn: AssemblySprite ./objects/sprite1.asm
-build ./assets/sprite2.jvn: AssemblySprite ./objects/sprite2.asm
+build ./assets/sprite1.jvn: Assembly ./objects/sprite1.asm
+build ./assets/sprite2.jvn: Assembly ./objects/sprite2.asm
 
-build ./assets/sayori.jvn: AssemblySprite ./objects/sayori.asm
-build ./assets/kuro.jvn: AssemblySprite ./objects/kuro.asm
+build ./assets/sayori.jvn: Assembly ./objects/sayori.asm
+build ./assets/kuro.jvn: Assembly ./objects/kuro.asm
 
-build ./assets/ui-ports.jvn: AssemblySprite ./objects/ui-ports.asm
-build ./assets/ui-items.jvn: AssemblySprite ./objects/ui-items.asm
+build ./assets/ui-ports.jvn: Assembly ./objects/ui-ports.asm
+build ./assets/ui-items.jvn: Assembly ./objects/ui-items.asm
 
-build ./assets/enemy-a.jvn: AssemblySprite ./objects/enemy-a.asm
-build ./assets/enemy-b.jvn: AssemblySprite ./objects/enemy-b.asm
-build ./assets/enemy-c.jvn: AssemblySprite ./objects/enemy-c.asm
-build ./assets/enemy-d.jvn: AssemblySprite ./objects/enemy-d.asm
-build ./assets/enemy-e.jvn: AssemblySprite ./objects/enemy-e.asm
-build ./assets/enemy-f.jvn: AssemblySprite ./objects/enemy-f.asm
-build ./assets/enemy-g.jvn: AssemblySprite ./objects/enemy-g.asm
+build ./assets/enemy-a.jvn: Assembly ./objects/enemy-a.asm
+build ./assets/enemy-b.jvn: Assembly ./objects/enemy-b.asm
+build ./assets/enemy-c.jvn: Assembly ./objects/enemy-c.asm
+build ./assets/enemy-d.jvn: Assembly ./objects/enemy-d.asm
+build ./assets/enemy-e.jvn: Assembly ./objects/enemy-e.asm
+build ./assets/enemy-f.jvn: Assembly ./objects/enemy-f.asm
+build ./assets/enemy-g.jvn: Assembly ./objects/enemy-g.asm
 
-build ./assets/font1.jvn: AssemblySprite ./objects/font1.asm
-build ./assets/font2.jvn: AssemblySprite ./objects/font2.asm
+build ./assets/font1.jvn: Assembly ./objects/font1.asm
+build ./assets/font2.jvn: Assembly ./objects/font2.asm
 
 build ./assets/palette.raw: Palette ./assets-dev/palette.bmp
 

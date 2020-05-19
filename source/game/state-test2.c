@@ -24,25 +24,44 @@ SOFTWARE.
 
 -------------------------------
 
- [main.c]
+ [state-test2.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
 #include "state.h"
+#include "utilities.h"
 
-#define TEST2
-
-#if defined(GAME)
-static void* (*s_next_function)() = StateGame;
-#elif defined(TEST2)
-static void* (*s_next_function)() = StateTest2;
-#else
-static void* (*s_next_function)() = StateTest1;
-#endif
+static char s_buffer[4] = {0, 0, 0, 0};
 
 
-int main()
+static void* sFrame()
 {
-	s_next_function = (void *(*)())s_next_function(); /* void *(*)() !!! */
-	return 0;
+	if ((CURRENT_FRAME % 96) == 0) /* Every 4 seconds */
+	{
+		switch (Random() % 4)
+		{
+		case 0: IntLoadBackground("assets\\bkg1.raw"); break;
+		case 1: IntLoadBackground("assets\\bkg2.raw"); break;
+		case 2: IntLoadBackground("assets\\bkg3.raw"); break;
+		case 3: IntLoadBackground("assets\\bkg4.raw");
+		}
+
+		CmdDrawBackground();
+		CmdDrawSprite(SPRITE_SAO, 160 - 32, 100 - 32, 0);
+	}
+
+	CmdDrawRectangleBkg(2 /* 32 px */, 1 /* 16 px*/, 10, 0);
+	CmdDrawText(SPRITE_FONT2, 10, 0, NumberToString((uint8_t)CURRENT_FRAME, s_buffer));
+
+	CmdHalt();
+	return (void*)sFrame;
+}
+
+
+void* StateTest2()
+{
+	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
+	IntLoadSprite("assets\\sayori.jvn", SPRITE_SAO);
+
+	return sFrame();
 }
