@@ -58,6 +58,8 @@ static void* sFrame()
 
 void* StateTest1()
 {
+	IntPrintText("# StateTest1\n");
+
 	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
 	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
 

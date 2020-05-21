@@ -24,19 +24,24 @@ SOFTWARE.
 
 -------------------------------
 
- [state-test2.c]
+ [state-test3.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
 #include "state.h"
+#include "ui.h"
 #include "utilities.h"
 
-static char s_buffer[4] = {0, 0, 0, 0};
+static struct Actor s_actor1;
+static struct Actor s_actor2;
 
 
 static void* sFrame()
 {
-	if ((CURRENT_FRAME % 96) == 0) /* Every 4 seconds */
+	uint16_t x = 0;
+
+	/* Random background plus a menu, every 4 seconds */
+	if ((CURRENT_FRAME % 96) == 0)
 	{
 		switch (Random() % 4)
 		{
@@ -47,23 +52,51 @@ static void* sFrame()
 		}
 
 		CmdDrawBackground();
-		CmdDrawSprite(SPRITE_KURO, 160 - 32, 100 - 32, 0);
+
+		/*HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor2);*/
+		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor1, &s_actor2);
 	}
 
-	CmdDrawRectangleBkg(2 /* 32 px */, 1 /* 16 px*/, 10, 0);
-	CmdDrawText(SPRITE_FONT2, 10, 0, NumberToString((uint8_t)CURRENT_FRAME, s_buffer));
+	/* Sprite oscillating in position */
+	s_actor1.phase += 1;
+	x = (uint16_t)((int16_t)s_actor1.x + ((int16_t)Sin(s_actor1.phase) >> 2));
 
+	CmdDrawRectangleBkg(4 /* 64 px */, 6 /* 96 px*/, x, s_actor1.y);
+	CmdDrawSprite(SPRITE_SAO, x, s_actor1.y, s_actor1.phase >> 4);
+
+	/* Pseudo-pseudo-random menu selection */
+	MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, &s_actor1, (uint8_t)(x >> 4) % 6);
+
+	/* Bye! */
 	CmdHalt();
 	return (void*)sFrame;
 }
 
 
-void* StateTest2()
+void* StateTest3()
 {
-	IntPrintText("# StateTest2\n");
+	IntPrintText("# StateTest3\n");
 
+	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
+	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
 	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
-	IntLoadSprite("assets\\kuro.jvn", SPRITE_KURO);
+	IntLoadSprite("assets\\sayori.jvn", SPRITE_SAO);
+	IntLoadSprite("assets\\ui-items.jvn", SPRITE_ARROW);
+
+	/* Minimum necessary fields to draw the HUD... */
+	s_actor1.health = 100;
+	s_actor1.magic = 80;
+	s_actor2.health = 75;
+	s_actor2.magic = 50;
+
+	/* ...and to draw the Action menu */
+	s_actor1.persona = &g_persona[PERSONA_SAO];
+	s_actor2.persona = &g_persona[PERSONA_KURO];
+
+	/* Finally, fields to draw the actor */
+	s_actor1.x = 160 - 32;
+	s_actor1.y = 100 - 32;
+	s_actor1.phase = 0;
 
 	return sFrame();
 }

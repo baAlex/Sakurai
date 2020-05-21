@@ -36,6 +36,7 @@ struct Actor
 
 	uint16_t x;
 	uint16_t y;
+	uint8_t phase;
 };
 
 struct Actor g_actor[ACTORS_NO];

@@ -30,10 +30,12 @@ SOFTWARE.
 
 #include "state.h"
 
-#define TEST2
+#define TEST3
 
 #if defined(GAME)
 static void* (*s_next_function)() = StateGame;
+#elif defined(TEST3)
+static void* (*s_next_function)() = StateTest3;
 #elif defined(TEST2)
 static void* (*s_next_function)() = StateTest2;
 #else

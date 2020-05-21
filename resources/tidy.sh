@@ -6,6 +6,7 @@ files="./source/game/actor.c
        ./source/game/main.c
        ./source/game/state-test1.c
        ./source/game/state-test2.c
+       ./source/game/state-test3.c
        ./source/game/ui.c
        ./source/game/utilities.c"
 
