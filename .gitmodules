@@ -1,0 +1,3 @@
+[submodule "source/engine-sdl/libjapan"]
+	path = source/engine-sdl/libjapan
+	url = https://github.com/baAlex/libjapan
