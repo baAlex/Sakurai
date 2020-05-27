@@ -13,6 +13,14 @@ endif()
 set(SOURCES
 	"./source/engine-sdl/sakurai.c"
 	"./source/engine-sdl/glad/glad.c"
+	"./source/game/actor.c"
+	"./source/game/actor-traits.c"
+	"./source/game/engine.c"
+	"./source/game/state-test1.c"
+	"./source/game/state-test2.c"
+	"./source/game/state-test3.c"
+	"./source/game/ui.c"
+	"./source/game/utilities.c"
 )
 
 add_executable(sakurai ${SOURCES})
