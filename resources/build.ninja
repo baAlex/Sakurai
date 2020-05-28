@@ -36,7 +36,7 @@ rule Background
  command = ruby ./source/sdk/background.rb $in > $out
 
 # Engine
-build ./tanakas.exe: Assembly ./source/engine-dos/sakurai.asm
+build ./sakurai.exe: Assembly ./source/engine-dos/sakurai.asm
 
 # Game
 build ./game.dll: CompileAndLinkC $
@@ -47,6 +47,7 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/state-test1.c $
  ./source/game/state-test2.c $
  ./source/game/state-test3.c $
+ ./source/game/state-test4.c $
  ./source/game/ui.c $
  ./source/game/utilities.c
 

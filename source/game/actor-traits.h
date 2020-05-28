@@ -54,6 +54,4 @@ struct Persona
 struct Action g_action[ACTIONS_NO];
 struct Persona g_persona[PERSONAS_NO];
 
-void ActorTraitsInitialize();
-
 #endif

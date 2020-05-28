@@ -12,6 +12,7 @@
 
 #define ACTORS_NO 6
 #define HEROES_NO 2
+#define ENEMIES_NO 4
 
 #define ACTOR_STATE_DEAD 0
 #define ACTOR_STATE_IDLE 1
@@ -40,5 +41,8 @@ struct Actor
 };
 
 struct Actor g_actor[ACTORS_NO];
+
+void ActorsInitialize(uint8_t battle_no);
+void ActorsDraw();
 
 #endif

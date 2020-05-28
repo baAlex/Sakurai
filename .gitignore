@@ -1,11 +1,28 @@
-/tanakas.exe
-/tanakas.zip
-/tanakas.img
-/game.dll
 
+# All platforms
+/assets/
+
+# Linux
+/sakurai-linux
+/sakurai-linux.log
+
+# Windows
+/sakurai-windows.exe
+/sakurai-windows.log
+/SDL2.dll
+
+# Dos
+/sakurai.exe
 /sakurai.log
 /SAKURAI.LOG
-/assets/
+/game.dll
+
+# Distributables
+/sakurai.zip
+/sakurai.img
+
+# Developers, developers, developers
+/plot-*.png
 
 /.ninja_log
 /.ninja_deps

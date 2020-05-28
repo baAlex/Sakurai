@@ -1,30 +1,15 @@
 
-Tanaka's magical business
-(codename: Sakurai)
-=========================
+Sakurai
+=======
 
 Turn based role-playing game for real mode DOS.
 Submission for [MS-DOS game jam #2](https://itch.io/jam/dos-game-jam-2).
 
 **Currently in development**.
 
-![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/screenshots.png)
+**(!) Project broken (!). As since the first release I'm making an almost entirely rewrite of the code, organizing folders, and simplifying compilation procedures (of both code and assets).**
 
-
-Requirements
-------------
-- CPU: i386DX at 33 MHz or compatible
-- RAM: 576 KiB of conventional memory
-- VGA compatible video card
-- 2 MiB of hard disk space
-- MS-DOS 3.20 or compatible
-
-Or an emulator like Dosbox!.
-
-
-Releases
---------
-Please visit the [game website](https://baalex.itch.io/tanakas-magical-business), the first alpha is already there.
+![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/media/banner-gameplay.png)
 
 
 Compilation
@@ -41,11 +26,6 @@ git clone https://github.com/baAlex/Sakurai.git
 cd Sakurai
 ninja -f ./resources/build.ninja
 ```
-
-Contact
--------
-- You can found me in [Mastodon.social@baAlex](https://mastodon.social/@baAlex)
-- Or my blog, [The Alpaca Jumps](https://thealpacajumps.neocities.org/)
 
 
 License

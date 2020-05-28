@@ -66,7 +66,7 @@ void ActionCombined(struct Actor* actor, struct Actor* target)
 }
 
 
-void ActorTraitsInitialize()
+void ActorsTraitsInitialize()
 {
 	struct Persona* kuro = &g_persona[PERSONA_KURO];
 	struct Persona* sao = &g_persona[PERSONA_SAO];

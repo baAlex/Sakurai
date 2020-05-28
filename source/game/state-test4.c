@@ -24,7 +24,7 @@ SOFTWARE.
 
 -------------------------------
 
- [state-test3.c]
+ [state-test4.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
@@ -32,17 +32,38 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-static struct Actor s_actor1;
-static struct Actor s_actor2;
+static char s_buffer[4] = {0, 0, 0, 0};
+static uint8_t s_battle_no = 0;
 
 
 static void* sFrame()
 {
 	uint16_t x = 0;
 
-	/* Random background plus a menu, every 4 seconds */
+	/* Re-initialize actors on user demand */
+	if (INPUT_LEFT == 1)
+	{
+		if (s_battle_no >= 1)
+		{
+			s_battle_no -= 1;
+
+			ActorsInitialize(s_battle_no);
+			goto clean_redraw;
+		}
+	}
+	else if (INPUT_RIGHT == 1)
+	{
+		if (s_battle_no < 255)
+			s_battle_no += 1;
+
+		ActorsInitialize(s_battle_no);
+		goto clean_redraw;
+	}
+
+	/* Random background, every 4 seconds */
 	if ((CURRENT_FRAME % 96) == 0)
 	{
+	clean_redraw:
 		switch (Random() % 4)
 		{
 		case 0: IntLoadBackground("assets\\bkg1.raw"); break;
@@ -53,19 +74,13 @@ static void* sFrame()
 
 		CmdDrawBackground();
 
+		CmdDrawText(SPRITE_FONT1, 10, 0, "Battle number:");
+		CmdDrawText(SPRITE_FONT1, 70, 0, NumberToString(s_battle_no, s_buffer));
+
 		/*HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor2);*/
-		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor1, &s_actor2);
 	}
 
-	/* Sprite oscillating in position */
-	s_actor1.phase += 1;
-	x = (uint16_t)((int16_t)s_actor1.x + ((int16_t)Sin(s_actor1.phase) >> 2));
-
-	CmdDrawRectangleBkg(4 /* 64 px */, 6 /* 96 px*/, x, s_actor1.y);
-	CmdDrawSprite(SPRITE_SAO, x, s_actor1.y, s_actor1.phase >> 4);
-
-	/* Pseudo-pseudo-random menu selection */
-	MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, &s_actor1, (uint8_t)(x >> 4) % 6);
+	ActorsDraw();
 
 	/* Bye! */
 	CmdHalt();
@@ -73,32 +88,16 @@ static void* sFrame()
 }
 
 
-void* StateTest3()
+void* StateTest4()
 {
-	IntPrintText("# StateTest3\n");
+	IntPrintText("# StateTest4\n");
 
 	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
 	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
 	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
-	IntLoadSprite("assets\\sayori.jvn", SPRITE_SAO);
-	IntLoadSprite("assets\\ui-items.jvn", SPRITE_ARROW);
 
-	ActorsInitialize(0); /* Here we only need it to initialize 'g_persona' */
-
-	/* Minimum necessary fields to draw the HUD... */
-	s_actor1.health = 100;
-	s_actor1.magic = 80;
-	s_actor2.health = 75;
-	s_actor2.magic = 50;
-
-	/* ...and to draw the Action menu */
-	s_actor1.persona = &g_persona[PERSONA_SAO];
-	s_actor2.persona = &g_persona[PERSONA_KURO];
-
-	/* Finally, fields to draw the actor */
-	s_actor1.x = 160 - 32;
-	s_actor1.y = 100 - 32;
-	s_actor1.phase = 0;
+	IntLoadSprite("assets\\sprite1.jvn", 20);
+	ActorsInitialize(s_battle_no);
 
 	return sFrame();
 }
