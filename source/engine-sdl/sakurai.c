@@ -34,6 +34,7 @@ SOFTWARE.
 
 #include "glad/glad.h"
 #include "japan-status.h"
+#include "japan-version.h"
 
 #include <SDL2/SDL.h>
 
@@ -56,7 +57,7 @@ int main()
 	SDL_GetVersion(&sdl_version);
 
 	printf("%s v%s\n", NAME, VERSION);
-	printf("- LibJapan %i.%i.%i\n", JAPAN_VERSION_MAJOR, JAPAN_VERSION_MINOR, JAPAN_VERSION_PATCH);
+	printf("- LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
 	printf("- LibSDL2 %i.%i.%i\n", sdl_version.major, sdl_version.minor, sdl_version.patch);
 
 	// Initialize SDL
