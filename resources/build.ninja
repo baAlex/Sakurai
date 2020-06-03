@@ -10,15 +10,12 @@
 #	-x		No CRT
 #	-i		Uses the same segment for data and text ('tiny' model)
 
-#	-C		Following commands to this one, changes the code generator
-#	-c		Use registers between calls ('fast call' convention)
-
 
 rule Assembly
  command = fasm $in $out
 
 rule CompileAndLinkC
- command = bcc -ansi -0 -Md -O -W -x -i -o $out $in -C -c -I./source/game/
+ command = bcc -0 -O -ansi -Md -x -i -o $out $in -I./source/game/
 
 rule SpriteLinear
  command = ruby ./source/sdk/sprite.rb +linear $in > $out
@@ -44,6 +41,7 @@ build ./game.dll: CompileAndLinkC $
  ./source/game/actor.c $
  ./source/game/actor-traits.c $
  ./source/game/engine.c $
+ ./source/game/fixed.c $
  ./source/game/state-test1.c $
  ./source/game/state-test2.c $
  ./source/game/state-test3.c $

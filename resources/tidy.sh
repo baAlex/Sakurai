@@ -3,6 +3,7 @@
 files="./source/game/actor.c
        ./source/game/actor-traits.c
        ./source/game/engine.c
+       ./source/game/fixed.c
        ./source/game/main.c
        ./source/game/state-test1.c
        ./source/game/state-test2.c
