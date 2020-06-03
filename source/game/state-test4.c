@@ -38,8 +38,6 @@ static uint8_t s_battle_no = 0;
 
 static void* sFrame()
 {
-	uint16_t x = 0;
-
 	/* Re-initialize actors on user demand */
 	if (INPUT_LEFT == 1)
 	{

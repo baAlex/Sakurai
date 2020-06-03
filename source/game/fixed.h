@@ -17,11 +17,11 @@ typedef uint16_t ufixed_t;
 
 #define UFixedMake(whole, fraction) (ufixed_t)(((uint16_t)(fraction)) | ((uint16_t)(whole) << 8))
 #define FixedWhole(f) (uint8_t)((uint16_t)(f) >> 8)
-#define FixedFraction(f) (uint8_t)((uint16_t)(f) & 0x00FF)
+#define FixedFraction(f) (uint8_t)((uint16_t)(f)&0x00FF)
 
 ufixed_t UFixedMultiply(ufixed_t a, ufixed_t b);
 ufixed_t UFixedDivide(ufixed_t a, ufixed_t b);
-ufixed_t UFixedStep(ufixed_t edge0, ufixed_t edge1, uint8_t v);
+ufixed_t UFixedStep(ufixed_t edge0, ufixed_t edge1, ufixed_t v);
 
 #ifdef FIXED_STANDALONE
 #if !defined(__BCC__) && !defined(__MSDOS__)

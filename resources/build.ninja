@@ -39,6 +39,7 @@ build ./sakurai.exe: Assembly ./source/engine-dos/sakurai.asm
 build ./game.dll: CompileAndLinkC $
  ./source/game/main.c $
  ./source/game/actor.c $
+ ./source/game/actor-layout.c $
  ./source/game/actor-traits.c $
  ./source/game/engine.c $
  ./source/game/fixed.c $

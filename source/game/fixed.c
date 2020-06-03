@@ -96,13 +96,13 @@ ufixed_t UFixedDivide(ufixed_t a, ufixed_t b)
 }
 
 
-ufixed_t UFixedStep(ufixed_t edge0, ufixed_t edge1, uint8_t v)
+ufixed_t UFixedStep(ufixed_t edge0, ufixed_t edge1, ufixed_t v)
 {
 	edge1 = edge1 - edge0;
-	edge0 = UFixedMake(v, 0) - edge0;
+	edge0 = v - edge0;
 
 	edge0 = UFixedDivide(edge0, edge1);
-	edge0 = CLAMP(edge0, 0, UFixedMake(1, 0));
+	edge0 = CLAMP(edge0, 0x0000, UFixedMake(1, 0));
 
 	return edge0;
 }
