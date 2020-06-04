@@ -1,7 +1,7 @@
 
 require "gnuplot"
 
-BATTLES_NO = 64
+BATTLES_NO = 32
 ENEMIES_NO = 4
 
 NOISE_GATE = 40
@@ -12,8 +12,58 @@ RETURN_MEDIAN = 1
 RETURN_SAWTOOTH = 2
 RETURN_TRIANGLE = 3
 
+CHANCES_ATTACK = 3 # In number of battles
+CHANCES_DECAY = 6  # Same
 
-class SakuraiRNG
+
+class Fixed
+	# Copy and paste from 'source/game/fixed.c'
+
+	def initialize(a, b = nil)
+
+		# Assume that A is a raw value
+		if b == nil then
+			if a > 65535 then
+				raise("This is an unsigned Q8 fixed point implementation")
+			end
+
+			@internal = a
+
+		# Assume that A is the whole and B the fraction
+		else
+			if a > 255 || b > 255 then
+				raise("This is an unsigned Q8 fixed point implementation")
+			end
+
+			@internal = (b) | (a << 8)
+		end
+	end
+
+	def internal() return (@internal) end
+	def whole() return (@internal >> 8) end
+	def fraction() return (@internal & 0x00FF) end
+
+	def >(other) return (@internal > other.internal) ? true : false end
+	def <(other) return (@internal < other.internal) ? true : false end
+	def >=(other) return (@internal >= other.internal) ? true : false end
+	def <=(other) return (@internal <= other.internal) ? true : false end
+
+	def +(other) return Fixed.new(@internal + other.internal) end
+	def -(other) return Fixed.new(@internal - other.internal) end
+
+	def *(other) return Fixed.new((@internal * other.internal) >> 8) end
+	def /(other) return Fixed.new((@internal << 8) / other.internal) end
+end
+
+def FixedStep(edge0, edge1, v)
+	edge1 = edge1 - edge0
+	edge0 = v - edge0
+	edge0 = edge0 / edge1
+	return Fixed.new((edge0.internal).clamp(0, Fixed.new(1, 0).internal))
+end
+
+
+class RNG
 	# Copy and paste from 'source/game/utilities.c'
 	# http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html
 
@@ -42,7 +92,7 @@ end
 
 
 def EnemiesNumber(battle_no, rng, ret)
-	# Copy and paste from 'source/game/actor.c'
+	# Copy and paste from 'source/game/actor-layout.c'
 
 	sawtooth = 0
 	triangle = 0
@@ -84,6 +134,46 @@ def EnemiesNumber(battle_no, rng, ret)
 end
 
 
+def EnemyChances(enemy_i, battle_no)
+	# Copy and paste from 'source/game/actor-layout.c'
+
+	def ImaginaryLine(battle_no)
+		chances = FixedStep(Fixed.new(0, 0), Fixed.new(BATTLES_NO, 0), battle_no)
+		chances = chances / Fixed.new(ENEMIES_NO, 0)
+		return chances
+	end
+
+	chances = Fixed.new(0, 0)
+
+	attack_start = Fixed.new(BATTLES_NO / ENEMIES_NO, 0) * Fixed.new(enemy_i, 0)
+	attack_end = attack_start + Fixed.new(CHANCES_ATTACK, 0)
+	decay_end = attack_start + Fixed.new(CHANCES_ATTACK + CHANCES_DECAY, 0)
+
+	battle_no += Fixed.new(1, 0)
+
+	if battle_no >= attack_start then
+
+		# 1 - Attack
+		if battle_no <= attack_end then
+			chances = FixedStep(attack_start, attack_end, battle_no)
+
+		# 2 - Decay
+		else
+			chances = Fixed.new(1, 0) - FixedStep(attack_end, decay_end, battle_no)
+
+			# Keep it over an imaginary line!
+			if chances < ImaginaryLine(battle_no) then
+				chances = ImaginaryLine(battle_no)
+			end
+		end
+	end
+
+	# Bye!
+#	return (ImaginaryLine(battle_no) * Fixed.new(100, 0)).whole
+	return (chances * Fixed.new(100, 0)).whole
+end
+
+
 # =============================
 
 
@@ -101,7 +191,7 @@ for i in 0...2 do
 		else
 		plot.title  "Enemies number, modulating two waveforms plus noise"
 		plot.output "./plot-enemies-number-noise.png"
-		rng = SakuraiRNG.new(123)
+		rng = RNG.new(123)
 		end
 
 		plot.terminal "png"
@@ -109,7 +199,7 @@ for i in 0...2 do
 		plot.xlabel "Battle"
 		plot.yrange "[-1 to #{ENEMIES_NO + 2}]"
 
-		x = (0...(BATTLES_NO)).collect { |v| v }
+		x = (0...(BATTLES_NO * 2)).collect { |v| v }
 
 		# Sawtooth
 		rng.seed(123)
@@ -138,3 +228,30 @@ for i in 0...2 do
 	end # Gnuplot::Plot
 	end # Gnuplot.open
 end
+
+
+# =============================
+
+
+Gnuplot.open do |gp|
+Gnuplot::Plot.new(gp) do |plot|
+
+	plot.title  "Enemies chances"
+	plot.output "./plot-enemies-chances.png"
+
+	plot.terminal "png"
+	plot.xlabel "Battle"
+
+	x = (0...(BATTLES_NO * 1.25)).collect { |v| v }
+
+	for e in 0...ENEMIES_NO do
+
+		y = x.collect { |v| EnemyChances(e, Fixed.new(v, 0)) }
+
+		plot.data << Gnuplot::DataSet.new([x, y]) do |ds|
+			ds.title = "Type #{e}"; ds.with = "lines"
+		end
+	end
+
+end # Gnuplot::Plot
+end # Gnuplot.open
