@@ -156,3 +156,9 @@ GameUnloadEverything:
 
 	pop cx
 	jmp near _IntFDVector_bye
+
+
+;==============================
+GameFlushCommands:
+	jmp near _IntFDVector_bye
+

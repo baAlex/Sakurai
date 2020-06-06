@@ -46,6 +46,7 @@ typedef unsigned short uint16_t;
 #define INPUT_START_OFFSET 0x0019
 
 #define CURRENT_FRAME (*(uint16_t*)FRAME_COUNTER_OFFSET)
+#define CURRENT_MILLISECONDS (*(uint16_t*)MS_COUNTER_OFFSET)
 #define INPUT_X (*(uint8_t*)INPUT_X_OFFSET)
 #define INPUT_Y (*(uint8_t*)INPUT_Y_OFFSET)
 #define INPUT_A (*(uint8_t*)INPUT_A_OFFSET)
@@ -65,6 +66,7 @@ void IntPrintNumber(uint16_t number);
 void IntLoadBackground(char* filename);
 void IntLoadSprite(char* filename, uint16_t slot);
 void IntUnloadAll();
+void IntFlushCommands();
 
 
 /* Commands */

@@ -150,6 +150,15 @@ void IntUnloadAll()
 }
 
 
+void IntFlushCommands()
+{
+#if defined(__BCC__) && defined(__MSDOS__)
+	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x06;
+	asm("int 0xFD");
+#endif
+}
+
+
 void CmdDrawBackground()
 {
 	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;

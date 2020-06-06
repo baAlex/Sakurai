@@ -25,18 +25,69 @@
 ; [game-commands.asm]
 ; - Alexander Brandt 2020
 
-
 ; http://www.brackeen.com/vga/basics.html
 
 
-; Following routines are not functions ('functions' meaning the correct
-; care of the fast call convention), rather they are part of a table
-; executed in a 'switch' fashion (C lingua)...
+; TODO, (20/6/6) I did a tiny optimization deleting recurrent changes to ES. This
+; opened the door to further optimizations, but they gonna take me forever. Please
+; in the future, do a depth review of the following code.
+;    XXX. Alex from the past <3
 
-; So, the only requirement here is to preserve registers DS and SI, and
-; always jump to 'Main_loop_commands_table_continue'. And with the only
-; exception of AX, BX and CX is better to assume that other registers
-; just contain trash.
+
+;==============================
+IterateGameCommands:
+; ds:si = Commands table
+; es:0x0000 = Destination buffer
+
+	; This is one of the two hot-spots of the engine
+	push eax
+	push ebx
+
+	push di
+	push cx
+	push fs
+
+IterateGameCommands_loop:
+
+	mov eax, [si] ; Code, Color, Width, Height, Filename
+	mov ebx, [si + 4] ; X, Y
+
+	cmp al, 0x00 ; CODE_HALT
+	je near IterateGameCommands_bye
+	cmp al, 0x01 ; CODE_DRAW_BKG
+	je near GameDrawBkg
+	cmp al, 0x02 ; CODE_DRAW_PIXEL
+	je near GameDrawPixel
+	cmp al, 0x04 ; CODE_DRAW_RECTANGLE
+	je near GameDrawRect
+	cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
+	je near GameDrawRectBkg
+	cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
+	je near GameDrawRectPrecise
+	cmp al, 0x07 ; CODE_DRAW_SPRITE
+	je near GameDrawSprite
+	cmp al, 0x08 ; CODE_DRAW_TEXT
+	je near GameDrawText
+
+	; Next command
+IterateGameCommands_continue:
+
+	mov byte [si], 0x00 ; Before continue lets clear the slot with CODE_HALT
+
+	add si, COMMAND_SIZE
+	cmp si, COMMANDS_TABLE_SIZE
+	jb IterateGameCommands_loop
+
+	; Bye!
+IterateGameCommands_bye:
+
+	pop fs
+	pop cx
+	pop di
+
+	pop ebx
+	pop eax
+	ret
 
 
 ;==============================
@@ -49,11 +100,9 @@ GameDrawBkg: ; CODE_DRAW_BKG
 
 	mov ax, seg_bkg_data
 	mov ds, ax
-	mov si, 0x0000
+	xor si, si
 
-	mov ax, seg_buffer_data
-	mov es, ax
-	mov di, 0x0000
+	xor di, di
 
 	mov cx, BKG_DATA_SIZE
 	call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
@@ -61,7 +110,7 @@ GameDrawBkg: ; CODE_DRAW_BKG
 	; Bye!
 	pop si
 	pop ds
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue
 
 
 ;==============================
@@ -70,7 +119,7 @@ GameDrawPixel: ; CODE_DRAW_PIXEL
 ; ebx - X, Y (low 16 bits)
 
 	; Calculate offset in DI
-	mov di, 0x0000
+	xor di, di
 	add di, bx ; X
 
 	shr ebx, 16
@@ -81,12 +130,10 @@ GameDrawPixel: ; CODE_DRAW_PIXEL
 	add di, cx
 
 	; Draw it!
-	mov cx, seg_buffer_data
-	mov es, cx
 	mov [es:di], ah
 
 	; Bye!
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue
 
 
 ;==============================
@@ -97,7 +144,7 @@ GameDrawRect: ; CODE_DRAW_RECTANGLE
 	push si
 
 	; Calculate offset in DI
-	mov di, 0x0000
+	xor di, di
 	add di, bx ; X
 
 	shr ebx, 16
@@ -120,12 +167,8 @@ GameDrawRect: ; CODE_DRAW_RECTANGLE
 	shl eax, 8
 	mov al, ah
 
-	; Set segment
-	mov cx, seg_buffer_data
-	mov es, cx
-
 	; Counter for LOOP
-	mov ch, 0x00
+	xor ch, ch
 	mov cl, bl ; Width
 
 	mov si, di
@@ -153,7 +196,7 @@ GameDrawRect_row:
 
 	; Bye!
 	pop si
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue
 
 
 ;==============================
@@ -165,7 +208,7 @@ GameDrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 	push si
 
 	; Calculate offset in DI
-	mov di, 0x0000
+	xor di, di
 	add di, bx ; X
 
 	shr ebx, 16
@@ -180,16 +223,13 @@ GameDrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 	shl ah, 4
 
 	; Set segments
-	mov cx, seg_buffer_data
-	mov es, cx
-
 	mov cx, seg_bkg_data
 	mov ds, cx
 
 	mov si, di
 
 	; Counter for LOOP
-	mov ch, 0x00
+	xor ch, ch
 	mov cl, al ; Width
 
 	mov bx, di ; BX is unused at this point
@@ -217,7 +257,7 @@ GameDrawRectBkg_row:
 	; Bye!
 	pop si
 	pop ds
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue
 
 
 ;==============================
@@ -228,7 +268,7 @@ GameDrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 	push si
 
 	; Calculate offset in DI
-	mov di, 0x0000
+	xor di, di
 	add di, bx ; X
 
 	shr ebx, 16
@@ -242,12 +282,8 @@ GameDrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 	mov ebx, eax
 	shr ebx, 16
 
-	; Set segment
-	mov cx, seg_buffer_data
-	mov es, cx
-
 	; Counter for LOOP
-	mov ch, 0x00
+	xor ch, ch
 	mov cl, bl ; Width
 
 	mov si, di
@@ -271,7 +307,7 @@ GameDrawRectPrecise_row:
 
 	; Bye!
 	pop si
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue
 
 
 ;==============================
@@ -283,7 +319,7 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	push ds
 
 	; Calculate offset in DI
-	mov di, 0x0000
+	xor di, di
 	add di, bx ; X
 
 	shr ebx, 16
@@ -327,9 +363,6 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	add bx, [bx]
 
 	; Draw!
-	mov dx, seg_buffer_data
-	mov es, dx
-
 	call far seg_pool_a:spr_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
 		; DS:SI = Source, specified in the header (also absolute)
@@ -338,7 +371,7 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	; Bye!
 	pop ds
 	pop si
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue
 
 
 ;==============================
@@ -350,7 +383,7 @@ GameDrawText: ; CODE_DRAW_TEXT
 	push ds
 
 	; Calculate offset in DI
-	mov di, 0x0000
+	xor di, di
 	add di, bx ; X
 
 	shr ebx, 16
@@ -380,9 +413,6 @@ GameDrawText: ; CODE_DRAW_TEXT
 	add si, bx
 
 	; Set segments to use
-	mov dx, seg_buffer_data
-	mov es, dx
-
 	mov dx, seg_game_data
 	mov fs, dx
 
@@ -397,7 +427,7 @@ GameDrawText: ; CODE_DRAW_TEXT
 	; Read first character in AL, frame to draw
 	mov bx, cx
 	mov al, [fs:bx]
-	mov ah, 0x00
+	xor ah, ah
 
 	cmp al, 0x00
 	jz GameDrawText_bye
@@ -434,7 +464,7 @@ GameDrawText_next:
 
 	mov bx, cx
 	mov al, [fs:bx]
-	mov ah, 0x00
+	xor ah, ah
 
 	; Is a new line?
 	cmp al, 0xA
@@ -456,4 +486,4 @@ GameDrawText_bye:
 	pop di
 	pop ds
 	pop si
-	jmp near Main_loop_commands_table_continue
+	jmp near IterateGameCommands_continue

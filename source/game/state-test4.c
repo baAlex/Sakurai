@@ -35,6 +35,7 @@ SOFTWARE.
 static char s_buffer[4] = {0, 0, 0, 0};
 static uint8_t s_battle_no = 0;
 
+static uint16_t s_prev_time = 0;
 
 static void* sFrame()
 {
@@ -58,9 +59,14 @@ static void* sFrame()
 		goto clean_redraw;
 	}
 
-	/* Random background, every 4 seconds */
-	if ((CURRENT_FRAME % 96) == 0)
+	/* Random background, every four seconds
+	 - The second condition is to avoid the 'always true' state
+	 when the miliseconds counter overflows (because the poor 16 bits)
+	*/
+	if (CURRENT_MILLISECONDS > s_prev_time && (CURRENT_MILLISECONDS - s_prev_time) < 5000)
 	{
+		s_prev_time = CURRENT_MILLISECONDS + 4000;
+
 	clean_redraw:
 		switch (Random() % 4)
 		{

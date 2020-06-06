@@ -230,42 +230,12 @@ Main_loop_no_sleep:
 			pop ds
 		; </HACK>
 
-		; Iterate draw commands table and do
-		; what is required by the game logic
-		push bx ; BX contain the start time
+		; Iterate commands table, drawing in a buffer
 		mov si, commands_table
+		mov dx, seg_buffer_data
+		mov es, dx
 
-Main_loop_commands_table:
-		mov eax, [si] ; Code, Color, Width, Height, Filename
-		mov ebx, [si + 4] ; X, Y
-
-		cmp al, 0x00 ; CODE_HALT
-		je near Main_loop_commands_table_break
-		cmp al, 0x01 ; CODE_DRAW_BKG
-		je near GameDrawBkg
-		cmp al, 0x02 ; CODE_DRAW_PIXEL
-		je near GameDrawPixel
-		cmp al, 0x04 ; CODE_DRAW_RECTANGLE
-		je near GameDrawRect
-		cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
-		je near GameDrawRectBkg
-		cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
-		je near GameDrawRectPrecise
-		cmp al, 0x07 ; CODE_DRAW_SPRITE
-		je near GameDrawSprite
-		cmp al, 0x08 ; CODE_DRAW_TEXT
-		je near GameDrawText
-
-		; Next command
-Main_loop_commands_table_continue:
-		add si, COMMAND_SIZE
-		cmp si, COMMANDS_TABLE_SIZE
-		jb Main_loop_commands_table
-
-Main_loop_commands_table_break:
-		pop bx
-
-		; --- Commands table iteration ends here ---
+		call near IterateGameCommands ; (ds:si = commands table, es:0x0000 = destination buffer)
 
 		; Copy from buffer to VGA memory
 		mov dx, seg_buffer_data
@@ -356,6 +326,8 @@ _IntFDVector:
 	je near GameLoadSprite
 	cmp ax, 0x05
 	je near GameUnloadEverything
+	cmp ax, 0x06
+	je near GameFlushCommands
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
