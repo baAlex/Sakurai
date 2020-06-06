@@ -161,6 +161,8 @@ Main_loop_no_sleep:
 		jz near Main_bye
 
 		; Provide input to game logic
+		; Aka: Copy things from 'seg_data' to 'seg_game_data'
+		push ax ; Has the TimeGet() return
 		mov dx, [keyboard_state + 0x2C] ; X
 		push dx
 		mov dx, [keyboard_state + 0x2D] ; Y
@@ -182,56 +184,63 @@ Main_loop_no_sleep:
 		mov dx, [keyboard_state + 0x1C] ; Start
 		push dx
 
+		; Welcome to 'seg_game_data'
 		mov dx, seg_game_data
 		mov ds, dx
 
-			pop dx
-			mov byte [input_start], dl
-			pop dx
-			mov byte [input_select], dl
-			pop dx
-			mov byte [input_right], dl
-			pop dx
-			mov byte [input_left], dl
-			pop dx
-			mov byte [input_down], dl
-			pop dx
-			mov byte [input_up], dl
-			pop dx
-			mov byte [input_b], dl
-			pop dx
-			mov byte [input_a], dl
-			pop dx
-			mov byte [input_y], dl
-			pop dx
-			mov byte [input_x], dl
+		pop dx
+		mov byte [input_start], dl
+		pop dx
+		mov byte [input_select], dl
+		pop dx
+		mov byte [input_right], dl
+		pop dx
+		mov byte [input_left], dl
+		pop dx
+		mov byte [input_down], dl
+		pop dx
+		mov byte [input_up], dl
+		pop dx
+		mov byte [input_b], dl
+		pop dx
+		mov byte [input_a], dl
+		pop dx
+		mov byte [input_y], dl
+		pop dx
+		mov byte [input_x], dl
+		pop dx
+		mov word [ms_counter], dx
 
-		mov dx, seg_data
-		mov ds, dx
-
-		; Game logic frame
-		; We do a call near into spooky far lands
+		; Call a game frame
+		pusha
 		call far seg_game_data:GameFrame
-		call near KeyboardClean ; (ds implicit)
+		popa
+
+		inc word [frame_counter]
+
+		; <HACK>
+			push ds
+			push dx
+
+			mov dx, seg_data
+			mov ds, dx
+			call near KeyboardClean ; (ds implicit) ; HACK!!!!
+
+			pop dx
+			pop ds
+		; </HACK>
 
 		; Iterate draw commands table and do
 		; what is required by the game logic
-		push bx
-		push ds
-
-		mov dx, seg_game_data
-		mov ds, dx
+		push bx ; BX contain the start time
 		mov si, commands_table
 
 Main_loop_commands_table:
 		mov eax, [si] ; Code, Color, Width, Height, Filename
 		mov ebx, [si + 4] ; X, Y
 
-		; call near PrintLogNumber
-
 		cmp al, 0x00 ; CODE_HALT
 		je near Main_loop_commands_table_break
-
 		cmp al, 0x01 ; CODE_DRAW_BKG
 		je near GameDrawBkg
 		cmp al, 0x02 ; CODE_DRAW_PIXEL
@@ -249,11 +258,14 @@ Main_loop_commands_table:
 
 		; Next command
 Main_loop_commands_table_continue:
-		add si, 8 ; Draw command size
+		add si, COMMAND_SIZE
 		cmp si, COMMANDS_TABLE_SIZE
 		jb Main_loop_commands_table
 
 Main_loop_commands_table_break:
+		pop bx
+
+		; --- Commands table iteration ends here ---
 
 		; Copy from buffer to VGA memory
 		mov dx, seg_buffer_data
@@ -267,8 +279,9 @@ Main_loop_commands_table_break:
 		mov cx, BUFFER_DATA_SIZE
 		call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
-		pop ds
-		pop bx
+		; Welcome back to 'seg_data' (where everything is near)
+		mov dx, seg_data
+		mov ds, dx
 
 		; End time
 		call near TimeGet ; (ax = return, ds implicit)

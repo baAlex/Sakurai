@@ -24,6 +24,7 @@ UNIX_NL = 0x0A ; Log messages uses it
 KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
                         ; requires changes on the code
 
+COMMAND_SIZE = 8
 COMMANDS_TABLE_LEN = 28
 COMMANDS_TABLE_SIZE = 224 ; In bytes
 GAME_SIZE = 16392 ; In bytes
@@ -137,21 +138,7 @@ segment seg_game_data
 	game_data: rb GAME_SIZE
 
 GameFrame:
-	push ax
-	push bx
-	push cx
-	push ds
-
-	mov ax, seg_game_data
-	mov ds, ax
-
 	call near game_data ; Near call near
-	inc word [frame_counter]
-
-	pop ds
-	pop cx
-	pop bx
-	pop ax
 	retf ; Far return (CPU sets CS accordingly)
 
 
