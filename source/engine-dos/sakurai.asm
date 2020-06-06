@@ -221,7 +221,7 @@ Main_loop_no_sleep:
 
 		mov dx, seg_game_data
 		mov ds, dx
-		mov si, 0x0000
+		mov si, commands_table
 
 Main_loop_commands_table:
 		mov eax, [si] ; Code, Color, Width, Height, Filename

@@ -29,20 +29,14 @@ SOFTWARE.
 -----------------------------*/
 
 #include "state.h"
+#include "utilities.h"
+
 
 #define TEST4
 
-#if defined(GAME)
-static void* (*s_next_function)() = StateGame;
-#elif defined(TEST4)
-static void* (*s_next_function)() = StateTest4;
-#elif defined(TEST3)
-static void* (*s_next_function)() = StateTest3;
-#elif defined(TEST2)
-static void* (*s_next_function)() = StateTest2;
-#else
-static void* (*s_next_function)() = StateTest1;
-#endif
+
+void* Hello();
+static void* (*s_next_function)() = Hello;
 
 
 int main()
@@ -50,3 +44,28 @@ int main()
 	s_next_function = (void *(*)())s_next_function(); /* void *(*)() !!! */
 	return 0;
 }
+
+
+void* Hello()
+{
+	IntPrintText("Tanaka's magical business v0.2-alpha\n");
+	IntPrintText("- Max commands: ");
+	IntPrintNumber((*(uint16_t*)MAX_COMMANDS_OFFSET));
+	IntPrintText("- Current milliseconds: ");
+	IntPrintNumber((*(uint16_t*)MS_COUNTER_OFFSET));
+	IntPrintText("\n");
+
+	#if defined(GAME)
+	return StateGame();
+	#elif defined(TEST4)
+	return StateTest4();
+	#elif defined(TEST3)
+	return StateTest3();
+	#elif defined(TEST2)
+	return StateTest2();
+	#else
+	return StateTest1();
+	#endif
+}
+
+

@@ -24,8 +24,8 @@ UNIX_NL = 0x0A ; Log messages uses it
 KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
                         ; requires changes on the code
 
-COMMANDS_TABLE_LEN = 24
-COMMANDS_TABLE_SIZE = 192 ; In bytes
+COMMANDS_TABLE_LEN = 28
+COMMANDS_TABLE_SIZE = 224 ; In bytes
 GAME_SIZE = 16392 ; In bytes
 
 
@@ -46,7 +46,7 @@ segment seg_data
 
 	; Log
 	str_separator: db UNIX_NL, "===============================", UNIX_NL, 0x00
-	str_hello: db "Sakurai v0.1", UNIX_NL, 0x00
+	str_hello: db "Sakurai v0.2-alpha", UNIX_NL, 0x00
 
 	str_time_init: db "Initializing time module...", UNIX_NL, 0x00
 	str_keyboard_init: db "Initializing keyboard module...", UNIX_NL, 0x00
@@ -102,26 +102,38 @@ segment seg_data
 segment seg_game_data
 ; https://en.wikipedia.org/wiki/Program_Segment_Prefix
 
-	commands_table: times COMMANDS_TABLE_SIZE db 0x00 ; 192 bytes
-	frame_counter: dw 0x0000                          ; 2
-	ifd_arg1: dw 0x0000                               ; 2
-	ifd_arg2: dw 0x0000                               ; 2
-	ifd_arg3: dw 0x0000                               ; 2
-	ifd_arg4: dw 0x0000                               ; 2
-	input_x: db 0x00                                  ; 1
-	input_y: db 0x00                                  ; 1
-	input_a: db 0x00                                  ; 1
-	input_b: db 0x00                                  ; 1
-	input_up: db 0x00                                 ; 1
-	input_down: db 0x00                               ; 1
-	input_left: db 0x00                               ; 1
-	input_right: db 0x00                              ; 1
-	input_select: db 0x00                             ; 1
-	input_start: db 0x00                             ; 1
+	empty_word: dw 0x0000               ; 0x0000
+	frame_counter: dw 0x0000            ; 0x0002
+	ms_counter: dw 0x0000               ; 0x0004
+	max_commands: dw COMMANDS_TABLE_LEN ; 0x0006
+	ifd_arg1: dw 0x0000                 ; 0x0008
+	ifd_arg2: dw 0x0000                 ; 0x000A
+	ifd_arg3: dw 0x0000                 ; 0x000C
+	ifd_arg4: dw 0x0000                 ; 0x000E
+	                                    ; ---- 16 bytes
 
-	blank_psp: times 44 db 0x00                       ; 44
-	                                                  ; ---------
-	                                                  ; 256
+	input_x: db 0x00      ; 0x0010
+	input_y: db 0x00      ; 0x0011
+	input_a: db 0x00      ; 0x0012
+	input_b: db 0x00      ; 0x0013
+	input_up: db 0x00     ; 0x0014
+	input_down: db 0x00   ; 0x0015
+	input_left: db 0x00   ; 0x0016
+	input_right: db 0x00  ; 0x0017
+	input_select: db 0x00 ; 0x0018
+	input_start: db 0x00  ; 0x0019
+	unused1: db 0x00      ; 0x001A
+	unused2: db 0x00      ; 0x001B
+	unused3: db 0x00      ; 0x001C
+	unused4: db 0x00      ; 0x001D
+	unused5: db 0x00      ; 0x001E
+	unused6: db 0x00      ; 0x001F
+	                      ; ---- 16 bytes
+
+	commands_table: times COMMANDS_TABLE_SIZE db 0x00 ; 0x0020, 224 bytes
+
+	; --- PSP ends here ---
+
 	game_data: rb GAME_SIZE
 
 GameFrame:

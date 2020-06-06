@@ -30,16 +30,13 @@ SOFTWARE.
 
 #include "engine.h"
 
-#if defined(__BCC__) && defined(__MSDOS__)
-#define COMMANDS_TABLE_OFFSET 0x0000
-#else
-#define COMMANDS_TABLE_OFFSET 0x0001 /* Hack to silent clang-tidy */
-#endif
 
-#define INT_FD_ARG1_OFFSET 0x00C2
-#define INT_FD_ARG2_OFFSET 0x00C4
-#define INT_FD_ARG3_OFFSET 0x00C6
-#define INT_FD_ARG4_OFFSET 0x00C8
+#define INT_FD_ARG1_OFFSET 0x0008
+#define INT_FD_ARG2_OFFSET 0x000A
+#define INT_FD_ARG3_OFFSET 0x000C
+#define INT_FD_ARG4_OFFSET 0x000E
+
+#define COMMANDS_TABLE_OFFSET 0x0020
 
 #define CODE_HALT 0x00
 #define CODE_DRAW_BKG 0x01
