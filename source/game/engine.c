@@ -152,6 +152,8 @@ void IntUnloadAll()
 
 void IntFlushCommands()
 {
+	CmdHalt();
+
 #if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x06;
 	asm("int 0xFD");
@@ -159,12 +161,15 @@ void IntFlushCommands()
 }
 
 
+#define sIncrementCounter() {if ((s_cmd_counter += 1) == (MAX_COMMANDS -1)){ IntFlushCommands(); }}
+
+
 void CmdDrawBackground()
 {
 	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;
 	c->code = CODE_DRAW_BKG;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 
@@ -176,7 +181,7 @@ void CmdDrawPixel(uint16_t x, uint16_t y, uint8_t color)
 	c->shape.y = y;
 	c->shape.color = color;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 
@@ -190,7 +195,7 @@ void CmdDrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uin
 	c->shape.y = y;
 	c->shape.color = color;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 
@@ -203,7 +208,7 @@ void CmdDrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y)
 	c->shape.x = x;
 	c->shape.y = y;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 
@@ -217,7 +222,7 @@ void CmdDrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t
 	c->shape.y = y;
 	c->shape.color = color;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 
@@ -230,7 +235,7 @@ void CmdDrawSprite(uint8_t slot, uint16_t x, uint16_t y, uint8_t frame)
 	c->sprite.y = y;
 	c->sprite.frame = frame;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 
@@ -243,7 +248,7 @@ void CmdDrawText(uint8_t slot, uint16_t x, uint16_t y, char* text)
 	c->text.y = y;
 	c->text.text = (uint16_t)text;
 
-	s_cmd_counter += 1;
+	sIncrementCounter();
 }
 
 

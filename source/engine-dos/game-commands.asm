@@ -46,6 +46,7 @@ IterateGameCommands:
 	push di
 	push cx
 	push fs
+	push dx
 
 IterateGameCommands_loop:
 
@@ -81,6 +82,7 @@ IterateGameCommands_continue:
 	; Bye!
 IterateGameCommands_bye:
 
+	pop dx
 	pop fs
 	pop cx
 	pop di

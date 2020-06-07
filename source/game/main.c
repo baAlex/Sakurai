@@ -50,9 +50,9 @@ void* Hello()
 {
 	IntPrintText("Tanaka's magical business v0.2-alpha\n");
 	IntPrintText("- Max commands: ");
-	IntPrintNumber((*(uint16_t*)MAX_COMMANDS_OFFSET));
+	IntPrintNumber(MAX_COMMANDS);
 	IntPrintText("- Current milliseconds: ");
-	IntPrintNumber((*(uint16_t*)MS_COUNTER_OFFSET));
+	IntPrintNumber(CURRENT_MILLISECONDS);
 	IntPrintText("\n");
 
 	#if defined(GAME)

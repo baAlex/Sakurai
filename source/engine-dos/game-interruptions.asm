@@ -160,5 +160,20 @@ GameUnloadEverything:
 
 ;==============================
 GameFlushCommands:
+	push si
+	push es
+
+	mov si, seg_game_data
+	mov ds, si
+	mov si, seg_buffer_data
+	mov es, si
+
+	mov si, commands_table
+
+	call near IterateGameCommands ; (ds:si = commands table, es:0x0000 = destination buffer)
+
+	pop es
+	pop si
+
 	jmp near _IntFDVector_bye
 
