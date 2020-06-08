@@ -1,0 +1,5 @@
+1582848000|[«MS-DOS Game Jam #2» starts]
+1584316800|[Jam extended one month]
+1586390400|[One month left]
+1588377600|[One week left]
+1588982400|[Jam ends, version 1.0-alpha released]
