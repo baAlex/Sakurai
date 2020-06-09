@@ -12,6 +12,8 @@ elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 endif()
 
 set(SOURCES
+	"./source/engine-sdl/context-agnostic.c"
+	"./source/engine-sdl/context-sdl2.c"
 	"./source/engine-sdl/sakurai.c"
 	"./source/engine-sdl/glad/glad.c"
 	"./source/game/actor.c"
