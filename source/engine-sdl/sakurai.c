@@ -32,131 +32,49 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "glad/glad.h"
+#include "context.h"
 #include "japan-status.h"
 #include "japan-version.h"
 
-#include <SDL2/SDL.h>
-
 
 #define NAME "Sakurai"
-#define VERSION "0.2"
-
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
-#define WINDOW_MIN_WIDTH 320
-#define WINDOW_MIN_HEIGHT 240
+#define VERSION "0.2-alpha"
+#define NAME_FULL "Sakurai v0.2-alpha"
 
 
 int main()
 {
 	struct jaStatus st = {0};
+	struct ContextEvents evn = {0};
 
-	// Hello world!
-	SDL_version sdl_version = {0};
-	SDL_GetVersion(&sdl_version);
+	struct Context* context = NULL;
 
 	printf("%s v%s\n", NAME, VERSION);
-	printf("- LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
-	printf("- LibSDL2 %i.%i.%i\n", sdl_version.major, sdl_version.minor, sdl_version.patch);
+	printf(" - LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
 
-	// Initialize SDL
-	int sdl_initialized = 0;
-	SDL_Window* window = NULL;
-	SDL_GLContext* context = NULL;
-
-	if ((sdl_initialized = SDL_Init(SDL_INIT_VIDEO)) != 0)
-	{
-		fprintf(stderr, "\n%s\n", SDL_GetError());
-		jaStatusSet(&st, "main", JA_STATUS_ERROR, "SDL_Init()");
+	if ((context = ContextCreate(NULL, NAME_FULL, &st)) == NULL)
 		goto return_failure;
-	}
-
-	if ((window = SDL_CreateWindow(NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT,
-	                               SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) == NULL)
-	{
-		fprintf(stderr, "\n%s\n", SDL_GetError());
-		jaStatusSet(&st, "main", JA_STATUS_ERROR, "SDL_CreateWindow()");
-		goto return_failure;
-	}
-
-	if ((context = SDL_GL_CreateContext(window)) == NULL)
-	{
-		fprintf(stderr, "\n%s\n", SDL_GetError());
-		jaStatusSet(&st, "main", JA_STATUS_ERROR, "SDL_GL_CreateContext()");
-		goto return_failure;
-	}
-
-	SDL_SetWindowMinimumSize(window, WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
-	SDL_GL_SetSwapInterval(1);
-
-	// Initialize GLAD, after context creation
-	if (gladLoadGLES2Loader(SDL_GL_GetProcAddress) == 0)
-	{
-		jaStatusSet(&st, "main", JA_STATUS_ERROR, "gladLoad()");
-		goto return_failure;
-	}
-
-	printf("\n%s\n", glGetString(GL_VENDOR));
-	printf("%s\n", glGetString(GL_RENDERER));
-	printf("%s\n\n", glGetString(GL_VERSION));
-
-	glDisable(GL_DITHER);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(window);
-
-	// Main loop
-	SDL_Event e = {0};
-	bool exit = false;
 
 	while (1)
 	{
-		// Receive input
-		if (SDL_WaitEvent(&e) == 0) // Blocks!
-		{
-			fprintf(stderr, "\n%s\n", SDL_GetError());
-			jaStatusSet(&st, "main", JA_STATUS_ERROR, "SDL_WaitEvent()");
+		if (ContextUpdate(context, &evn, &st) != 0)
 			goto return_failure;
-		}
 
-		do
-		{
-			if (e.type == SDL_WINDOWEVENT)
-			{
-				if (e.window.event == SDL_WINDOWEVENT_CLOSE)
-					exit = true;
-			}
-		} while (SDL_PollEvent(&e) != 0);
-
-		// Exit?
-		if (exit == true)
+		if (evn.close == true)
 			break;
 
-		// Update screen
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapWindow(window);
+		printf("%s, %s, %s, %s, %s, %s\n", (evn.a == true) ? "A" : "-", (evn.b == true) ? "B" : "-",
+		       (evn.x == true) ? "X" : "-", (evn.y == true) ? "Y" : "-", (evn.lb == true) ? "LB" : "--",
+		       (evn.rb == true) ? "RB" : "--");
 	}
 
 	// Bye!
-	SDL_GL_DeleteContext(context);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-
-	printf("Bye!\n");
+	ContextDelete(context);
 	return EXIT_SUCCESS;
 
 return_failure:
 	if (context != NULL)
-		SDL_GL_DeleteContext(context);
-	if (window != NULL)
-		SDL_DestroyWindow(window);
-	if (sdl_initialized != 0)
-		SDL_Quit();
-
+		ContextDelete(context);
 	jaStatusPrint(NAME, st);
 	return EXIT_FAILURE;
 }

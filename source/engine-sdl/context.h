@@ -59,25 +59,25 @@ struct ContextEvents
 	// Input
 	bool a, b, x, y;
 	bool lb, rb;
-	bool view, menu, guide;
-	bool ls, rs;
+	bool view, menu, guide; // TODO
+	bool ls, rs;            // TODO
 
-	struct { float h, v; } pad;
-	struct { float h, v, t; } left_analog;
-	struct { float h, v, t; } right_analog;
+	struct { float h, v; } pad;             // TODO
+	struct { float h, v, t; } left_analog;  // TODO
+	struct { float h, v, t; } right_analog; // TODO
 
 	// Window
-	bool resized;
 	bool close;
-	struct jaVector2i window_size;
+	bool resized;                  // TODO
+	struct jaVector2i window_size; // TODO
 };
 
 
 // Context as object
 
 struct Context* ContextCreate(const struct jaConfiguration*, const char* caption, struct jaStatus* st);
+int ContextUpdate(struct Context* context, struct ContextEvents* out_events, struct jaStatus* st);
 void ContextDelete(struct Context* context);
-void ContextUpdate(struct Context* context, struct ContextEvents* out_events);
 
 int TakeScreenshot(const struct Context* context, const char* filename, struct jaStatus* st);
 

@@ -22,14 +22,17 @@ struct Context
 {
 	// ---- SDL2 side ----
 
+	SDL_Window* window;
+	SDL_GLContext* gl_context;
+
+	bool cfg_vsync;
+
+	struct ContextEvents events;
 
 	// ---- Agnostic side ----
 
 	bool cfg_wireframe;
 	enum Filter cfg_filter;
-
-	// Context as object
-	struct jaVector2i window_size;
 
 	// Context State
 	struct jaMatrix4 projection;
@@ -48,8 +51,6 @@ struct Context
 
 	struct Vertices aabb_vertices;
 	struct Index aabb_index;
-
-	size_t gl_calls;
 };
 
 #endif
