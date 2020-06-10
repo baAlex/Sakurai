@@ -50,6 +50,42 @@ SOFTWARE.
 #define UI_COLUMN_4_X (UI_COLUMN_3_X + 60)
 
 
+#define DIALOG_TIME 125
+
+
+/*-----------------------------
+
+ Dialog
+-----------------------------*/
+void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** text)
+{
+	uint16_t current_ms = CURRENT_MILLISECONDS;
+	uint16_t y = 140;
+	uint8_t i = 0;
+
+	if (current_ms == start_ms)
+		CmdDrawText(font_sprite, 12, y, character);
+	else
+	{
+		character = NULL;
+
+		for (i = 0; i < 4; i++)
+		{
+			if (current_ms > (start_ms + (DIALOG_TIME * (i + 1))) && text[i] != NULL)
+			{
+				character = text[i];
+				y += 12;
+			}
+			else
+				break;
+		}
+
+		if (character != NULL)
+			CmdDrawText(font_sprite, 12, y, character);
+	}
+}
+
+
 /*-----------------------------
 
  sPortraitsDraw()
@@ -98,7 +134,8 @@ void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_
 ------------------------------*/
 static uint8_t s_prev_action_selection = 255;
 
-void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor, struct Actor* hud_a, struct Actor* hud_b)
+void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a,
+                           struct Actor* hud_b)
 {
 	/*
 	TODO, in the future the actors themself should have an entry: 'actor->action[]'
@@ -109,7 +146,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
 
 	/* Hero name */
-	CmdDrawText(font_sprite, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, actor->persona->name);
+	CmdDrawText(font_sprite, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, persona->name);
 
 	/* Common actions */
 	CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y, "Attack");
@@ -117,7 +154,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
-	if (actor->persona == &g_persona[PERSONA_KURO])
+	if (persona == &g_persona[PERSONA_KURO])
 	{
 		CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Heal");
 		CmdDrawText(font_sprite, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Meditate");
@@ -131,7 +168,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	}
 }
 
-uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Actor* actor, uint8_t selection)
+uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Persona* persona, uint8_t selection)
 {
 	/*
 	TODO, same as before, every action should be in companion with a tip.
@@ -166,7 +203,7 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 		else if (selection == 4)
 			CmdDrawText(font_sprite, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
 
-		if (actor->persona == &g_persona[PERSONA_KURO])
+		if (persona == &g_persona[PERSONA_KURO])
 		{
 			if (selection == 2)
 				CmdDrawText(font_sprite, 8, 200 - 16, "Restores party HP.");

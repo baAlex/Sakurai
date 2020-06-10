@@ -54,7 +54,7 @@ static void* sFrame()
 		CmdDrawBackground();
 
 		/*HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor2);*/
-		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor1, &s_actor2);
+		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, s_actor1.persona, &s_actor1, &s_actor2);
 	}
 
 	/* Sprite oscillating in position */
@@ -65,7 +65,7 @@ static void* sFrame()
 	CmdDrawSprite(SPRITE_SAO, x, s_actor1.y, s_actor1.phase >> 4);
 
 	/* Pseudo-pseudo-random menu selection */
-	MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, &s_actor1, (uint8_t)(x >> 4) % 6);
+	MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
 
 	/* Bye! */
 	CmdHalt();

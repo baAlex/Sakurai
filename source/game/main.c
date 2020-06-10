@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define TEST3
+#define INTRO
 
 
 void* Hello();
@@ -57,6 +57,8 @@ void* Hello()
 
 	#if defined(GAME)
 	return StateGame();
+	#elif defined(INTRO)
+	return StateIntro();
 	#elif defined(TEST4)
 	return StateTest4();
 	#elif defined(TEST3)

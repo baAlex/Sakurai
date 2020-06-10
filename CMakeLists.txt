@@ -12,15 +12,16 @@ elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 endif()
 
 set(SOURCES
+	"./source/engine-sdl/glad/glad.c"
 	"./source/engine-sdl/context-agnostic.c"
 	"./source/engine-sdl/context-sdl2.c"
 	"./source/engine-sdl/sakurai.c"
-	"./source/engine-sdl/glad/glad.c"
 	"./source/game/actor.c"
 	"./source/game/actor-layout.c"
 	"./source/game/actor-traits.c"
 	"./source/game/engine.c"
 	"./source/game/fixed.c"
+	"./source/game/state-intro.c"
 	"./source/game/state-test1.c"
 	"./source/game/state-test2.c"
 	"./source/game/state-test3.c"
