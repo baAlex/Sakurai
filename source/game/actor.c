@@ -37,10 +37,16 @@ extern uint8_t EnemiesNumber(uint8_t battle_no);
 extern uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no);
 
 
+static uint16_t s_chances[ENEMIES_NO];
+
+
 uint8_t ActorsInitialize(uint8_t battle_no)
 {
 	uint8_t i = 0;
 	uint8_t enemies_no = 0;
+
+	uint16_t sum = 0;
+	uint8_t random = 0;
 
 	TraitsInitialize();
 
@@ -51,12 +57,21 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 	IntPrintText("Enemies chances:\n");
 
 	for (i = 0; i < ENEMIES_NO; i++)
-		IntPrintNumber((uint16_t)EnemyChances(i, UFixedMake(battle_no, 0)));
+	{
+		s_chances[i] = EnemyChances(i, UFixedMake(battle_no, 0));
+		sum += s_chances[i]; /* To normalizate */
+
+		IntPrintNumber(s_chances[i]);
+	}
 
 	/* Initialize actors */
+	g_actor[0].persona = &g_persona[PERSONA_KURO];
+	g_actor[1].persona = &g_persona[PERSONA_SAO];
+
 	for (i = 0; i < ACTORS_NO; i++)
 	{
-		Clear(&g_actor[i], sizeof(struct Actor));
+		if (i >= HEROES_NO)
+			Clear(&g_actor[i], sizeof(struct Actor));
 
 		g_actor[i].x = (uint16_t)i * 30;
 		g_actor[i].y = (uint16_t)i * 30;
@@ -64,20 +79,25 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 		g_actor[i].state = (i < enemies_no + HEROES_NO) ? ACTOR_STATE_IDLE : ACTOR_STATE_DEAD;
 		g_actor[i].phase = (uint8_t)Random();
 
+		if (g_actor[i].state == ACTOR_STATE_DEAD)
+			continue;
+
+		if (i >= HEROES_NO)
+		{
+		again:
+			random = ((uint8_t)Random() % ENEMIES_NO);
+			if ((Random() % sum) <= s_chances[random])
+				g_actor[i].persona = &g_persona[HEROES_NO + random];
+			else
+				goto again; /* TODO, limit this to some tries */
+		}
+
 		if (i >= HEROES_NO || battle_no == 0)
 		{
 			g_actor[i].health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
 		}
-
-		if (i >= HEROES_NO && g_actor[i].state != ACTOR_STATE_DEAD)
-		{
-			g_actor[i].persona = &g_persona[2];
-		}
 	}
-
-	g_actor[0].persona = &g_persona[PERSONA_KURO];
-	g_actor[1].persona = &g_persona[PERSONA_SAO];
 
 	return enemies_no;
 }

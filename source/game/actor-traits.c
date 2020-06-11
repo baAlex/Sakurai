@@ -151,4 +151,47 @@ void TraitsInitialize()
 		g_persona[5].action_a = &g_action[3]; /* Bite */
 		g_persona[5].action_b = &g_action[3];
 	}
+
+	/* Fast and delicate one */
+	{
+		g_persona[6].name = "Phibia";
+		g_persona[6].tags = TAG_ENEMY;
+
+		g_persona[6].idle_velocity = MAX(kuro->idle_velocity, sao->idle_velocity) << 1;
+		g_persona[6].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity) << 1;
+		g_persona[6].initial_health = 50;
+		g_persona[6].initial_magic = 0;
+
+		g_persona[6].actions_preference = 50;
+		g_persona[6].action_a = &g_action[3]; /* Bite */
+		g_persona[6].action_b = &g_action[3];
+	}
+
+	/* Who knows */
+	{
+		g_persona[7].name = "Viridi";
+		g_persona[7].tags = TAG_ENEMY;
+
+		g_persona[7].idle_velocity = MIN(kuro->idle_velocity, sao->idle_velocity) >> 1;
+		g_persona[7].recover_velocity = MIN(kuro->recover_velocity, sao->recover_velocity) >> 1;
+		g_persona[7].initial_health = 180;
+		g_persona[7].initial_magic = 0;
+
+		g_persona[7].actions_preference = 50;
+		g_persona[7].action_a = &g_action[3]; /* Bite */
+		g_persona[7].action_b = &g_action[3];
+	}
+	{
+		g_persona[8].name = "Ni";
+		g_persona[8].tags = TAG_ENEMY;
+
+		g_persona[8].idle_velocity = MAX(kuro->idle_velocity, sao->idle_velocity) >> 1;
+		g_persona[8].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity) >> 1;
+		g_persona[8].initial_health = 120;
+		g_persona[8].initial_magic = 0;
+
+		g_persona[8].actions_preference = 50;
+		g_persona[8].action_a = &g_action[3]; /* Bite */
+		g_persona[8].action_b = &g_action[3];
+	}
 }

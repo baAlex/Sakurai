@@ -12,7 +12,7 @@
 
 #define ACTORS_NO 6
 #define HEROES_NO 2
-#define ENEMIES_NO 4
+#define ENEMIES_NO 7
 
 #define ACTOR_STATE_DEAD 0
 #define ACTOR_STATE_IDLE 1

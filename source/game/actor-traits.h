@@ -11,7 +11,7 @@
 #include "engine.h"
 
 #define ACTIONS_NO 5
-#define PERSONAS_NO 6
+#define PERSONAS_NO 9
 
 #define PERSONA_KURO 0
 #define PERSONA_SAO 1
@@ -19,9 +19,9 @@
 #define PERSONA_ENEMY_B 3
 #define PERSONA_ENEMY_C 4
 #define PERSONA_ENEMY_D 5
-/*#define PERSONA_ENEMY_E 6
+#define PERSONA_ENEMY_E 6
 #define PERSONA_ENEMY_F 7
-#define PERSONA_ENEMY_G 8*/
+#define PERSONA_ENEMY_G 8
 
 #define TAG_NONE 0
 #define TAG_ENEMY 2

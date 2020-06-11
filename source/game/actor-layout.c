@@ -88,9 +88,10 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 #define BATTLES_NO 16 /* To fit on a DOS screen :( */
 #endif
 
-#define CHANCES_ATTACK 3 /* In number of battles*/
-#define CHANCES_DECAY 6  /* Same */
-#define BATTLES_DIV_ENEMIES 8 /* (BATTLES_NO / ENEMIES_NO) */
+#define CHANCES_ATTACK 8      /* In number of battles*/
+#define CHANCES_DECAY 3       /* Same */
+#define BATTLES_DIV_ENEMIES 4 /* (BATTLES_NO / ENEMIES_NO) */
+#define OFFSET 5
 
 ufixed_t sImaginaryLine(ufixed_t battle_no)
 {
@@ -110,7 +111,7 @@ uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no)
 	ufixed_t attack_end = attack_start + UFixedMake(CHANCES_ATTACK, 0);
 	ufixed_t decay_end = attack_start + UFixedMake(CHANCES_ATTACK + CHANCES_DECAY, 0);
 
-	battle_no += UFixedMake(1, 0);
+	battle_no += UFixedMake(OFFSET, 0);
 
 	if (battle_no >= attack_start)
 	{

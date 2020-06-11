@@ -2,7 +2,7 @@
 require "gnuplot"
 
 BATTLES_NO = 32
-ENEMIES_NO = 4
+ENEMIES_NO = 7
 
 NOISE_GATE = 40
 NOISE_MIN = 2
@@ -12,8 +12,10 @@ RETURN_MEDIAN = 1
 RETURN_SAWTOOTH = 2
 RETURN_TRIANGLE = 3
 
-CHANCES_ATTACK = 3 # In number of battles
-CHANCES_DECAY = 6  # Same
+CHANCES_ATTACK = 8      # In number of battles
+CHANCES_DECAY = 3       # Same
+BATTLES_DIV_ENEMIES = 4 # (BATTLES_NO / ENEMIES_NO)
+OFFSET = 5
 
 
 class Fixed
@@ -145,11 +147,11 @@ def EnemyChances(enemy_i, battle_no)
 
 	chances = Fixed.new(0, 0)
 
-	attack_start = Fixed.new(BATTLES_NO / ENEMIES_NO, 0) * Fixed.new(enemy_i, 0)
+	attack_start = Fixed.new(BATTLES_DIV_ENEMIES, 0) * Fixed.new(enemy_i, 0)
 	attack_end = attack_start + Fixed.new(CHANCES_ATTACK, 0)
 	decay_end = attack_start + Fixed.new(CHANCES_ATTACK + CHANCES_DECAY, 0)
 
-	battle_no += Fixed.new(1, 0)
+	battle_no += Fixed.new(OFFSET, 0)
 
 	if battle_no >= attack_start then
 
