@@ -40,9 +40,9 @@ struct Actor
 	uint8_t phase;
 };
 
-struct Actor g_actor[ACTORS_NO];
+struct Actor g_actor[ACTORS_NO]; /* ActorsInitialize() */
 
-void ActorsInitialize(uint8_t battle_no);
+uint8_t ActorsInitialize(uint8_t battle_no);
 void ActorsDraw();
 
 #endif

@@ -29,33 +29,57 @@ SOFTWARE.
 -----------------------------*/
 
 #include "actor.h"
+#include "fixed.h"
 #include "utilities.h"
 
 
-extern void ActorsTraitsInitialize();
 extern uint8_t EnemiesNumber(uint8_t battle_no);
-extern uint8_t EnemyChances(uint8_t enemy_i, uint8_t battle_no);
+extern uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no);
 
 
-void ActorsInitialize(uint8_t battle_no)
+uint8_t ActorsInitialize(uint8_t battle_no)
 {
 	uint8_t i = 0;
-	uint8_t enemies_no = EnemiesNumber(battle_no);
+	uint8_t enemies_no = 0;
 
-	ActorsTraitsInitialize();
+	TraitsInitialize();
 
+	/* Before the initialization we need to know, what kind and
+	number of actors we actually need, this depending on the battle */
+	enemies_no = EnemiesNumber(battle_no);
+
+	IntPrintText("Enemies chances:\n");
+
+	for (i = 0; i < ENEMIES_NO; i++)
+		IntPrintNumber((uint16_t)EnemyChances(i, UFixedMake(battle_no, 0)));
+
+	/* Initialize actors */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		Clear(&g_actor[i], sizeof(struct Actor));
 
-		g_actor[i].x = (uint16_t)i * 10;
-		g_actor[i].y = (uint16_t)i * 10;
+		g_actor[i].x = (uint16_t)i * 30;
+		g_actor[i].y = (uint16_t)i * 30;
 
-		if (i < enemies_no + HEROES_NO)
-			g_actor[i].state = ACTOR_STATE_IDLE;
-		else
-			g_actor[i].state = ACTOR_STATE_DEAD;
+		g_actor[i].state = (i < enemies_no + HEROES_NO) ? ACTOR_STATE_IDLE : ACTOR_STATE_DEAD;
+		g_actor[i].phase = (uint8_t)Random();
+
+		if (i >= HEROES_NO || battle_no == 0)
+		{
+			g_actor[i].health = g_actor[i].persona->initial_health;
+			g_actor[i].magic = g_actor[i].persona->initial_magic;
+		}
+
+		if (i >= HEROES_NO && g_actor[i].state != ACTOR_STATE_DEAD)
+		{
+			g_actor[i].persona = &g_persona[2];
+		}
 	}
+
+	g_actor[0].persona = &g_persona[PERSONA_KURO];
+	g_actor[1].persona = &g_persona[PERSONA_SAO];
+
+	return enemies_no;
 }
 
 
@@ -68,6 +92,6 @@ void ActorsDraw()
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		CmdDrawSprite(20, g_actor[i].x, g_actor[i].y, 0);
+		CmdDrawRectangle(1, 1, g_actor[i].x, g_actor[i].y, 36);
 	}
 }

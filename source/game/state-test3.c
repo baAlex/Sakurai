@@ -31,6 +31,7 @@ SOFTWARE.
 #include "state.h"
 #include "ui.h"
 #include "utilities.h"
+#include "actor-traits.h"
 
 static struct Actor s_actor1;
 static struct Actor s_actor2;
@@ -83,7 +84,7 @@ void* StateTest3()
 	IntLoadSprite("assets\\sayori.jvn", SPRITE_SAO);
 	IntLoadSprite("assets\\ui-items.jvn", SPRITE_ARROW);
 
-	ActorsInitialize(0); /* Here we only need it to initialize 'g_persona' */
+	TraitsInitialize();
 
 	/* Minimum necessary fields to draw the HUD... */
 	s_actor1.health = 100;

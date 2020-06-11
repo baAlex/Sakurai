@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define INTRO
+#define TEST4
 
 
 void* Hello();

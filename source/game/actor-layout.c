@@ -90,7 +90,7 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 
 #define CHANCES_ATTACK 3 /* In number of battles*/
 #define CHANCES_DECAY 6  /* Same */
-#define BATTLES_DIV_ENEMIES (BATTLES_NO / ENEMIES_NO)
+#define BATTLES_DIV_ENEMIES 8 /* (BATTLES_NO / ENEMIES_NO) */
 
 ufixed_t sImaginaryLine(ufixed_t battle_no)
 {

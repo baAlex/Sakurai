@@ -32,10 +32,9 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-static char s_buffer[4] = {0, 0, 0, 0};
+
 static uint8_t s_battle_no = 0;
 
-static uint16_t s_prev_time = 0;
 
 static void* sFrame()
 {
@@ -45,45 +44,19 @@ static void* sFrame()
 		if (s_battle_no >= 1)
 		{
 			s_battle_no -= 1;
-
-			ActorsInitialize(s_battle_no);
-			goto clean_redraw;
+			return (void*)StateTest4; /* Restarts the entire world */
 		}
 	}
 	else if (INPUT_RIGHT == 1)
 	{
 		if (s_battle_no < 255)
-			s_battle_no += 1;
-
-		ActorsInitialize(s_battle_no);
-		goto clean_redraw;
-	}
-
-	/* Random background, every four seconds
-	 - The second condition is to avoid the 'always true' state
-	 when the miliseconds counter overflows (because the poor 16 bits)
-	*/
-	if (CURRENT_MILLISECONDS > s_prev_time && (CURRENT_MILLISECONDS - s_prev_time) < 5000)
-	{
-		s_prev_time = CURRENT_MILLISECONDS + 4000;
-
-	clean_redraw:
-		switch (Random() % 4)
 		{
-		case 0: IntLoadBackground("assets\\bkg1.raw"); break;
-		case 1: IntLoadBackground("assets\\bkg2.raw"); break;
-		case 2: IntLoadBackground("assets\\bkg3.raw"); break;
-		case 3: IntLoadBackground("assets\\bkg4.raw");
+			s_battle_no += 1;
+			return (void*)StateTest4; /* Restarts the entire world */
 		}
-
-		CmdDrawBackground();
-
-		CmdDrawText(SPRITE_FONT1, 10, 0, "Battle number:");
-		CmdDrawText(SPRITE_FONT1, 70, 0, NumberToString(s_battle_no, s_buffer));
-
-		/*HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor2);*/
 	}
 
+	/* Draw actors */
 	ActorsDraw();
 
 	/* Bye! */
@@ -92,16 +65,73 @@ static void* sFrame()
 }
 
 
+/*-----------------------------
+
+ Start the new battle
+-----------------------------*/
+
+static uint16_t s_loading_start = 0;
+
+static void* sWait()
+{
+	/* We need to be sure of show the loading screen for at least 1.5 seconds */
+	if (CURRENT_MILLISECONDS > s_loading_start + 1500 || CURRENT_MILLISECONDS < s_loading_start)
+	{
+		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
+		return sFrame();
+	}
+
+	return (void*)sWait;
+}
+
 void* StateTest4()
 {
-	IntPrintText("# StateTest4\n");
+	uint8_t enemies_no = 0;
+	uint8_t i = 0;
+	uint16_t text_y = 0;
 
-	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
+	IntPrintText("# StateTest4\n");
+	IntUnloadAll();
+
+	/* Reload assets minimal assets for the 'loading' screen */
 	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
 	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
 
-	IntLoadSprite("assets\\sprite1.jvn", 20);
-	ActorsInitialize(s_battle_no);
+	switch (Random() % 4)
+	{
+	case 0: IntLoadBackground("assets\\bkg1.raw"); break;
+	case 1: IntLoadBackground("assets\\bkg2.raw"); break;
+	case 2: IntLoadBackground("assets\\bkg3.raw"); break;
+	case 3: IntLoadBackground("assets\\bkg4.raw");
+	}
 
-	return sFrame();
+	/* Draw and flush loading screen */
+	CmdDrawBackground();
+
+	enemies_no = ActorsInitialize(s_battle_no);
+	CmdDrawText(SPRITE_FONT2, 10, 10, (enemies_no > 1) ? "Monsters appear!" : "Monster appears!");
+
+	text_y = 10;
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (g_actor[i].state != ACTOR_STATE_DEAD && (g_actor[i].persona->tags & TAG_ENEMY))
+		{
+			text_y += 10;
+			CmdDrawText(SPRITE_FONT1, 10, text_y, g_actor[i].persona->name);
+		}
+	}
+
+	IntFlushCommands();
+
+	/* Load enemies sprites */
+	s_loading_start = CURRENT_MILLISECONDS;
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		/* TODO */
+	}
+
+	/* Bye! */
+	return sWait();
 }
