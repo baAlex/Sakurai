@@ -154,7 +154,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
-	if (persona == &g_persona[PERSONA_KURO])
+	if (persona == &g_heroes[HERO_KURO])
 	{
 		CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Heal");
 		CmdDrawText(font_sprite, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Meditate");
@@ -203,7 +203,7 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 		else if (selection == 4)
 			CmdDrawText(font_sprite, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
 
-		if (persona == &g_persona[PERSONA_KURO])
+		if (persona == &g_heroes[HERO_KURO])
 		{
 			if (selection == 2)
 				CmdDrawText(font_sprite, 8, 200 - 16, "Restores party HP.");

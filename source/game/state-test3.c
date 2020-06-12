@@ -93,8 +93,8 @@ void* StateTest3()
 	s_actor2.magic = 50;
 
 	/* ...and to draw the Action menu */
-	s_actor1.persona = &g_persona[PERSONA_SAO];
-	s_actor2.persona = &g_persona[PERSONA_KURO];
+	s_actor1.persona = &g_heroes[HERO_SAO];
+	s_actor2.persona = &g_heroes[HERO_KURO];
 
 	/* Finally, fields to draw the actor */
 	s_actor1.x = 160 - 32;

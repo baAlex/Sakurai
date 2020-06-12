@@ -47,9 +47,6 @@ void ActionHeal(struct Action* action, struct Actor* actor, struct Actor* target
 
 void TraitsInitialize()
 {
-	struct Persona* kuro = &g_persona[PERSONA_KURO];
-	struct Persona* sao = &g_persona[PERSONA_SAO];
-
 	/* Actions */
 	g_action[0].name = "Simple attack";
 	g_action[0].charge_velocity = 6;
@@ -78,120 +75,142 @@ void TraitsInitialize()
 
 	/* Heroes personalities */
 	{
-		kuro->name = "Kuro";
-		kuro->tags = TAG_NONE | TAG_LEVITATES;
+		g_heroes[HERO_KURO].name = "Kuro";
+		g_heroes[HERO_KURO].sprite_filename = "assets\\kuro.jvn";
+		g_heroes[HERO_KURO].tags = TAG_NONE | TAG_LEVITATES;
 
-		kuro->idle_velocity = 4;
-		kuro->recover_velocity = 15;
-		kuro->initial_health = 100;
-		kuro->initial_magic = 0;
+		g_heroes[HERO_KURO].idle_velocity = 4;
+		g_heroes[HERO_KURO].recover_velocity = 15;
+
+		g_heroes[HERO_KURO].initial_health = 100;
+		g_heroes[HERO_KURO].initial_magic = 0;
 	}
 	{
-		sao->name = "Sayori";
-		sao->tags = TAG_NONE;
+		g_heroes[HERO_SAO].name = "Sayori";
+		g_heroes[HERO_SAO].sprite_filename = "assets\\sayori.jvn";
+		g_heroes[HERO_SAO].tags = TAG_NONE;
 
-		sao->idle_velocity = 5;
-		sao->recover_velocity = 10;
-		sao->initial_health = 100;
-		sao->initial_magic = 30;
+		g_heroes[HERO_SAO].idle_velocity = 5;
+		g_heroes[HERO_SAO].recover_velocity = 10;
+
+		g_heroes[HERO_SAO].initial_health = 100;
+		g_heroes[HERO_SAO].initial_magic = 30;
 	}
 
 	/* "Well balanced" enemies personalities */
 	{
-		g_persona[2].name = "Ferment";
-		g_persona[2].tags = TAG_ENEMY;
+		g_enemies[0].name = "Ferment";
+		g_enemies[0].sprite_filename = "assets\\enemy-a.jvn";
+		g_enemies[0].tags = TAG_ENEMY;
 
-		g_persona[2].idle_velocity = MIN(kuro->idle_velocity, sao->idle_velocity);
-		g_persona[2].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity);
-		g_persona[2].initial_health = 40;
-		g_persona[2].initial_magic = 0;
+		g_enemies[0].idle_velocity = MIN(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity);
+		g_enemies[0].recover_velocity = MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity);
 
-		g_persona[2].actions_preference = 50;
-		g_persona[2].action_a = &g_action[3]; /* Bite */
-		g_persona[2].action_b = &g_action[3];
+		g_enemies[0].initial_health = 40;
+		g_enemies[0].initial_magic = 0;
+
+		g_enemies[0].actions_preference = 50;
+		g_enemies[0].action_a = &g_action[3]; /* Bite */
+		g_enemies[0].action_b = &g_action[3];
 	}
 	{
-		g_persona[3].name = "Wind Eye";
-		g_persona[3].tags = TAG_ENEMY | TAG_LEVITATES;
+		g_enemies[1].name = "Wind Eye";
+		g_enemies[1].sprite_filename = "assets\\enemy-b.jvn";
+		g_enemies[1].tags = TAG_ENEMY | TAG_LEVITATES;
 
-		g_persona[3].idle_velocity = MAX(kuro->idle_velocity, sao->idle_velocity);
-		g_persona[3].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity);
-		g_persona[3].initial_health = 60;
-		g_persona[3].initial_magic = 0;
+		g_enemies[1].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity);
+		g_enemies[1].recover_velocity = MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity);
 
-		g_persona[3].actions_preference = 70;
-		g_persona[3].action_a = &g_action[3]; /* Bite */
-		g_persona[3].action_b = &g_action[4]; /* Claws */
+		g_enemies[1].initial_health = 60;
+		g_enemies[1].initial_magic = 0;
+
+		g_enemies[1].actions_preference = 70;
+		g_enemies[1].action_a = &g_action[3]; /* Bite */
+		g_enemies[1].action_b = &g_action[4]; /* Claws */
 	}
 
 	/* Slow motion, bullet sponges */
 	{
-		g_persona[4].name = "Kingpin";
-		g_persona[4].tags = TAG_ENEMY;
+		g_enemies[2].name = "Kingpin";
+		g_enemies[2].sprite_filename = "assets\\enemy-c.jvn";
+		g_enemies[2].tags = TAG_ENEMY;
 
-		g_persona[4].idle_velocity = MIN(kuro->idle_velocity, sao->idle_velocity) >> 1;
-		g_persona[4].recover_velocity = MIN(kuro->recover_velocity, sao->recover_velocity) >> 1;
-		g_persona[4].initial_health = 180;
-		g_persona[4].initial_magic = 0;
+		g_enemies[2].idle_velocity = MIN(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
+		g_enemies[2].recover_velocity =
+		    MIN(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
 
-		g_persona[4].actions_preference = 50;
-		g_persona[4].action_a = &g_action[3]; /* Bite */
-		g_persona[4].action_b = &g_action[3];
+		g_enemies[2].initial_health = 180;
+		g_enemies[2].initial_magic = 0;
+
+		g_enemies[2].actions_preference = 50;
+		g_enemies[2].action_a = &g_action[3]; /* Bite */
+		g_enemies[2].action_b = &g_action[3];
 	}
 	{
-		g_persona[5].name = "Destroyer";
-		g_persona[5].tags = TAG_ENEMY;
+		g_enemies[3].name = "Destroyer";
+		g_enemies[3].sprite_filename = "assets\\enemy-d.jvn";
+		g_enemies[3].tags = TAG_ENEMY;
 
-		g_persona[5].idle_velocity = MAX(kuro->idle_velocity, sao->idle_velocity) >> 1;
-		g_persona[5].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity) >> 1;
-		g_persona[5].initial_health = 120;
-		g_persona[5].initial_magic = 0;
+		g_enemies[3].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
+		g_enemies[3].recover_velocity =
+		    MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
 
-		g_persona[5].actions_preference = 50;
-		g_persona[5].action_a = &g_action[3]; /* Bite */
-		g_persona[5].action_b = &g_action[3];
+		g_enemies[3].initial_health = 120;
+		g_enemies[3].initial_magic = 0;
+
+		g_enemies[3].actions_preference = 50;
+		g_enemies[3].action_a = &g_action[3]; /* Bite */
+		g_enemies[3].action_b = &g_action[3];
 	}
 
 	/* Fast and delicate one */
 	{
-		g_persona[6].name = "Phibia";
-		g_persona[6].tags = TAG_ENEMY;
+		g_enemies[4].name = "Phibia";
+		g_enemies[4].sprite_filename = "assets\\enemy-e.jvn";
+		g_enemies[4].tags = TAG_ENEMY;
 
-		g_persona[6].idle_velocity = MAX(kuro->idle_velocity, sao->idle_velocity) << 1;
-		g_persona[6].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity) << 1;
-		g_persona[6].initial_health = 50;
-		g_persona[6].initial_magic = 0;
+		g_enemies[4].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity);
+		g_enemies[4].recover_velocity = MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity);
 
-		g_persona[6].actions_preference = 50;
-		g_persona[6].action_a = &g_action[3]; /* Bite */
-		g_persona[6].action_b = &g_action[3];
+		g_enemies[4].initial_health = 50;
+		g_enemies[4].initial_magic = 0;
+
+		g_enemies[4].actions_preference = 50;
+		g_enemies[4].action_a = &g_action[3]; /* Bite */
+		g_enemies[4].action_b = &g_action[3];
 	}
 
 	/* Who knows */
 	{
-		g_persona[7].name = "Viridi";
-		g_persona[7].tags = TAG_ENEMY;
+		g_enemies[5].name = "Viridi";
+		g_enemies[5].sprite_filename = "assets\\enemy-f.jvn";
+		g_enemies[5].tags = TAG_ENEMY;
 
-		g_persona[7].idle_velocity = MIN(kuro->idle_velocity, sao->idle_velocity) >> 1;
-		g_persona[7].recover_velocity = MIN(kuro->recover_velocity, sao->recover_velocity) >> 1;
-		g_persona[7].initial_health = 180;
-		g_persona[7].initial_magic = 0;
+		g_enemies[5].idle_velocity = MIN(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
+		g_enemies[5].recover_velocity =
+		    MIN(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
 
-		g_persona[7].actions_preference = 50;
-		g_persona[7].action_a = &g_action[3]; /* Bite */
-		g_persona[7].action_b = &g_action[3];
+		g_enemies[5].initial_health = 180;
+		g_enemies[5].initial_magic = 0;
+
+		g_enemies[5].actions_preference = 50;
+		g_enemies[5].action_a = &g_action[3]; /* Bite */
+		g_enemies[5].action_b = &g_action[3];
 	}
 	{
-		g_persona[8].name = "Ni";
-		g_persona[8].tags = TAG_ENEMY;
+		g_enemies[6].name = "Ni";
+		g_enemies[6].sprite_filename = "assets\\enemy-g.jvn";
+		g_enemies[6].tags = TAG_ENEMY;
 
-		g_persona[8].idle_velocity = MAX(kuro->idle_velocity, sao->idle_velocity) >> 1;
-		g_persona[8].recover_velocity = MAX(kuro->recover_velocity, sao->recover_velocity) >> 1;
-		g_persona[8].initial_health = 120;
-		g_persona[8].initial_magic = 0;
+		g_enemies[6].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
+		g_enemies[6].recover_velocity =
+		    MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
 
-		g_persona[8].actions_preference = 50;
-		g_persona[8].action_a = &g_action[3]; /* Bite */
-		g_persona[8].action_b = &g_action[3];
+		g_enemies[6].initial_health = 120;
+		g_enemies[6].initial_magic = 0;
+
+		g_enemies[6].actions_preference = 50;
+		g_enemies[6].action_a = &g_action[3]; /* Bite */
+		g_enemies[6].action_b = &g_action[3];
 	}
 }

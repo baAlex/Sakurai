@@ -67,7 +67,7 @@ static void* sFrame()
 
 /*-----------------------------
 
- Start the new battle
+ Start a new battle
 -----------------------------*/
 
 static uint16_t s_loading_start = 0;
@@ -84,6 +84,18 @@ static void* sWait()
 	return (void*)sWait;
 }
 
+static void* sLoad()
+{
+	uint8_t i = 0;
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		/* TODO */
+	}
+
+	return sWait();
+}
+
 void* StateTest4()
 {
 	uint8_t enemies_no = 0;
@@ -93,7 +105,7 @@ void* StateTest4()
 	IntPrintText("# StateTest4\n");
 	IntUnloadAll();
 
-	/* Reload assets minimal assets for the 'loading' screen */
+	/* Reload minimal assets for the 'loading' screen */
 	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
 	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
 
@@ -105,7 +117,7 @@ void* StateTest4()
 	case 3: IntLoadBackground("assets\\bkg4.raw");
 	}
 
-	/* Draw and flush loading screen */
+	/* Draw loading screen */
 	CmdDrawBackground();
 
 	enemies_no = ActorsInitialize(s_battle_no);
@@ -122,16 +134,9 @@ void* StateTest4()
 		}
 	}
 
-	IntFlushCommands();
-
-	/* Load enemies sprites */
+	/* Bye! */
 	s_loading_start = CURRENT_MILLISECONDS;
 
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		/* TODO */
-	}
-
-	/* Bye! */
-	return sWait();
+	CmdHalt();
+	return sLoad;
 }

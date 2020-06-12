@@ -86,6 +86,32 @@ void Clear(void* dest, uint16_t size)
 }
 
 
+void Copy(void* org, void* dest, uint16_t size)
+{
+	void* end;
+
+	if ((size % 2) != 0)
+	{
+		*((uint8_t*)dest) = *((uint8_t*)org);
+		dest = (uint8_t*)dest + 1;
+		org = (uint8_t*)org + 1;
+		size -= 1;
+	}
+
+	if (size == 0)
+		return;
+
+	end = (uint8_t*)dest + size;
+
+	while (dest != end)
+	{
+		*((uint16_t*)dest) = *((uint16_t*)org);
+		dest = (uint16_t*)dest + 1;
+		org = (uint16_t*)org + 1;
+	}
+}
+
+
 char* NumberToString(uint8_t no, char* out)
 {
 	/* https://stackoverflow.com/a/32871108 */
