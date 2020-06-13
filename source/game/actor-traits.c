@@ -133,7 +133,7 @@ void TraitsInitialize()
 	{
 		g_enemies[2].name = "Kingpin";
 		g_enemies[2].sprite_filename = "assets\\enemy-c.jvn";
-		g_enemies[2].tags = TAG_ENEMY;
+		g_enemies[2].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[2].idle_velocity = MIN(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
 		g_enemies[2].recover_velocity =
@@ -149,7 +149,7 @@ void TraitsInitialize()
 	{
 		g_enemies[3].name = "Destroyer";
 		g_enemies[3].sprite_filename = "assets\\enemy-d.jvn";
-		g_enemies[3].tags = TAG_ENEMY;
+		g_enemies[3].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[3].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
 		g_enemies[3].recover_velocity =
@@ -167,7 +167,7 @@ void TraitsInitialize()
 	{
 		g_enemies[4].name = "Phibia";
 		g_enemies[4].sprite_filename = "assets\\enemy-e.jvn";
-		g_enemies[4].tags = TAG_ENEMY;
+		g_enemies[4].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[4].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity);
 		g_enemies[4].recover_velocity = MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity);
@@ -184,7 +184,7 @@ void TraitsInitialize()
 	{
 		g_enemies[5].name = "Viridi";
 		g_enemies[5].sprite_filename = "assets\\enemy-f.jvn";
-		g_enemies[5].tags = TAG_ENEMY;
+		g_enemies[5].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[5].idle_velocity = MIN(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
 		g_enemies[5].recover_velocity =
@@ -200,7 +200,7 @@ void TraitsInitialize()
 	{
 		g_enemies[6].name = "Ni";
 		g_enemies[6].sprite_filename = "assets\\enemy-g.jvn";
-		g_enemies[6].tags = TAG_ENEMY;
+		g_enemies[6].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[6].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
 		g_enemies[6].recover_velocity =

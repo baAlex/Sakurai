@@ -45,15 +45,14 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 {
 	uint8_t i = 0;
 	uint8_t e = 0;
-	uint8_t enemies_no = 0;
+	uint8_t enemies_no;
 	uint16_t sum = 0;
+
+	enemies_no = EnemiesNumber(battle_no);
 
 	TraitsInitialize();
 
-	/* Before the initialization we need to know, what kind and
-	number of actors we actually need, this depending on the battle */
-	enemies_no = EnemiesNumber(battle_no);
-
+	/* Enemies chances for this battle */
 	IntPrintText("Enemies chances:\n");
 
 	for (i = 0; i < ENEMIES_NO; i++)
@@ -64,27 +63,48 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 		IntPrintNumber(s_chances[i]);
 	}
 
-	/* Initialize actors */
-	Clear(g_actor, sizeof(struct Actor) * ACTORS_NO);
-
-	g_actor[0].persona = &g_heroes[HERO_KURO]; /* For now, the first two actors are the heroes, */
-	g_actor[1].persona = &g_heroes[HERO_SAO];  /* be caution of this trick on following 'for' and 'if' */
-
-	for (i = 0; i < ACTORS_NO; i++)
+	/* Reset heroes health and magic only if is the first battle */
+	if (battle_no == 0)
 	{
-		g_actor[i].x = (uint16_t)i * 30;
-		g_actor[i].y = (uint16_t)i * 30;
-
-		g_actor[i].state = (i < HEROES_NO + enemies_no) ? ACTOR_STATE_IDLE : ACTOR_STATE_DEAD;
-		g_actor[i].phase = (uint8_t)Random();
-
-		if (g_actor[i].state == ACTOR_STATE_DEAD)
-			continue;
-
-		/* If not an hero, chose a personality */
-		if (i >= HEROES_NO)
+		for (i = 0; i < HEROES_NO; i++)
 		{
+			Clear(&g_actor[i], sizeof(struct Actor));
+
+			g_actor[i].state = ACTOR_STATE_IDLE;
+			g_actor[i].health = g_actor[i].persona->initial_health;
+			g_actor[i].magic = g_actor[i].persona->initial_magic;
+		}
+	}
+
+	/* Initialize heroes constant information */
+	g_actor[0].persona = &g_heroes[HERO_KURO];
+	g_actor[0].x = 45;
+	g_actor[0].y = 60;
+	g_actor[0].phase = (uint8_t)Random();
+
+	g_actor[1].persona = &g_heroes[HERO_SAO];
+	g_actor[1].x = 16;
+	g_actor[1].y = 96;
+	g_actor[1].phase = (uint8_t)Random();
+
+	/* Initialize enemies, the remainder actors */
+	{
+		/* Set the state and chose a personality between the chances */
+		for (i = HEROES_NO; i < ACTORS_NO; i++)
+		{
+			Clear(&g_actor[i], sizeof(struct Actor));
+
+			if (i >= HEROES_NO + enemies_no) /* Exceeded number of enemies for this battle */
+			{
+				g_actor[i].state = ACTOR_STATE_DEAD;
+				continue;
+			}
+
+			g_actor[i].state = ACTOR_STATE_IDLE;
+			g_actor[i].phase = (uint8_t)Random();
+
 		again:
+
 			e = ((uint8_t)Random() % ENEMIES_NO);
 			if ((Random() % sum) <= s_chances[e])
 				g_actor[i].persona = &g_enemies[e];
@@ -92,50 +112,50 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 				goto again; /* TODO, limit this to some tries */
 		}
 
-		/* If not a hero or if the battle zero (including the case of a hero)
-		lets initialize actor health and magic based on their personality */
-		if (i >= HEROES_NO || battle_no == 0)
+		/* Shuffle positions, including those of enemies set as STATE_DEAD */
+		for (i = HEROES_NO; i < ACTORS_NO; i++)
 		{
+			e = ((uint8_t)Random() % (ACTORS_NO - HEROES_NO)) + HEROES_NO;
+			Copy(&g_actor[e], &s_actor_temp, sizeof(struct Actor));
+			Copy(&g_actor[i], &g_actor[e], sizeof(struct Actor));
+			Copy(&s_actor_temp, &g_actor[i], sizeof(struct Actor));
+		}
+
+		/* One last iteration */
+		Clear(s_chances, sizeof(uint16_t) * ENEMIES_NO); /* To reuse it */
+
+		for (i = HEROES_NO; i < ACTORS_NO; i++)
+		{
+			/* Set screen position */
+			if (i != HEROES_NO)
+			{
+				g_actor[i].x = g_actor[i - 1].x + 32;
+				g_actor[i].y = g_actor[i - 1].y + 12;
+			}
+			else
+			{
+				g_actor[i].x = 144;
+				g_actor[i].y = 60;
+			}
+
+			if (g_actor[i].state == ACTOR_STATE_DEAD)
+				continue;
+
+			/* Ensure that difficult enemies don't appear more than twice */
+			e = EnemyPersonaIndex(g_actor[i].persona);
+			s_chances[e] += 1; /* Reused to count appearances */
+
+			if ((g_actor[i].persona->tags & TAG_DIFFICULT) && s_chances[e] > 2)
+			{
+				IntPrintText("Replaced difficult enemy ");
+				IntPrintNumber(e);
+				g_actor[i].persona = &g_enemies[Random() % 2]; /* HARDCODED */
+			}
+
+			/* Finally set health and magic based on the personality */
 			g_actor[i].health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
 		}
-	}
-
-	/* Ensure that difficult enemies don't appear more than twice */
-	Clear(s_chances, sizeof(uint16_t) * ENEMIES_NO); /* To reuse it */
-
-	for (i = HEROES_NO; i < ACTORS_NO; i++)
-	{
-		if (g_actor[i].state == ACTOR_STATE_DEAD)
-			continue;
-
-		e = EnemyPersonaIndex(g_actor[i].persona);
-		s_chances[e] += 1;
-
-		/* The two first enemies are to easy to consider them */
-		if (e < 2)
-			continue;
-
-		/* Difficult enemy more than twice!!!, lets replace it
-		with one of the two first enemies */
-		if (s_chances[e] > 2)
-		{
-			IntPrintText("Replaced difficult enemy ");
-			IntPrintNumber(e);
-
-			g_actor[i].persona = &g_enemies[Random() % 2];
-			g_actor[i].health = g_actor[i].persona->initial_health;
-			g_actor[i].magic = g_actor[i].persona->initial_magic;
-		}
-	}
-
-	/* Shuffle positions, this invalidate the 'heroes first' trick */
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		e = ((uint8_t)Random() % ACTORS_NO);
-		Copy(&g_actor[e], &s_actor_temp, sizeof(struct Actor));
-		Copy(&g_actor[i], &g_actor[e], sizeof(struct Actor));
-		Copy(&s_actor_temp, &g_actor[i], sizeof(struct Actor));
 	}
 
 	return enemies_no;
@@ -151,6 +171,6 @@ void ActorsDraw()
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		CmdDrawRectangle(1, 1, g_actor[i].x, g_actor[i].y, 36);
+		CmdDrawRectangle(4, 6, g_actor[i].x, g_actor[i].y, 36);
 	}
 }

@@ -20,6 +20,7 @@
 #define TAG_NONE 0
 #define TAG_ENEMY 2
 #define TAG_LEVITATES 4
+#define TAG_DIFFICULT 8
 
 struct Actor;
 struct Action;
