@@ -32,11 +32,6 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "context.h"
-#include "japan-status.h"
-#include "japan-version.h"
-
-
 #define NAME "Sakurai"
 #define VERSION "0.2-alpha"
 #define NAME_FULL "Sakurai v0.2-alpha"
@@ -44,37 +39,6 @@ SOFTWARE.
 
 int main()
 {
-	struct jaStatus st = {0};
-	struct ContextEvents evn = {0};
-
-	struct Context* context = NULL;
-
 	printf("%s v%s\n", NAME, VERSION);
-	printf(" - LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
-
-	if ((context = ContextCreate(NULL, NAME_FULL, &st)) == NULL)
-		goto return_failure;
-
-	while (1)
-	{
-		if (ContextUpdate(context, &evn, &st) != 0)
-			goto return_failure;
-
-		if (evn.close == true)
-			break;
-
-		printf("%s, %s, %s, %s, %s, %s\n", (evn.a == true) ? "A" : "-", (evn.b == true) ? "B" : "-",
-		       (evn.x == true) ? "X" : "-", (evn.y == true) ? "Y" : "-", (evn.lb == true) ? "LB" : "--",
-		       (evn.rb == true) ? "RB" : "--");
-	}
-
-	// Bye!
-	ContextDelete(context);
 	return EXIT_SUCCESS;
-
-return_failure:
-	if (context != NULL)
-		ContextDelete(context);
-	jaStatusPrint(NAME, st);
-	return EXIT_FAILURE;
 }
