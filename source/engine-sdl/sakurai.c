@@ -32,6 +32,9 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "japan-version.h"
+#include "kansai-version.h"
+
 #define NAME "Sakurai"
 #define VERSION "0.2-alpha"
 #define NAME_FULL "Sakurai v0.2-alpha"
@@ -40,5 +43,8 @@ SOFTWARE.
 int main()
 {
 	printf("%s v%s\n", NAME, VERSION);
+	printf(" - LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
+	printf(" - LibKansai %i.%i.%i\n", kaVersionMajor(), kaVersionMinor(), kaVersionPatch());
+
 	return EXIT_SUCCESS;
 }
