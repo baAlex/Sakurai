@@ -17,6 +17,9 @@
 #define ACTOR_STATE_CHARGE 2
 #define ACTOR_STATE_ATTACK 3
 
+#define ACTOR_KURO 0
+#define ACTOR_SAO 1
+
 struct Action;
 struct Persona;
 
@@ -31,7 +34,7 @@ struct Actor
 	uint8_t health;
 	uint8_t magic;
 
-	uint8_t idle_timer;
+	uint8_t idle_timer; /* From 0 to 255 */
 	uint8_t recover_timer;
 	uint8_t charge_timer;
 
@@ -42,5 +45,7 @@ struct Actor g_actor[ACTORS_NO]; /* ActorsInitialize() */
 
 uint8_t ActorsInitialize(uint8_t battle_no);
 void ActorsDraw();
+
+void ActorLogic(struct Actor* actor);
 
 #endif

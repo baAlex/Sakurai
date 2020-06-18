@@ -63,20 +63,8 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 		IntPrintNumber(s_chances[i]);
 	}
 
-	/* Reset heroes health and magic only if is the first battle */
-	if (battle_no == 0)
-	{
-		for (i = 0; i < HEROES_NO; i++)
-		{
-			Clear(&g_actor[i], sizeof(struct Actor));
-
-			g_actor[i].state = ACTOR_STATE_IDLE;
-			g_actor[i].health = g_actor[i].persona->initial_health;
-			g_actor[i].magic = g_actor[i].persona->initial_magic;
-		}
-	}
-
-	/* Initialize heroes constant information */
+	/* Initialize heroes constant information, reset heroes health
+	and magic only if is the first battle */
 	g_actor[0].persona = &g_heroes[HERO_KURO];
 	g_actor[0].x = 45;
 	g_actor[0].y = 60;
@@ -84,8 +72,23 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 
 	g_actor[1].persona = &g_heroes[HERO_SAO];
 	g_actor[1].x = 16;
-	g_actor[1].y = 96;
+	g_actor[1].y = 90;
 	g_actor[1].phase = (uint8_t)Random();
+
+	if (battle_no == 0)
+	{
+		for (i = 0; i < HEROES_NO; i++)
+		{
+			g_actor[i].state = ACTOR_STATE_IDLE;
+			g_actor[i].health = g_actor[i].persona->initial_health;
+			g_actor[i].magic = g_actor[i].persona->initial_magic;
+
+			g_actor[i].action = NULL;
+			g_actor[i].idle_timer = 0;
+			g_actor[i].charge_timer = 0;
+			g_actor[i].recover_timer = 0;
+		}
+	}
 
 	/* Initialize enemies, the remainder actors */
 	{
@@ -130,7 +133,7 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 			if (i != HEROES_NO)
 			{
 				g_actor[i].x = g_actor[i - 1].x + 32;
-				g_actor[i].y = g_actor[i - 1].y + 12;
+				g_actor[i].y = g_actor[i - 1].y + 10;
 			}
 			else
 			{
@@ -165,12 +168,96 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 void ActorsDraw()
 {
 	uint8_t i = 0;
+	uint8_t width = 0;
+	uint8_t color = 0;
+	uint16_t x = 0;
 
+	/* Clean area */
+	CmdDrawRectangleBkg(20 /* 320 px */, 8 /* 128 px */, 0, 60);
+
+	/* Draw actors */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		CmdDrawRectangle(4, 6, g_actor[i].x, g_actor[i].y, 36);
+		/* Settings according the state */
+		switch (g_actor[i].state)
+		{
+		case ACTOR_STATE_IDLE:
+			color = 8;
+			width = (g_actor[i].idle_timer >> 3); /* Max of 32 px */
+			x = g_actor[i].x;
+			break;
+
+		case ACTOR_STATE_CHARGE:
+			color = 41;
+			width = (g_actor[i].charge_timer >> 3); /* Max of 32 px */
+
+			g_actor[i].phase += g_actor[i].action->oscillation_velocity;
+			x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
+			break;
+
+		default: break;
+		}
+
+		if (g_actor[i].recover_timer > 0) /* Overwrite of previous two */
+			color = 60;
+
+		/* Draw sprite */
+		CmdDrawRectangle(4, 6, x, g_actor[i].y, 36);
+
+		/* Draw time meter */
+		CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 16);
+
+		if (width > 0)
+			CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, color);
+	}
+}
+
+
+static void sSetIdle(struct Actor* actor)
+{
+	actor->idle_timer = 0;
+	actor->state = ACTOR_STATE_IDLE;
+}
+
+
+static void sSetCharge(struct Actor* actor)
+{
+	uint8_t i = 0;
+
+	actor->charge_timer = 0;
+	actor->state = ACTOR_STATE_CHARGE;
+
+	/* Chose an attack */
+	if ((uint8_t)(Random() % 100) < actor->persona->actions_preference)
+		actor->action = actor->persona->action_a;
+	else
+		actor->action = actor->persona->action_b;
+
+	/* Chose a target */
+}
+
+
+void ActorLogic(struct Actor* actor)
+{
+	switch (actor->state)
+	{
+	case ACTOR_STATE_IDLE:
+		if (actor->idle_timer < (255 - actor->persona->idle_velocity))
+			actor->idle_timer += actor->persona->idle_velocity;
+		else
+			sSetCharge(actor);
+		break;
+
+	case ACTOR_STATE_CHARGE:
+		if (actor->charge_timer < (255 - actor->action->charge_velocity))
+			actor->charge_timer += actor->action->charge_velocity;
+		else
+			sSetIdle(actor);
+		break;
+
+	default: break;
 	}
 }

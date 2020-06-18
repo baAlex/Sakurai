@@ -38,6 +38,8 @@ static uint8_t s_battle_no = 0;
 
 static void* sFrame()
 {
+	uint8_t i = 0;
+
 	/* Re-initialize actors on user demand */
 	if (INPUT_LEFT == 1)
 	{
@@ -54,6 +56,15 @@ static void* sFrame()
 			s_battle_no += 1;
 			return (void*)StateTest4; /* Restarts the entire world */
 		}
+	}
+
+	/* Game logic */
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (g_actor[i].state == ACTOR_STATE_DEAD) /* You are dead, not big surprise */
+			continue;
+
+		ActorLogic(&g_actor[i]);
 	}
 
 	/* Draw actors */
@@ -75,18 +86,21 @@ static uint16_t s_loading_start = 0;
 static void* sWait()
 {
 	/* We need to be sure of show the loading screen for at least 1.5 seconds */
-	if (CURRENT_MILLISECONDS > s_loading_start + 1500 || CURRENT_MILLISECONDS < s_loading_start)
-	{
-		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
-		return sFrame();
-	}
+	if (CURRENT_MILLISECONDS < s_loading_start + 1500 && CURRENT_MILLISECONDS > s_loading_start)
+		return (void*)sWait;
 
-	return (void*)sWait;
+	/* Next state! */
+	CmdDrawBackground();
+	HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_KURO], &g_actor[ACTOR_SAO]);
+
+	return sFrame();
 }
 
 static void* sLoad()
 {
 	uint8_t i = 0;
+
+	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
 
 	for (i = 0; i < ACTORS_NO; i++)
 	{
@@ -138,5 +152,5 @@ void* StateTest4()
 	s_loading_start = CURRENT_MILLISECONDS;
 
 	CmdHalt();
-	return sLoad;
+	return (void*)sLoad;
 }

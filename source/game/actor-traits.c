@@ -50,26 +50,31 @@ void TraitsInitialize()
 	/* Actions */
 	g_action[0].name = "Simple attack";
 	g_action[0].charge_velocity = 6;
+	g_action[0].oscillation_velocity = 20;
 	g_action[0].callback = ActionAttack;
 	g_action[0].amount = 20;
 
 	g_action[1].name = "Combined attack";
 	g_action[1].charge_velocity = 3;
+	g_action[1].oscillation_velocity = 10;
 	g_action[1].callback = ActionAttack;
 	g_action[1].amount = 60;
 
 	g_action[2].name = "Heal";
 	g_action[2].charge_velocity = 6;
+	g_action[2].oscillation_velocity = 40;
 	g_action[2].callback = ActionHeal;
 	g_action[2].amount = 80;
 
 	g_action[3].name = "Bite";
 	g_action[3].charge_velocity = 6;
+	g_action[3].oscillation_velocity = 20;
 	g_action[3].callback = ActionAttack;
 	g_action[3].amount = 10;
 
 	g_action[4].name = "Claws";
 	g_action[4].charge_velocity = 4;
+	g_action[4].oscillation_velocity = 15;
 	g_action[4].callback = ActionAttack;
 	g_action[4].amount = 15;
 
@@ -84,6 +89,10 @@ void TraitsInitialize()
 
 		g_heroes[HERO_KURO].initial_health = 100;
 		g_heroes[HERO_KURO].initial_magic = 0;
+
+		g_heroes[HERO_KURO].actions_preference = 50;
+		g_heroes[HERO_KURO].action_a = &g_action[1]; /* Combined attack */
+		g_heroes[HERO_KURO].action_b = &g_action[1];
 	}
 	{
 		g_heroes[HERO_SAO].name = "Sayori";
@@ -95,6 +104,10 @@ void TraitsInitialize()
 
 		g_heroes[HERO_SAO].initial_health = 100;
 		g_heroes[HERO_SAO].initial_magic = 30;
+
+		g_heroes[HERO_SAO].actions_preference = 50;
+		g_heroes[HERO_SAO].action_a = &g_action[0]; /* Simple attack */
+		g_heroes[HERO_SAO].action_b = &g_action[0];
 	}
 
 	/* "Well balanced" enemies personalities */

@@ -30,6 +30,7 @@ struct Action
 	char* name;
 	void (*callback)(struct Action*, struct Actor*, struct Actor*);
 	uint8_t charge_velocity;
+	uint8_t oscillation_velocity;
 
 	/* Action dependent: */
 	uint8_t amount;
@@ -59,5 +60,5 @@ struct Persona g_enemies[ENEMIES_NO]; /* TraitsInitialize() */
 
 void TraitsInitialize();
 
-#define EnemyPersonaIndex(persona) ((uint8_t)((persona) - g_enemies))
+#define EnemyPersonaIndex(persona) ((uint8_t)((persona)-g_enemies))
 #endif
