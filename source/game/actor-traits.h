@@ -28,7 +28,7 @@ struct Action;
 struct Action
 {
 	char* name;
-	void (*callback)(struct Action*, struct Actor*, struct Actor*);
+	void (*callback)(struct Action*, struct Actor*);
 	uint8_t charge_velocity;
 	uint8_t oscillation_velocity;
 

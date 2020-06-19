@@ -16,6 +16,7 @@
 #define ACTOR_STATE_IDLE 1
 #define ACTOR_STATE_CHARGE 2
 #define ACTOR_STATE_ATTACK 3
+#define ACTOR_STATE_VICTORY 4
 
 #define ACTOR_KURO 0
 #define ACTOR_SAO 1
@@ -30,13 +31,14 @@ struct Actor
 	uint16_t x;
 	uint16_t y;
 
+	struct Actor* target;
 	uint8_t state;
+
 	uint8_t health;
 	uint8_t magic;
-
-	uint8_t idle_timer; /* From 0 to 255 */
-	uint8_t recover_timer;
-	uint8_t charge_timer;
+	uint8_t idle_timer;    /* From 0 to 255 */
+	uint8_t charge_timer;  /* From 0 to 255 */
+	uint8_t recover_timer; /* From 255 to 0 */
 
 	uint8_t phase;
 };

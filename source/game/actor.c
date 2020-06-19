@@ -68,25 +68,32 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 	g_actor[0].persona = &g_heroes[HERO_KURO];
 	g_actor[0].x = 45;
 	g_actor[0].y = 60;
-	g_actor[0].phase = (uint8_t)Random();
 
 	g_actor[1].persona = &g_heroes[HERO_SAO];
 	g_actor[1].x = 16;
 	g_actor[1].y = 90;
-	g_actor[1].phase = (uint8_t)Random();
 
-	if (battle_no == 0)
+	for (i = 0; i < HEROES_NO; i++)
 	{
-		for (i = 0; i < HEROES_NO; i++)
+		g_actor[i].target = NULL;
+		g_actor[i].phase = (uint8_t)Random();
+		g_actor[i].action = NULL;
+		g_actor[i].idle_timer = 0;
+		g_actor[i].charge_timer = 0;
+		g_actor[i].recover_timer = 0;
+
+		if (battle_no == 0)
 		{
+			/* Revive heroes for battle zero */
 			g_actor[i].state = ACTOR_STATE_IDLE;
 			g_actor[i].health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
-
-			g_actor[i].action = NULL;
-			g_actor[i].idle_timer = 0;
-			g_actor[i].charge_timer = 0;
-			g_actor[i].recover_timer = 0;
+		}
+		else
+		{
+			/* Just reset state for other battles */
+			if (g_actor[i].state != ACTOR_STATE_DEAD)
+				g_actor[i].state = ACTOR_STATE_IDLE;
 		}
 	}
 
@@ -181,49 +188,93 @@ void ActorsDraw()
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
-		/* Settings according the state */
-		switch (g_actor[i].state)
+		/* Most states just require an static sprite */
+		if (g_actor[i].state != ACTOR_STATE_CHARGE)
 		{
-		case ACTOR_STATE_IDLE:
 			color = 8;
-			width = (g_actor[i].idle_timer >> 3); /* Max of 32 px */
 			x = g_actor[i].x;
-			break;
 
-		case ACTOR_STATE_CHARGE:
+			if (g_actor[i].state == ACTOR_STATE_IDLE)
+				width = (g_actor[i].idle_timer >> 3); /* Max of 32 px */
+			else
+				width = 0;
+		}
+
+		/* Charge requires an oscillating sprite */
+		else
+		{
 			color = 41;
 			width = (g_actor[i].charge_timer >> 3); /* Max of 32 px */
 
-			g_actor[i].phase += g_actor[i].action->oscillation_velocity;
-			x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
-			break;
+			if (g_actor[i].recover_timer == 0)
+				g_actor[i].phase += g_actor[i].action->oscillation_velocity;
 
-		default: break;
+			x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
 		}
 
-		if (g_actor[i].recover_timer > 0) /* Overwrite of previous two */
+		if (g_actor[i].recover_timer > 0) /* Overwrite whatever state is */
 			color = 60;
 
 		/* Draw sprite */
 		CmdDrawRectangle(4, 6, x, g_actor[i].y, 36);
 
 		/* Draw time meter */
-		CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 16);
+		if (g_actor[i].state != ACTOR_STATE_VICTORY)
+		{
+			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 16);
 
-		if (width > 0)
-			CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, color);
+			if (width > 0)
+				CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, color);
+		}
 	}
 }
 
 
-static void sSetIdle(struct Actor* actor)
+static struct Actor* sFindTarget(struct Actor* actor)
+{
+	uint8_t i = 0;
+	uint8_t step = 0;
+
+	/* Find a hero for this enemy */
+	if (actor->persona->tags & TAG_ENEMY)
+	{
+		i = (uint8_t)Random() % HEROES_NO;
+
+		for (step = 0; step < HEROES_NO; step++)
+		{
+			if (g_actor[i].state != ACTOR_STATE_DEAD)
+				return &g_actor[i];
+
+			i = (i + 1) % HEROES_NO;
+		}
+	}
+
+	/* Find an enemy for this hero */
+	else
+	{
+		i = (uint8_t)Random() % (ACTORS_NO - HEROES_NO);
+
+		for (step = 0; step < (ACTORS_NO - HEROES_NO); step++)
+		{
+			if (g_actor[HEROES_NO + i].state != ACTOR_STATE_DEAD)
+				return &g_actor[HEROES_NO + i];
+
+			i = (i + 1) % (ACTORS_NO - HEROES_NO);
+		}
+	}
+
+	return NULL; /* No suitable target alive */
+}
+
+
+static void sSetIdleState(struct Actor* actor)
 {
 	actor->idle_timer = 0;
 	actor->state = ACTOR_STATE_IDLE;
 }
 
 
-static void sSetCharge(struct Actor* actor)
+static void sSetChargeState(struct Actor* actor)
 {
 	uint8_t i = 0;
 
@@ -237,25 +288,74 @@ static void sSetCharge(struct Actor* actor)
 		actor->action = actor->persona->action_b;
 
 	/* Chose a target */
+	if ((actor->target = sFindTarget(actor)) == NULL)
+	{
+		/* No target alive, is a victory then! */
+		actor->state = ACTOR_STATE_VICTORY;
+	}
+}
+
+
+static int sAttack(struct Actor* actor)
+{
+	/* If our target is dead, find another */
+	if (actor->target->state == ACTOR_STATE_DEAD)
+	{
+		if ((actor->target = sFindTarget(actor)) == NULL)
+			return 1; /* No luck */
+	}
+
+	/* Apply the action */
+	actor->target->recover_timer = 255; /* TODO: use an tag in the action */
+
+	actor->action->callback(actor->action, actor);
+
+	if (actor->target->health == 0)
+		actor->target->state = ACTOR_STATE_DEAD;
+
+	return 0;
 }
 
 
 void ActorLogic(struct Actor* actor)
 {
+	if (actor->recover_timer != 0)
+	{
+		if (actor->recover_timer > actor->persona->recover_velocity)
+		{
+			actor->recover_timer -= actor->persona->recover_velocity;
+			return;
+		}
+		else
+			actor->recover_timer = 0;
+	}
+
 	switch (actor->state)
 	{
 	case ACTOR_STATE_IDLE:
 		if (actor->idle_timer < (255 - actor->persona->idle_velocity))
 			actor->idle_timer += actor->persona->idle_velocity;
 		else
-			sSetCharge(actor);
+			sSetChargeState(actor); /* Can set victory */
 		break;
 
 	case ACTOR_STATE_CHARGE:
 		if (actor->charge_timer < (255 - actor->action->charge_velocity))
 			actor->charge_timer += actor->action->charge_velocity;
 		else
-			sSetIdle(actor);
+			/* Attack don't require any special setting
+			except those already set by sSetChargeState() */
+			actor->state = ACTOR_STATE_ATTACK;
+		break;
+
+	case ACTOR_STATE_ATTACK:
+		if (sAttack(actor) == 0)
+			sSetIdleState(actor);
+		else
+		{ /* If wasn't possible procede with the attack, means
+			 that there is nobody to attack */
+			actor->state = ACTOR_STATE_VICTORY;
+		}
 		break;
 
 	default: break;

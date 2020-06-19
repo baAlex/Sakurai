@@ -32,15 +32,15 @@ SOFTWARE.
 #include "utilities.h"
 
 
-void ActionAttack(struct Action* action, struct Actor* actor, struct Actor* target)
+void ActionAttack(struct Action* action, struct Actor* actor)
 {
-	(void)actor;
+	struct Actor* target = actor->target;
 	target->health = (target->health < action->amount) ? 0 : (target->health - action->amount);
 }
 
-void ActionHeal(struct Action* action, struct Actor* actor, struct Actor* target)
+void ActionHeal(struct Action* action, struct Actor* actor)
 {
-	(void)actor;
+	struct Actor* target = actor->target;
 	target->health = (target->health > (100 - action->amount)) ? 100 : (target->health + action->amount);
 }
 
