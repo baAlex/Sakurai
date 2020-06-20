@@ -34,29 +34,14 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-#define UI_WIDTH 19 /* 304 px */
-#define UI_HEIGHT 3 /* 48 px */
-#define UI_X 8
-#define UI_Y 6 /* Not 8 because the 1.2 ratio */
-
-#define UI_BACK_COLOR 15
-#define UI_LINE_SPACE 14 /* For Font2 */
-
-#define UI_PADDING_Y 3
-
-#define UI_COLUMN_1_X 8
-#define UI_COLUMN_2_X 110
-#define UI_COLUMN_3_X (UI_COLUMN_2_X + 60)
-#define UI_COLUMN_4_X (UI_COLUMN_3_X + 60)
-
-
-#define DIALOG_TIME 125
-
 
 /*-----------------------------
 
  Dialog
 -----------------------------*/
+
+#define DIALOG_TIME 125
+
 void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** text)
 {
 	uint16_t current_ms = CURRENT_MILLISECONDS;
@@ -90,6 +75,16 @@ void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** 
 
  sPortraitsDraw()
 -----------------------------*/
+
+#define PORTRAITS_X 13
+#define PORTRAITS_Y 10
+
+#define PORTRAITS_1ST_COL (PORTRAITS_X + 43)
+#define PORTRAITS_2ND_COL (PORTRAITS_X + 68)
+
+#define PORTRAITS_1ST_ROW (PORTRAITS_Y + 7)
+#define PORTRAITS_2ND_ROW (PORTRAITS_Y + 28)
+
 static char s_buffer1[4] = {0, 0, 0, 0};
 static char s_buffer2[4] = {0, 0, 0, 0};
 static char s_buffer3[4] = {0, 0, 0, 0};
@@ -99,21 +94,21 @@ static void sPortraitsDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct
 {
 	char* c;
 
-	CmdDrawSprite(portraits_sprite, UI_X + 2, UI_Y + 2, 0);
+	CmdDrawSprite(portraits_sprite, PORTRAITS_X, PORTRAITS_Y, 0);
 
 	/* Actor A */
 	c = NumberToString(actor_a->health, s_buffer3);
-	CmdDrawText(font_sprite, UI_X + 43, UI_Y + 9, c);
+	CmdDrawText(font_sprite, PORTRAITS_1ST_COL, PORTRAITS_1ST_ROW, c);
 
 	c = NumberToString(actor_a->magic, s_buffer4);
-	CmdDrawText(font_sprite, UI_X + 43 + 28, UI_Y + 9, c);
+	CmdDrawText(font_sprite, PORTRAITS_2ND_COL, PORTRAITS_1ST_ROW, c);
 
 	/* Actor B */
 	c = NumberToString(actor_b->health, s_buffer1);
-	CmdDrawText(font_sprite, UI_X + 43, UI_Y + 32, c);
+	CmdDrawText(font_sprite, PORTRAITS_1ST_COL, PORTRAITS_2ND_ROW, c);
 
 	c = NumberToString(actor_b->magic, s_buffer2);
-	CmdDrawText(font_sprite, UI_X + 43 + 28, UI_Y + 32, c);
+	CmdDrawText(font_sprite, PORTRAITS_2ND_COL, PORTRAITS_2ND_ROW, c);
 }
 
 
@@ -123,7 +118,7 @@ static void sPortraitsDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct
 -----------------------------*/
 void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
 {
-	CmdDrawRectangleBkg(6 /* 96 px */, 3 /* 48 px */, UI_X + 2, UI_Y + 2);
+	CmdDrawRectangleBkg(5 /* 80 px */, 3 /* 48 px */, PORTRAITS_X, PORTRAITS_Y);
 	sPortraitsDraw(portraits_sprite, font_sprite, actor_a, actor_b);
 }
 
@@ -132,6 +127,24 @@ void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_
 
  Action menu
 ------------------------------*/
+
+#define MENU_WIDTH 19 /* 304 px */
+#define MENU_HEIGHT 3 /* 48 px */
+#define MENU_X 8
+#define MENU_Y 6 /* Not 8 because the 1.2 ratio */
+
+#define MENU_BACK_COLOR 1
+#define MENU_OUTLINE_COLOR 3
+
+#define MENU_LINE_SPACE 14
+
+#define MENU_PADDING_Y 3
+
+#define MENU_1ST_COL 8
+#define MENU_2ND_COL 110
+#define MENU_3RD_COL (MENU_2ND_COL + 60)
+#define MENU_4TH_COL (MENU_3RD_COL + 60)
+
 static uint8_t s_prev_action_selection = 255;
 
 void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a,
@@ -142,29 +155,29 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	      so I can delete all the following harcoded values.
 	*/
 
-	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
+	CmdDrawRectangle(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y, MENU_BACK_COLOR);
 	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
 
 	/* Hero name */
-	CmdDrawText(font_sprite, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, persona->name);
+	CmdDrawText(font_sprite, MENU_X + MENU_2ND_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, persona->name);
 
 	/* Common actions */
-	CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y, "Attack");
-	CmdDrawText(font_sprite, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y, "A. Combined");
-	CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + (UI_LINE_SPACE << 1), "Hold");
+	CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y, "Attack");
+	CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y, "A. Combined");
+	CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + (MENU_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
 	if (persona == &g_heroes[HERO_KURO])
 	{
-		CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Heal");
-		CmdDrawText(font_sprite, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Meditate");
+		CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Heal");
+		CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Meditate");
 	}
 
 	/* Sayori */
 	else
 	{
-		CmdDrawText(font_sprite, UI_X + UI_COLUMN_3_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Shock");
-		CmdDrawText(font_sprite, UI_X + UI_COLUMN_4_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Thunder");
+		CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Shock");
+		CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Thunder");
 	}
 }
 
@@ -174,8 +187,8 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 	TODO, same as before, every action should be in companion with a tip.
 	*/
 
-	CmdDrawRectangle(1 /* 16 px */, UI_HEIGHT, UI_X + UI_COLUMN_3_X - 16, UI_Y, UI_BACK_COLOR);
-	CmdDrawRectangle(1 /* 16 px */, UI_HEIGHT, UI_X + UI_COLUMN_4_X - 16, UI_Y, UI_BACK_COLOR);
+	CmdDrawRectangle(1 /* 16 px */, MENU_HEIGHT, MENU_X + MENU_3RD_COL - 16, MENU_Y, MENU_BACK_COLOR);
+	CmdDrawRectangle(1 /* 16 px */, MENU_HEIGHT, MENU_X + MENU_4TH_COL - 16, MENU_Y, MENU_BACK_COLOR);
 
 	/* Selection arrow */
 	if (selection > 128)
@@ -184,16 +197,16 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 		selection = 4;
 
 	if ((selection % 2) == 1)
-		CmdDrawSprite(arrow_sprite, UI_X + UI_COLUMN_4_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
-		              (CURRENT_FRAME >> 2) % 2);
+		CmdDrawSprite(arrow_sprite, MENU_X + MENU_4TH_COL - 16,
+		              MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE * (selection >> 1), (CURRENT_FRAME >> 2) % 2);
 	else
-		CmdDrawSprite(arrow_sprite, UI_X + UI_COLUMN_3_X - 16, UI_Y + UI_PADDING_Y + UI_LINE_SPACE * (selection >> 1),
-		              (CURRENT_FRAME >> 2) % 2);
+		CmdDrawSprite(arrow_sprite, MENU_X + MENU_3RD_COL - 16,
+		              MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE * (selection >> 1), (CURRENT_FRAME >> 2) % 2);
 
 	/* Draw a tip at the bottom of the screen */
 	if (selection != s_prev_action_selection)
 	{
-		CmdDrawRectangle(20 /* 320 */, 1 /* 16 px */, 0, 200 - 16, UI_BACK_COLOR);
+		CmdDrawRectangle(20 /* 320 */, 1 /* 16 px */, 0, 200 - 16, MENU_BACK_COLOR);
 		s_prev_action_selection = selection;
 
 		if (selection == 0)
@@ -231,10 +244,10 @@ static uint8_t s_prev_target_selection = 255;
 
 void MenuTargetDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b)
 {
-	CmdDrawRectangle(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y, UI_BACK_COLOR);
+	CmdDrawRectangle(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y, MENU_BACK_COLOR);
 	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
 
-	CmdDrawText(font_sprite, UI_X + UI_COLUMN_2_X, UI_Y + UI_PADDING_Y + UI_LINE_SPACE, "Select your target.");
+	CmdDrawText(font_sprite, MENU_X + MENU_2ND_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Select your target.");
 }
 
 uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
@@ -295,5 +308,5 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 -----------------------------*/
 void MenuClean()
 {
-	CmdDrawRectangleBkg(UI_WIDTH, UI_HEIGHT, UI_X, UI_Y);
+	CmdDrawRectangleBkg(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y);
 }

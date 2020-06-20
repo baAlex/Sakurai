@@ -33,6 +33,15 @@ SOFTWARE.
 #include "utilities.h"
 
 
+#define ARENA_Y 56
+#define ARENA_HEIGHT 8 /* 128 px */
+#define ENEMIES_X 144
+#define ENEMIES_SPACING_X 32
+#define ENEMIES_SPACING_Y 10
+#define SAO_X 16
+#define KURO_X 45
+
+
 extern uint8_t EnemiesNumber(uint8_t battle_no);
 extern uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no);
 
@@ -69,12 +78,12 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 	/* Initialize heroes constant information, reset heroes health
 	and magic only if is the first battle */
 	g_actor[0].persona = &g_heroes[HERO_KURO];
-	g_actor[0].x = 45;
-	g_actor[0].y = 60;
+	g_actor[0].x = KURO_X;
+	g_actor[0].y = ARENA_Y;
 
 	g_actor[1].persona = &g_heroes[HERO_SAO];
-	g_actor[1].x = 16;
-	g_actor[1].y = 90;
+	g_actor[1].x = SAO_X;
+	g_actor[1].y = ARENA_Y + (ENEMIES_SPACING_Y * 2) + (ENEMIES_SPACING_Y >> 1);
 
 	for (i = 0; i < HEROES_NO; i++)
 	{
@@ -142,13 +151,13 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 			/* Set screen position */
 			if (i != HEROES_NO)
 			{
-				g_actor[i].x = g_actor[i - 1].x + 32;
-				g_actor[i].y = g_actor[i - 1].y + 10;
+				g_actor[i].x = g_actor[i - 1].x + ENEMIES_SPACING_X;
+				g_actor[i].y = g_actor[i - 1].y + ENEMIES_SPACING_Y;
 			}
 			else
 			{
-				g_actor[i].x = 144;
-				g_actor[i].y = 60;
+				g_actor[i].x = ENEMIES_X;
+				g_actor[i].y = ARENA_Y;
 			}
 
 			if (g_actor[i].state == ACTOR_STATE_DEAD)
@@ -213,7 +222,7 @@ void ActorsDraw()
 	uint16_t x = 0;
 
 	/* Clean area */
-	CmdDrawRectangleBkg(20 /* 320 px */, 8 /* 128 px */, 0, 60);
+	CmdDrawRectangleBkg(20 /* 320 px */, ARENA_HEIGHT, 0, ARENA_Y);
 
 	/* Draw actors */
 	for (i = 0; i < ACTORS_NO; i++)
@@ -254,7 +263,7 @@ void ActorsDraw()
 		/* Draw time meter */
 		if (g_actor[i].state != ACTOR_STATE_VICTORY)
 		{
-			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 16);
+			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 64);
 
 			if (width > 0)
 				CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, color);
@@ -309,8 +318,6 @@ static void sSetIdleState(struct Actor* actor)
 
 static void sSetChargeState(struct Actor* actor)
 {
-	uint8_t i = 0;
-
 	actor->charge_timer = 0;
 	actor->state = ACTOR_STATE_CHARGE;
 
