@@ -41,13 +41,15 @@ struct Actor
 	uint8_t recover_timer; /* From 255 to 0 */
 
 	uint8_t phase;
+	uint8_t sprite; /* TODO, temporary until I write a 'resources' module */
 };
 
 struct Actor g_actor[ACTORS_NO]; /* ActorsInitialize() */
 
 uint8_t ActorsInitialize(uint8_t battle_no);
-void ActorsDraw();
+void ActorsInitializeSprites(); /* TODO, temporary until I write a 'resources' module */
 
 void ActorLogic(struct Actor* actor);
+void ActorsDraw();
 
 #endif

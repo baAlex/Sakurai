@@ -37,7 +37,10 @@ extern uint8_t EnemiesNumber(uint8_t battle_no);
 extern uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no);
 
 
-static uint16_t s_chances[ENEMIES_NO];
+/* Reused all over the file to iterate personalities*/
+static uint16_t s_temp[ENEMIES_NO + HEROES_NO];
+
+/* Used to move suffle actors */
 struct Actor s_actor_temp;
 
 
@@ -57,10 +60,10 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 
 	for (i = 0; i < ENEMIES_NO; i++)
 	{
-		s_chances[i] = EnemyChances(i, UFixedMake(battle_no, 0));
-		sum += s_chances[i]; /* To normalizate */
+		s_temp[i] = EnemyChances(i, UFixedMake(battle_no, 0));
+		sum += s_temp[i]; /* To normalizate */
 
-		IntPrintNumber(s_chances[i]);
+		IntPrintNumber(s_temp[i]);
 	}
 
 	/* Initialize heroes constant information, reset heroes health
@@ -116,7 +119,7 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 		again:
 
 			e = ((uint8_t)Random() % ENEMIES_NO);
-			if ((Random() % sum) <= s_chances[e])
+			if ((Random() % sum) <= s_temp[e])
 				g_actor[i].persona = &g_enemies[e];
 			else
 				goto again; /* TODO, limit this to some tries */
@@ -132,7 +135,7 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 		}
 
 		/* One last iteration */
-		Clear(s_chances, sizeof(uint16_t) * ENEMIES_NO); /* To reuse it */
+		Clear(s_temp, sizeof(uint16_t) * (ENEMIES_NO + HEROES_NO)); /* To reuse it */
 
 		for (i = HEROES_NO; i < ACTORS_NO; i++)
 		{
@@ -153,9 +156,9 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 
 			/* Ensure that difficult enemies don't appear more than twice */
 			e = EnemyPersonaIndex(g_actor[i].persona);
-			s_chances[e] += 1; /* Reused to count appearances */
+			s_temp[e] += 1;
 
-			if ((g_actor[i].persona->tags & TAG_DIFFICULT) && s_chances[e] > 2)
+			if ((g_actor[i].persona->tags & TAG_DIFFICULT) && s_temp[e] > 2)
 			{
 				IntPrintText("Replaced difficult enemy ");
 				IntPrintNumber(e);
@@ -169,6 +172,36 @@ uint8_t ActorsInitialize(uint8_t battle_no)
 	}
 
 	return enemies_no;
+}
+
+
+void ActorsInitializeSprites()
+{
+	/* TODO, temporary until I write a 'resources' module */
+
+	uint8_t i = 0;
+	uint8_t index = 0;
+
+	Clear(s_temp, sizeof(uint16_t) * (ENEMIES_NO + HEROES_NO)); /* To reuse it */
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (g_actor[i].state == ACTOR_STATE_DEAD)
+			continue;
+
+		if (i >= HEROES_NO)
+			index = EnemyPersonaIndex(g_actor[i].persona) + HEROES_NO;
+		else
+			index = HeroPersonaIndex(g_actor[i].persona);
+
+		if (s_temp[index] == 0)
+		{
+			s_temp[index] = 1;
+			IntLoadSprite(g_actor[i].persona->sprite_filename, 16 + index);
+		}
+
+		g_actor[i].sprite = 16 + index;
+	}
 }
 
 
@@ -216,7 +249,7 @@ void ActorsDraw()
 			color = 60;
 
 		/* Draw sprite */
-		CmdDrawRectangle(4, 6, x, g_actor[i].y, 36);
+		CmdDrawSprite(g_actor[i].sprite, x, g_actor[i].y, 0);
 
 		/* Draw time meter */
 		if (g_actor[i].state != ACTOR_STATE_VICTORY)

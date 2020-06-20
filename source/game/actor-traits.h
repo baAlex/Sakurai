@@ -61,4 +61,5 @@ struct Persona g_enemies[ENEMIES_NO]; /* TraitsInitialize() */
 void TraitsInitialize();
 
 #define EnemyPersonaIndex(persona) ((uint8_t)((persona)-g_enemies))
+#define HeroPersonaIndex(persona) ((uint8_t)((persona)-g_heroes))
 #endif

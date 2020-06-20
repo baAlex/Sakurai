@@ -39,6 +39,8 @@ static uint8_t s_battle_no = 0;
 static void* sFrame()
 {
 	uint8_t i = 0;
+	uint8_t kuro_prev_hp = 0;
+	uint8_t sao_prev_hp = 0;
 
 	/* Re-initialize actors on user demand */
 	if (INPUT_LEFT == 1)
@@ -59,6 +61,9 @@ static void* sFrame()
 	}
 
 	/* Game logic */
+	kuro_prev_hp = g_actor[ACTOR_KURO].health;
+	sao_prev_hp = g_actor[ACTOR_SAO].health;
+
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD) /* You are dead, not big surprise */
@@ -67,8 +72,11 @@ static void* sFrame()
 		ActorLogic(&g_actor[i]);
 	}
 
-	/* Draw actors */
+	/* Draw */
 	ActorsDraw();
+
+	if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
+		HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 	/* Bye! */
 	CmdHalt();
@@ -91,7 +99,7 @@ static void* sWait()
 
 	/* Next state! */
 	CmdDrawBackground();
-	HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_KURO], &g_actor[ACTOR_SAO]);
+	HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 	return sFrame();
 }
@@ -101,11 +109,7 @@ static void* sLoad()
 	uint8_t i = 0;
 
 	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
-
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		/* TODO */
-	}
+	ActorsInitializeSprites();
 
 	return sWait();
 }
