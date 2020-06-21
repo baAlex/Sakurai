@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define TEST4
+#define BATTLE
 
 
 void* Hello();
@@ -55,12 +55,10 @@ void* Hello()
 	IntPrintNumber(CURRENT_MILLISECONDS);
 	IntPrintText("\n");
 
-	#if defined(GAME)
-	return StateGame();
-	#elif defined(INTRO)
+	#if defined(INTRO)
 	return StateIntro();
-	#elif defined(TEST4)
-	return StateTest4();
+	#elif defined(BATTLE)
+	return StateBattle();
 	#elif defined(TEST3)
 	return StateTest3();
 	#elif defined(TEST2)

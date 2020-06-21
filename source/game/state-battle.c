@@ -24,7 +24,7 @@ SOFTWARE.
 
 -------------------------------
 
- [state-test4.c]
+ [state-battle.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
@@ -33,7 +33,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-static void* sGameFrame();
+static void* sBattleFrame();
 
 static uint8_t s_battle_no = 0;
 
@@ -54,17 +54,17 @@ static void* sAttackChoreography()
 
 	/* Back to the logic frame */
 	CmdHalt();
-	return sGameFrame;
+	return sBattleFrame;
 }
 
 
 /*-----------------------------
 
- Game frame
+ Battle frame
 -----------------------------*/
-static void* sGameFrame()
+static void* sBattleFrame()
 {
-	void* next_frame = sGameFrame;
+	void* next_frame = sBattleFrame;
 
 	uint8_t i = 0;
 	uint8_t kuro_prev_hp = 0;
@@ -76,7 +76,7 @@ static void* sGameFrame()
 		if (s_battle_no >= 1)
 		{
 			s_battle_no -= 1;
-			return (void*)StateTest4; /* Restarts the entire world */
+			return (void*)StateBattle; /* Restarts the entire world */
 		}
 	}
 	else if (INPUT_RIGHT == 1)
@@ -84,7 +84,7 @@ static void* sGameFrame()
 		if (s_battle_no < 255)
 		{
 			s_battle_no += 1;
-			return (void*)StateTest4; /* Restarts the entire world */
+			return (void*)StateBattle; /* Restarts the entire world */
 		}
 	}
 
@@ -136,7 +136,7 @@ static void* sWait()
 	CmdDrawBackground();
 	HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-	return sGameFrame();
+	return sBattleFrame();
 }
 
 static void* sLoad()
@@ -147,13 +147,13 @@ static void* sLoad()
 	return sWait();
 }
 
-void* StateTest4()
+void* StateBattle()
 {
 	uint8_t enemies_no = 0;
 	uint8_t i = 0;
 	uint16_t text_y = 0;
 
-	IntPrintText("# StateTest4\n");
+	IntPrintText("# StateBattle\n");
 	IntUnloadAll();
 
 	/* Reload minimal assets for the 'loading' screen */

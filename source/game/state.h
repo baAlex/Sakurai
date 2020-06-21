@@ -14,11 +14,11 @@
 #define SPRITE_KURO 5
 #define SPRITE_ARROW 6
 
+void* StateBattle();
 void* StateIntro();
 
 void* StateTest1(); /* Text rendering */
 void* StateTest2(); /* Background and sprites */
 void* StateTest3(); /* HUD and menu*/
-void* StateTest4(); /* Actors*/
 
 #endif
