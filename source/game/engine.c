@@ -46,6 +46,8 @@ SOFTWARE.
 #define CODE_DRAW_RECTANGLE_PRECISE 0x06
 #define CODE_DRAW_SPRITE 0x07
 #define CODE_DRAW_TEXT 0x08
+#define CODE_DRAW_H_LINE 0x09
+#define CODE_DRAW_V_LINE 0x0A
 
 struct CmdDrawShape
 {
@@ -247,6 +249,32 @@ void CmdDrawText(uint8_t slot, uint16_t x, uint16_t y, char* text)
 	c->text.x = x;
 	c->text.y = y;
 	c->text.text = (uint16_t)text;
+
+	sIncrementCounter();
+}
+
+
+void CmdDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color)
+{
+	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;
+	c->code = CODE_DRAW_H_LINE;
+	c->shape.color = color;
+	c->shape.width = width;
+	c->shape.x = x;
+	c->shape.y = y;
+
+	sIncrementCounter();
+}
+
+
+void CmdDrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color)
+{
+	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;
+	c->code = CODE_DRAW_V_LINE;
+	c->shape.color = color;
+	c->shape.width = height; /* Yup, in width */
+	c->shape.x = x;
+	c->shape.y = y;
 
 	sIncrementCounter();
 }

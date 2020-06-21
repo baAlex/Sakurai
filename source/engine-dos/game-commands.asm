@@ -34,6 +34,22 @@
 ;    XXX. Alex from the past <3
 
 
+
+macro OffsetIn reg ; Requires X and Y in EBX, destroys CX
+{
+	mov reg, bx ; X
+
+	shr ebx, 16 ; Y
+	mov cx, bx
+	shl bx, 8
+	shl cx, 6
+
+	add reg, bx ; Combine both
+	add reg, cx
+}
+
+
+
 ;==============================
 IterateGameCommands:
 ; ds:si = Commands table
@@ -69,6 +85,10 @@ IterateGameCommands_loop:
 	je near GameDrawSprite
 	cmp al, 0x08 ; CODE_DRAW_TEXT
 	je near GameDrawText
+	cmp al, 0x09 ; CODE_DRAW_H_LINE
+	je near GameDrawHLine
+	cmp al, 0x0A ; CODE_DRAW_V_LINE
+	je near GameDrawVLine
 
 	; Next command
 IterateGameCommands_continue:
@@ -121,15 +141,7 @@ GameDrawPixel: ; CODE_DRAW_PIXEL
 ; ebx - X, Y (low 16 bits)
 
 	; Calculate offset in DI
-	xor di, di
-	add di, bx ; X
-
-	shr ebx, 16
-	mov cx, bx
-	shl bx, 8
-	shl cx, 6
-	add di, bx
-	add di, cx
+	OffsetIn di ; EBX = x, y, Destroys CX
 
 	; Draw it!
 	mov [es:di], ah
@@ -146,15 +158,7 @@ GameDrawRect: ; CODE_DRAW_RECTANGLE
 	push si
 
 	; Calculate offset in DI
-	xor di, di
-	add di, bx ; X
-
-	shr ebx, 16
-	mov cx, bx
-	shl bx, 8
-	shl cx, 6
-	add di, bx
-	add di, cx
+	OffsetIn di ; EBX = x, y, Destroys CX
 
 	; Save width an height in BX
 	mov ebx, eax
@@ -162,7 +166,7 @@ GameDrawRect: ; CODE_DRAW_RECTANGLE
 
 	shl bh, 4 ; Multiply height by 16 so it matches with width behavior
 
-	; Save color in EAX
+	; Repeat color in the entire EAX register
 	mov al, ah
 	shl eax, 8
 	mov al, ah
@@ -210,15 +214,7 @@ GameDrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 	push si
 
 	; Calculate offset in DI
-	xor di, di
-	add di, bx ; X
-
-	shr ebx, 16
-	mov cx, bx
-	shl bx, 8
-	shl cx, 6
-	add di, bx
-	add di, cx
+	OffsetIn di ; EBX = x, y, Destroys CX
 
 	; Multiply height by 16 so it matches with width behavior
 	shr eax, 16
@@ -270,15 +266,7 @@ GameDrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 	push si
 
 	; Calculate offset in DI
-	xor di, di
-	add di, bx ; X
-
-	shr ebx, 16
-	mov cx, bx
-	shl bx, 8
-	shl cx, 6
-	add di, bx
-	add di, cx
+	OffsetIn di ; EBX = x, y, Destroys CX
 
 	; Save width an height in BX
 	mov ebx, eax
@@ -321,15 +309,7 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	push ds
 
 	; Calculate offset in DI
-	xor di, di
-	add di, bx ; X
-
-	shr ebx, 16
-	mov cx, bx
-	shl bx, 8
-	shl cx, 6
-	add di, bx
-	add di, cx
+	OffsetIn di ; EBX = x, y, Destroys CX
 
 	; Load sprite offset from indirection table, in BX
 	mov dx, seg_data
@@ -385,15 +365,8 @@ GameDrawText: ; CODE_DRAW_TEXT
 	push ds
 
 	; Calculate offset in DI
-	xor di, di
-	add di, bx ; X
+	OffsetIn di ; EBX = x, y, Destroys CX
 
-	shr ebx, 16
-	mov cx, bx
-	shl bx, 8
-	shl cx, 6
-	add di, bx
-	add di, cx
 
 	push di ; TODO, here the push/pop is an incompressible mess!
 
@@ -488,4 +461,66 @@ GameDrawText_bye:
 	pop di
 	pop ds
 	pop si
+	jmp near IterateGameCommands_continue
+
+
+;==============================
+GameDrawHLine: ; CODE_DRAW_H_LINE
+; eax - Color (ah), Width (first high 8 bits)
+; ebx - X, Y (low 16 bits)
+
+	; Calculate offset in DI
+	OffsetIn di ; EBX = x, y, Destroys CX
+
+	; Save width in BL
+	mov ebx, eax
+	shr ebx, 16
+
+	; Repeat color in the entire EAX register
+	mov al, ah
+	shl eax, 8
+	mov al, ah
+	shl eax, 8
+	mov al, ah
+
+	; Counter for LOOP
+	xor ch, ch
+	mov cl, bl ; Width
+
+	; Draw loop
+GameDrawHLine_column:
+	mov dword [es:di], eax
+	mov dword [es:di + 4], eax
+	mov dword [es:di + 8], eax
+	mov dword [es:di + 12], eax
+	add di, 16
+	loop GameDrawHLine_column
+
+	; Bye!
+	jmp near IterateGameCommands_continue
+
+
+;==============================
+GameDrawVLine: ; CODE_DRAW_V_LINE
+; eax - Color (ah), Height (first high 8 bits)
+; ebx - X, Y (low 16 bits)
+
+	; Calculate offset in DI
+	OffsetIn di ; EBX = x, y, Destroys CX
+
+	; Save height in AH, color in AL
+	shr eax, 8
+	shl ah, 4 ; Multiply by 16
+
+	; Counter for LOOP
+	xor ch, ch
+	mov cl, ah ; Height
+
+	; Draw loop
+GameDrawVLine_column:
+	mov byte [es:di], al
+	add di, 320
+	loop GameDrawVLine_column
+
+	; Bye!
 	jmp near IterateGameCommands_continue

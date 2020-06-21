@@ -156,9 +156,20 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	*/
 
 	CmdDrawRectangle(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y, MENU_BACK_COLOR);
-	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
 
-	/* Hero name */
+	/* Light outline */
+	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y, MENU_OUTLINE_COLOR);
+	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y + (MENU_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
+
+	CmdDrawVLine(MENU_HEIGHT, MENU_X, MENU_Y, MENU_OUTLINE_COLOR);
+	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 2, MENU_Y, MENU_OUTLINE_COLOR);
+
+	/* Shadow outline */
+	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 1, MENU_Y, 64);
+	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y + (MENU_HEIGHT << 4) - 1, 64);
+
+	/* Portraits, hero name */
+	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
 	CmdDrawText(font_sprite, MENU_X + MENU_2ND_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, persona->name);
 
 	/* Common actions */

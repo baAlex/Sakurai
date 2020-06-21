@@ -79,6 +79,8 @@ void CmdDrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y);
 void CmdDrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color);
 void CmdDrawSprite(uint8_t slot, uint16_t x, uint16_t y, uint8_t frame);
 void CmdDrawText(uint8_t slot, uint16_t x, uint16_t y, char* text);
+void CmdDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color);
+void CmdDrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color);
 void CmdHalt();
 
 #endif
