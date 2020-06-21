@@ -1,0 +1,7 @@
+
+ACTOR,          HEALTH, MAGIC,  IDLE,   RECOVER
+Kuro,           100,    0,      6,      14
+Sao,            100,    30,     8,      10
+Ferment (a),    40,     0,      4,      6
+Wind Eye (b),   60,     0,      6,      8
+Kingpin (c),    180,    0,      1,      3

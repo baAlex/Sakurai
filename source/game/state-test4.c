@@ -33,11 +33,39 @@ SOFTWARE.
 #include "utilities.h"
 
 
+static void* sGameFrame();
+
 static uint8_t s_battle_no = 0;
 
 
-static void* sFrame()
+/*-----------------------------
+
+ Attack choreography
+-----------------------------*/
+static uint16_t s_choreo_start = 0; /* In frames */
+
+static void* sAttackChoreography()
 {
+	if (CURRENT_FRAME < s_choreo_start + 12 && CURRENT_FRAME > s_choreo_start)
+	{
+		CmdHalt();
+		return (void*)sAttackChoreography;
+	}
+
+	/* Back to the logic frame */
+	CmdHalt();
+	return sGameFrame;
+}
+
+
+/*-----------------------------
+
+ Game frame
+-----------------------------*/
+static void* sGameFrame()
+{
+	void* next_frame = sGameFrame;
+
 	uint8_t i = 0;
 	uint8_t kuro_prev_hp = 0;
 	uint8_t sao_prev_hp = 0;
@@ -70,6 +98,14 @@ static void* sFrame()
 			continue;
 
 		ActorLogic(&g_actor[i]);
+
+		/* This actor set itself to do an attack the following frame,
+		we intercept that and the next frame we use a custom function */
+		if (g_actor[i].state == ACTOR_STATE_ATTACK)
+		{
+			s_choreo_start = CURRENT_FRAME;
+			next_frame = sAttackChoreography;
+		}
 	}
 
 	/* Draw */
@@ -80,7 +116,7 @@ static void* sFrame()
 
 	/* Bye! */
 	CmdHalt();
-	return (void*)sFrame;
+	return next_frame;
 }
 
 
@@ -88,7 +124,6 @@ static void* sFrame()
 
  Start a new battle
 -----------------------------*/
-
 static uint16_t s_loading_start = 0;
 
 static void* sWait()
@@ -101,13 +136,11 @@ static void* sWait()
 	CmdDrawBackground();
 	HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-	return sFrame();
+	return sGameFrame();
 }
 
 static void* sLoad()
 {
-	uint8_t i = 0;
-
 	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
 	ActorsInitializeSprites();
 

@@ -254,11 +254,14 @@ void ActorsDraw()
 			x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
 		}
 
-		if (g_actor[i].recover_timer > 0) /* Overwrite whatever state is */
-			color = 60;
-
 		/* Draw sprite */
-		CmdDrawSprite(g_actor[i].sprite, x, g_actor[i].y, 0);
+		if (g_actor[i].recover_timer == 0)
+			CmdDrawSprite(g_actor[i].sprite, x, g_actor[i].y, 0);
+		else
+		{
+			color = 60;
+			CmdDrawSprite(g_actor[i].sprite, x, g_actor[i].y, 1);
+		}
 
 		/* Draw time meter */
 		if (g_actor[i].state != ACTOR_STATE_VICTORY)
@@ -363,7 +366,8 @@ void ActorLogic(struct Actor* actor)
 	{
 		if (actor->recover_timer > actor->persona->recover_velocity)
 		{
-			actor->recover_timer -= actor->persona->recover_velocity;
+			if ((CURRENT_FRAME % 2) == 0)
+				actor->recover_timer -= actor->persona->recover_velocity;
 			return;
 		}
 		else
@@ -374,7 +378,10 @@ void ActorLogic(struct Actor* actor)
 	{
 	case ACTOR_STATE_IDLE:
 		if (actor->idle_timer < (255 - actor->persona->idle_velocity))
-			actor->idle_timer += actor->persona->idle_velocity;
+		{
+			if ((CURRENT_FRAME % 2) == 0)
+				actor->idle_timer += actor->persona->idle_velocity;
+		}
 		else
 			sSetChargeState(actor); /* Can set victory */
 		break;
