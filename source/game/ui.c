@@ -201,6 +201,11 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 	CmdDrawRectangle(1 /* 16 px */, MENU_HEIGHT, MENU_X + MENU_3RD_COL - 16, MENU_Y, MENU_BACK_COLOR);
 	CmdDrawRectangle(1 /* 16 px */, MENU_HEIGHT, MENU_X + MENU_4TH_COL - 16, MENU_Y, MENU_BACK_COLOR);
 
+	/* The previous rectangle overwrite the outlines */
+	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y, MENU_OUTLINE_COLOR);
+	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
+	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 1, 64);
+
 	/* Selection arrow */
 	if (selection > 128)
 		selection = 0;

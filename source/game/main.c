@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define BATTLE
+#define SCREENSHOTS
 
 
 void* Hello();
@@ -59,6 +59,8 @@ void* Hello()
 	return StateIntro();
 	#elif defined(BATTLE)
 	return StateBattle();
+	#elif defined(SCREENSHOTS)
+	return StateScreenshots();
 	#elif defined(TEST3)
 	return StateTest3();
 	#elif defined(TEST2)

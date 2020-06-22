@@ -17,6 +17,8 @@
 void* StateBattle();
 void* StateIntro();
 
+void* StateScreenshots();
+
 void* StateTest1(); /* Text rendering */
 void* StateTest2(); /* Background and sprites */
 void* StateTest3(); /* HUD and menu*/

@@ -8,6 +8,7 @@ game_files="./source/game/actor.c
             ./source/game/main.c
             ./source/game/state-battle.c
             ./source/game/state-intro.c
+            ./source/game/state-screenshots.c
             ./source/game/state-test1.c
             ./source/game/state-test2.c
             ./source/game/state-test3.c
