@@ -13,6 +13,8 @@
 #define SPRITE_SAO 4
 #define SPRITE_KURO 5
 #define SPRITE_ARROW 6
+#define SPRITE_FX1 7
+#define SPRITE_FX2 8
 
 void* StateBattle();
 void* StateIntro();

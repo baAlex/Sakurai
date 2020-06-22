@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define SCREENSHOTS
+#define BATTLE
 
 
 void* Hello();

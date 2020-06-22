@@ -44,9 +44,11 @@ struct Actor
 	uint8_t sprite; /* TODO, temporary until I write a 'resources' module */
 };
 
+uint8_t g_live_heroes;           /* ActorsInitialize() */
+uint8_t g_live_enemies;          /* ActorsInitialize() */
 struct Actor g_actor[ACTORS_NO]; /* ActorsInitialize() */
 
-uint8_t ActorsInitialize(uint8_t battle_no);
+void ActorsInitialize(uint8_t battle_no);
 void ActorsInitializeSprites(); /* TODO, temporary until I write a 'resources' module */
 
 void ActorLogic(struct Actor* actor);

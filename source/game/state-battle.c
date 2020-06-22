@@ -46,7 +46,17 @@ static uint16_t s_choreo_start = 0; /* In frames */
 
 static void* sAttackChoreography()
 {
-	if (CURRENT_FRAME < s_choreo_start + 12 && CURRENT_FRAME > s_choreo_start)
+	uint8_t i = 0;
+
+	for (i = 0; i < ACTORS_NO; i++)
+	{
+		if (g_actor[i].state != ACTOR_STATE_ATTACK)
+			continue;
+
+		/*CmdDrawSprite(SPRITE_FX1, g_actor[i].target->x, g_actor[i].target->y, CURRENT_FRAME - s_choreo_start);*/
+	}
+
+	if (CURRENT_FRAME < s_choreo_start + 24 && CURRENT_FRAME > s_choreo_start)
 	{
 		CmdHalt();
 		return (void*)sAttackChoreography;
@@ -142,6 +152,9 @@ static void* sWait()
 static void* sLoad()
 {
 	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
+	IntLoadSprite("assets\\fx1.jvn", SPRITE_FX1);
+	IntLoadSprite("assets\\fx2.jvn", SPRITE_FX2);
+
 	ActorsInitializeSprites();
 
 	return sWait();
@@ -149,7 +162,6 @@ static void* sLoad()
 
 void* StateBattle()
 {
-	uint8_t enemies_no = 0;
 	uint8_t i = 0;
 	uint16_t text_y = 0;
 
@@ -171,8 +183,8 @@ void* StateBattle()
 	/* Draw loading screen */
 	CmdDrawBackground();
 
-	enemies_no = ActorsInitialize(s_battle_no);
-	CmdDrawText(SPRITE_FONT2, 10, 10, (enemies_no > 1) ? "Monsters appear!" : "Monster appears!");
+	ActorsInitialize(s_battle_no);
+	CmdDrawText(SPRITE_FONT2, 10, 10, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
 
 	text_y = 10;
 
