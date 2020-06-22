@@ -28,12 +28,6 @@
 ; http://www.brackeen.com/vga/basics.html
 
 
-; TODO, (20/6/6) I did a tiny optimization deleting recurrent changes to ES. This
-; opened the door to further optimizations, but they gonna take me forever. Please
-; in the future, do a depth review of the following code.
-;    XXX. Alex from the past <3
-
-
 
 macro OffsetIn reg ; Requires X and Y in EBX, destroys CX
 {
@@ -44,7 +38,8 @@ macro OffsetIn reg ; Requires X and Y in EBX, destroys CX
 	shl bx, 8
 	shl cx, 6
 
-	add reg, bx ; Combine both
+	; Combine Y
+	add reg, bx
 	add reg, cx
 }
 
@@ -71,24 +66,24 @@ IterateGameCommands_loop:
 
 	cmp al, 0x00 ; CODE_HALT
 	je near IterateGameCommands_bye
-	cmp al, 0x01 ; CODE_DRAW_BKG
-	je near GameDrawBkg
-	cmp al, 0x02 ; CODE_DRAW_PIXEL
-	je near GameDrawPixel
-	cmp al, 0x04 ; CODE_DRAW_RECTANGLE
-	je near GameDrawRect
-	cmp al, 0x05 ; CODE_DRAW_RECTANGLE_BKG
-	je near GameDrawRectBkg
-	cmp al, 0x06 ; CODE_DRAW_RECTANGLE_PRECISE
-	je near GameDrawRectPrecise
-	cmp al, 0x07 ; CODE_DRAW_SPRITE
-	je near GameDrawSprite
-	cmp al, 0x08 ; CODE_DRAW_TEXT
-	je near GameDrawText
-	cmp al, 0x09 ; CODE_DRAW_H_LINE
-	je near GameDrawHLine
-	cmp al, 0x0A ; CODE_DRAW_V_LINE
-	je near GameDrawVLine
+	dec al ; CODE_DRAW_BKG 0x01
+	jz near GameDrawBkg
+	dec al ; CODE_DRAW_RECTANGLE_BKG 0x02
+	jz near GameDrawRectBkg
+	dec al ; CODE_DRAW_SPRITE 0x03
+	jz near GameDrawSprite
+	dec al ; CODE_DRAW_RECTANGLE 0x04
+	jz near GameDrawRect
+	dec al ; CODE_DRAW_RECTANGLE_PRECISE 0x05
+	jz near GameDrawRectPrecise
+	dec al ; CODE_DRAW_TEXT 0x06
+	jz near GameDrawText
+	dec al ; CODE_DRAW_H_LINE 0x07
+	jz near GameDrawHLine
+	dec al ; CODE_DRAW_V_LINE 0x08
+	jz near GameDrawVLine
+	dec al ; CODE_DRAW_PIXEL 0x09
+	jz near GameDrawPixel
 
 	; Next command
 IterateGameCommands_continue:
@@ -113,29 +108,6 @@ IterateGameCommands_bye:
 
 
 ;==============================
-GameDrawBkg: ; CODE_DRAW_BKG
-; eax - Unused
-; ebx - Unused
-
-	push ds
-	push si
-
-	mov ax, seg_bkg_data
-	mov ds, ax
-	xor si, si
-
-	xor di, di
-
-	mov cx, BKG_DATA_SIZE
-	call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
-
-	; Bye!
-	pop si
-	pop ds
-	jmp near IterateGameCommands_continue
-
-
-;==============================
 GameDrawPixel: ; CODE_DRAW_PIXEL
 ; eax - Color (ah)
 ; ebx - X, Y (low 16 bits)
@@ -143,7 +115,7 @@ GameDrawPixel: ; CODE_DRAW_PIXEL
 	; Calculate offset in DI
 	OffsetIn di ; EBX = x, y, Destroys CX
 
-	; Draw it!
+	; Draw
 	mov [es:di], ah
 
 	; Bye!
@@ -151,20 +123,16 @@ GameDrawPixel: ; CODE_DRAW_PIXEL
 
 
 ;==============================
-GameDrawRect: ; CODE_DRAW_RECTANGLE
-; eax - Color (ah), Width, Height (high 16 bits)
+GameDrawHLine: ; CODE_DRAW_H_LINE
+; eax - Color (ah), Width (first high 8 bits)
 ; ebx - X, Y (low 16 bits)
-
-	push si
 
 	; Calculate offset in DI
 	OffsetIn di ; EBX = x, y, Destroys CX
 
-	; Save width an height in BX
+	; Save width in BL
 	mov ebx, eax
 	shr ebx, 16
-
-	shl bh, 4 ; Multiply height by 16 so it matches with width behavior
 
 	; Repeat color in the entire EAX register
 	mov al, ah
@@ -177,31 +145,72 @@ GameDrawRect: ; CODE_DRAW_RECTANGLE
 	xor ch, ch
 	mov cl, bl ; Width
 
-	mov si, di
+	; Draw loop
+	mov bx, 16 ; To avoid an immediate instruction
+
+GameDrawHLine_column:
+	mov dword [es:di], eax
+	mov dword [es:di + 4], eax
+	mov dword [es:di + 8], eax
+	mov dword [es:di + 12], eax
+	add di, bx
+	loop GameDrawHLine_column
+
+	; Bye!
+	jmp near IterateGameCommands_continue
+
+
+;==============================
+GameDrawVLine: ; CODE_DRAW_V_LINE
+; eax - Color (ah), Height (first high 8 bits)
+; ebx - X, Y (low 16 bits)
+
+	; Calculate offset in DI
+	OffsetIn di ; EBX = x, y, Destroys CX
+
+	; Save height in AH, color in AL
+	shr eax, 8
+	shl ah, 3 ; Multiply by 8
+
+	; Counter for LOOP
+	xor ch, ch
+	mov cl, ah ; Height
 
 	; Draw loop
-	; (a call to some similar to MemorySet(), requires an
-	; unnecessary amount of pops', pushes' and other calculations)
-GameDrawRect_row:
-	GameDrawRect_column:
-		mov dword [es:di], eax
-		mov dword [es:di + 4], eax
-		mov dword [es:di + 8], eax
-		mov dword [es:di + 12], eax
+	mov bx, 640 ; To avoid an immediate instruction
 
-		add di, 16
-		loop GameDrawRect_column
+GameDrawVLine_column:
+	mov byte [es:di], al
+	mov byte [es:di + 320], al
+	add di, bx
+	loop GameDrawVLine_column
 
-	; Preparations for next step
-	mov cl, bl ; Width
-	add si, 320
-	mov di, si
+	; Bye!
+	jmp near IterateGameCommands_continue
 
-	dec bh ; Height
-	jnz near GameDrawRect_row
+
+;==============================
+GameDrawBkg: ; CODE_DRAW_BKG
+; eax - Unused
+; ebx - Unused
+
+	push ds
+	push si
+
+	; Set segments/data
+	mov cx, seg_bkg_data
+	mov ds, cx
+
+	xor si, si
+	xor di, di
+
+	; Draw
+	mov cx, BKG_DATA_SIZE
+	call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
 
 	; Bye!
 	pop si
+	pop ds
 	jmp near IterateGameCommands_continue
 
 
@@ -220,21 +229,18 @@ GameDrawRectBkg: ; CODE_DRAW_RECTANGLE_BKG
 	shr eax, 16
 	shl ah, 4
 
-	; Set segments
+	; Set segments/data
 	mov cx, seg_bkg_data
 	mov ds, cx
 
 	mov si, di
+	mov bx, di
 
 	; Counter for LOOP
 	xor ch, ch
 	mov cl, al ; Width
 
-	mov bx, di ; BX is unused at this point
-
 	; Draw loop
-	; (a call to some similar to MemorySet(), requires an
-	; unnecessary amount of pops', pushes' and other calculations)
 GameDrawRectBkg_row:
 	GameDrawRectBkg_column:
 		movsd
@@ -259,6 +265,59 @@ GameDrawRectBkg_row:
 
 
 ;==============================
+GameDrawRect: ; CODE_DRAW_RECTANGLE
+; eax - Color (ah), Width, Height (high 16 bits)
+; ebx - X, Y (low 16 bits)
+
+	push si
+
+	; Calculate offset in DI
+	OffsetIn di ; EBX = x, y, Destroys CX
+
+	; Save width an height in BX
+	mov ebx, eax
+	shr ebx, 16
+
+	shl bh, 4 ; Multiply height by 16
+
+	; Repeat color in the entire EAX register
+	mov al, ah
+	shl eax, 8
+	mov al, ah
+	shl eax, 8
+	mov al, ah
+
+	; Counter for LOOP
+	xor ch, ch
+	mov cl, bl ; Width
+
+	mov si, di
+
+	; Draw loop
+GameDrawRect_row:
+	GameDrawRect_column:
+		mov dword [es:di], eax
+		mov dword [es:di + 4], eax
+		mov dword [es:di + 8], eax
+		mov dword [es:di + 12], eax
+
+		add di, 16
+		loop GameDrawRect_column
+
+	; Preparations for next step
+	mov cl, bl ; Width
+	add si, 320
+	mov di, si
+
+	dec bh ; Height
+	jnz near GameDrawRect_row
+
+	; Bye!
+	pop si
+	jmp near IterateGameCommands_continue
+
+
+;==============================
 GameDrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 ; eax - Color (ah), Width, Height (high 16 bits)
 ; ebx - X, Y (low 16 bits)
@@ -279,8 +338,6 @@ GameDrawRectPrecise: ; CODE_DRAW_RECTANGLE_PRECISE
 	mov si, di
 
 	; Draw loop
-	; (a call to some similar to MemorySet(), requires an
-	; unnecessary amount of pops', pushes' and other calculations)
 GameDrawRectPrecise_row:
 	GameDrawRectPrecise_column:
 		mov byte [es:di], ah
@@ -461,66 +518,4 @@ GameDrawText_bye:
 	pop di
 	pop ds
 	pop si
-	jmp near IterateGameCommands_continue
-
-
-;==============================
-GameDrawHLine: ; CODE_DRAW_H_LINE
-; eax - Color (ah), Width (first high 8 bits)
-; ebx - X, Y (low 16 bits)
-
-	; Calculate offset in DI
-	OffsetIn di ; EBX = x, y, Destroys CX
-
-	; Save width in BL
-	mov ebx, eax
-	shr ebx, 16
-
-	; Repeat color in the entire EAX register
-	mov al, ah
-	shl eax, 8
-	mov al, ah
-	shl eax, 8
-	mov al, ah
-
-	; Counter for LOOP
-	xor ch, ch
-	mov cl, bl ; Width
-
-	; Draw loop
-GameDrawHLine_column:
-	mov dword [es:di], eax
-	mov dword [es:di + 4], eax
-	mov dword [es:di + 8], eax
-	mov dword [es:di + 12], eax
-	add di, 16
-	loop GameDrawHLine_column
-
-	; Bye!
-	jmp near IterateGameCommands_continue
-
-
-;==============================
-GameDrawVLine: ; CODE_DRAW_V_LINE
-; eax - Color (ah), Height (first high 8 bits)
-; ebx - X, Y (low 16 bits)
-
-	; Calculate offset in DI
-	OffsetIn di ; EBX = x, y, Destroys CX
-
-	; Save height in AH, color in AL
-	shr eax, 8
-	shl ah, 4 ; Multiply by 16
-
-	; Counter for LOOP
-	xor ch, ch
-	mov cl, ah ; Height
-
-	; Draw loop
-GameDrawVLine_column:
-	mov byte [es:di], al
-	add di, 320
-	loop GameDrawVLine_column
-
-	; Bye!
 	jmp near IterateGameCommands_continue
