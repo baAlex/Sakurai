@@ -26,21 +26,50 @@
 ; - Alexander Brandt 2020
 
 
-; Following routines are not functions ('functions' meaning the correct
-; care of the fast call convention), rather they are part of a table
-; executed in a 'switch' fashion (C lingua)...
-
-; All registers must remain intact!!!, the caller already push some of them.
-
-; Executed by the caller:
-;	push ax
-;	push dx
-;	push ds
-;	ds = seg_game_data
-;	ax = [ifd_arg1]
-
-
 include "macros.asm"
+
+
+;==============================
+_IntFDVector:
+; http://www.ctyme.com/intr/rb-8735.htm
+
+	push ax
+	push dx
+	push ds
+
+	mov ax, seg_game_data
+	mov ds, ax
+
+	mov ax, [ifd_arg1]
+
+	cmp ax, 0x01
+	je near GamePrintString
+	cmp ax, 0x02
+	je near GamePrintNumber
+	cmp ax, 0x03
+	je near GameLoadBackground
+	cmp ax, 0x05
+	je near GameUnloadEverything
+	cmp ax, 0x06
+	je near GameFlushCommands
+	cmp ax, 0x07
+	je near GameLoadSprite
+	cmp ax, 0x08
+	je near GameFreeSprite
+
+	; Notify PIC to end this interruption? (TODO)
+	; http://stanislavs.org/helppc/8259.html
+_IntFDVector_bye:
+	mov dx, 0x20
+	mov al, 0x20
+	out dx, al
+
+	; Bye!
+	pop ds
+	pop dx
+	pop ax
+	iret
+
 
 ;==============================
 GamePrintString:
@@ -77,72 +106,129 @@ GameLoadBackground:
 
 ;==============================
 GameLoadSprite:
+
+	;push ax ; Done by the caller
+	;push dx ; Done by the caller
+	;push ds ; Done by the caller
 	push bx
 	push cx
+	push di
 	push si
 
 	mov dx, [ifd_arg2]
 	call near FileOpen ; (ds:dx, ax = RETURN)
 
-	mov si, [ifd_arg3]
-	; (TODO: an PoolFree() here, some day :) )
-
-	; From here everything happens on 'seg_data'
+	; PROTIP: keep an eye on how many times I change segments :/
+	; (in any case, this function don't need to be 'fast')
 	SetDsDx seg_data, str_spr_load
 	call near PrintLogString ; (ds:dx)
 
-	; Read sprite header in 'spr_header'
-	mov dx, spr_header
-	mov cx, 4 ; TODO, use a define (SPRITE_HEADER_SIZE)
+	; Read sprite header in 'sprite_header'
+	mov dx, sprite_header
+	mov cx, SPRITE_HEADER_SIZE
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
-	push ax ; To keep the fp
+	push ax ; To keep fp
 
 		mov dx, str_size
 		call near PrintLogString ; (ds:dx)
-		mov ax, [spr_header] ; SprHeader::file_size
-		mov cx, ax
+		mov ax, [sprite_header] ; SpriteHeader::file_size
+		mov cx, ax ; Used in the future in-memory header
 		call near PrintLogNumber ; (ax)
 
 		mov dx, str_offset
 		call near PrintLogString ; (ds:dx)
-		mov ax, [spr_header + 2] ; SprHeader::data_offset
-		mov bx, ax
+		mov ax, [sprite_header + 2] ; SpriteHeader::data_offset
+		mov bx, ax ; Used in the future in-memory header
 		call near PrintLogNumber ; (ax)
 
 	pop ax
 
-	; Allocate memory accordingly
-	; And from here welcome to to 'seg_pool_a'
+	; Try to allocate memory in 'seg_pool_a'
 	SetDsDx seg_pool_a, pool_a_data
 	call near PoolAllocate ; (ds:dx = pool, cx = size, di = RETURN)
 
-	; Fill the already read sprite header
-	mov [di], cx     ; SprHeader::file_size
-	mov [di + 2], bx ; SprHeader::data_offset
+	mov si, 1 ; To keep note of PoolA
+	cmp di, 0x0000
+	jnz GameLoadSprite_allocated
+
+	SetDsDx seg_data, str_pool_a_full
+	call near PrintLogString ; (ds:dx)
+
+	; Try to allocate memory in 'seg_pool_b'
+	SetDsDx seg_pool_b, pool_b_data
+	call near PoolAllocate ; (ds:dx = pool, cx = size, di = RETURN)
+
+	mov si, 2 ; To keep note of PoolB
+	cmp di, 0x0000
+	jnz GameLoadSprite_allocated
+
+	SetDsDx seg_data, str_pool_b_full
+	call near PrintLogString ; (ds:dx)
+
+	; No free memory in any pool
+	jmp GameLoadSprite_failure
+
+GameLoadSprite_allocated:
+
+	; Fill the already read header
+	mov [di], cx     ; SpriteHeader::file_size
+	mov [di + 2], bx ; SpriteHeader::data_offset
 
 	; Read the rest of the sprite file
 	mov dx, di
-
-	add dx, 4 ; TODO: SPRITE_HEADER_SIZE
-	sub cx, 4 ; TODO: SPRITE_HEADER_SIZE
+	add dx, SPRITE_HEADER_SIZE
+	sub cx, SPRITE_HEADER_SIZE
 
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call near FileClose ; (ax)
 
-	; Lazily lets write in the indirection table (TODO)
-	; ... once again in 'seg_data'!!!
-	mov dx, seg_data
-	mov ds, dx
+	; Finally, iterate the sprite indirection table searching
+	; for a free slot, and save the sprite pool and offset there
+	SetDsDx seg_data, sprite_indirection_table
 
-	shl si, 1 ; Multiply by the indirection table entry size (2)
-	mov word [spr_indirection_table + si], di
+	mov bx, dx
+	add bx, SPRITE_SLOT_SIZE ; Keep the first slot unused, to use it as a NULL value
 
-	; Bye!
+GameLoadSprite_iterate_table:
+	mov ax, [bx] ; Slot::Offset
+	cmp ax, 0x0000
+	jz GameLoadSprite_slot_found
+
+	; Next step
+	add bx, SPRITE_SLOT_SIZE
+	cmp bx, (sprite_indirection_table + SPRITE_INDIRECTION_TABLE_SIZE)
+	jb GameLoadSprite_iterate_table
+
+	; No free slot
+	jmp GameLoadSprite_failure
+
+GameLoadSprite_slot_found:
+	mov word [bx], di ; Slot::Offset
+	mov word [bx + 2], si ; Slot::Where (on what pool)
+
+	; Return value
+	SetDsDx seg_game_data, 0x0000
+
+	sub bx, sprite_indirection_table
+	mov [ifd_arg1], bx ; Return indirection table slot
+
+	; Bye
 	pop si
+	pop di
 	pop cx
 	pop bx
 
-	call near FileClose ; (ax)
+	jmp near _IntFDVector_bye
+
+GameLoadSprite_failure:
+	; Blow everything
+	mov al, EXIT_FAILURE
+	call near Exit ; (al)
+
+
+;==============================
+GameFreeSprite:
 	jmp near _IntFDVector_bye
 
 
@@ -176,4 +262,3 @@ GameFlushCommands:
 	pop si
 
 	jmp near _IntFDVector_bye
-

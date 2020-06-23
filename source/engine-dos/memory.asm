@@ -116,12 +116,10 @@ MemoryClean_16_loop:
 
 
 ;==============================
-CHUNK_HEADER_SIZE = 8
+CHUNK_HEADER_SIZE = 4
 ; u8  used
-; u8  last
+; u8  last_one
 ; u16 size
-; u16 previous_size
-; u16 unused2
 
 
 ;==============================
@@ -129,21 +127,21 @@ PoolInit:
 ; ds:dx - Address to initialize
 ; cx    - Size
 
-	push si
+	push di
 
 	sub cx, CHUNK_HEADER_SIZE
-	jz near PoolInit_failure ; TODO
-	jc near PoolInit_failure ; TODO
+	jz near PoolInit_failure
+	jc near PoolInit_failure ; If carry
 
-	mov si, dx
+	mov di, dx
 
 	; Chunk header
-	mov byte [si], 0      ; Header::used
-	mov byte [si + 1], 1  ; Header::last
-	mov word [si + 2], cx ; Header::size
+	mov byte [di], 0      ; ChunkHeader::used
+	mov byte [di + 1], 1  ; ChunkHeader::last_one
+	mov word [di + 2], cx ; ChunkHeader::size
 
 	; Bye!
-	pop si
+	pop di
 	ret
 
 PoolInit_failure:
@@ -170,7 +168,6 @@ PoolPrint:
 
 PoolPrint_loop:
 
-	; Used/last
 	push ds
 	push dx
 		SetDsDx seg_data, str_flags
@@ -178,11 +175,10 @@ PoolPrint_loop:
 	pop dx
 	pop ds
 
-	mov word ax, [si] ; Header::used / Header::last
-	mov bx, ax
+	mov word ax, [si] ; ChunkHeader::used / ChunkHeader::last_one
+	mov bh, ah ; Used to stop the loop
 	call near PrintLogNumber
 
-	; Size
 	push ds
 	push dx
 		SetDsDx seg_data, str_size
@@ -190,14 +186,13 @@ PoolPrint_loop:
 	pop dx
 	pop ds
 
-	mov word ax, [si + 2] ; Header::size
+	mov word ax, [si + 2] ; ChunkHeader::size
 	call near PrintLogNumber
 
-	; Chunk is marked as the last one?
-	dec bh ; Header::last (bh)
+	; Preparations for the next step
+	dec bh ; ChunkHeader::last_one
 	jz near PoolPrint_bye
 
-	; Nope, advance to the next one
 	push ds
 	push dx
 		SetDsDx seg_data, str_mem_separator
@@ -234,23 +229,24 @@ PoolAllocate:
 PoolAllocate_loop:
 
 	; Is used?
-	mov word bx, [si] ; Header::used (bl) / Header::last (bh)
-	cmp bl, 0x01 ; Header::used (bl)
-	jz near PoolAllocate_continue ; Yes, used
+	mov word bx, [si] ; ChunkHeader::used / ChunkHeader::last_one
+	cmp bl, 0x01 ; ChunkHeader::used
+	jz near PoolAllocate_continue1 ; Used, try with next chunk
 
 	; Has space?
-	mov word ax, [si + 2] ; Header::size
+	mov word ax, [si + 2] ; ChunkHeader::size
 	cmp ax, cx
-	jz near PoolAllocate_continue_size_set ; No space here
-	jc near PoolAllocate_continue_size_set
+	jz near PoolAllocate_continue2 ; No space here, try with next chunk
+	jc near PoolAllocate_continue2
 
-	; Found, lets subdivide the chunk
+	; Found, lets split the chunk
+	; Registers at this point:
 	; ax - Chunk size
 	; bx - Chunk used (bl) / last (bh)
 	; cx - New chunk required size
 	; si - Chunk offset
 	sub ax, cx
-	sub ax, CHUNK_HEADER_SIZE
+	sub ax, CHUNK_HEADER_SIZE ; Header for the new subdivision
 	jz near PoolAllocate_no_remainder
 	jc near PoolAllocate_no_remainder
 
@@ -258,36 +254,40 @@ PoolAllocate_loop:
 	add di, cx ; Advance to the remainder chunk
 	add di, CHUNK_HEADER_SIZE
 
-	mov byte [di], 0      ; Remainder Header::used
-	mov byte [di + 1], bh ; Remainder Header::last
-	mov word [di + 2], ax ; Remainder Header::size
-	mov word [di + 4], cx ; Remainder Header::previous_size
+	mov byte [di], 0      ; Remainder ChunkHeader::used
+	mov byte [di + 1], bh ; Remainder ChunkHeader::last_one
+	mov word [di + 2], ax ; Remainder ChunkHeader::size
 
-	mov byte [si + 1], 0  ; Header::last
-	mov word [si + 2], cx ; Header::size
+	mov byte [si + 1], 0  ; ChunkHeader::last_one
+	mov word [si + 2], cx ; ChunkHeader::size
 
 PoolAllocate_no_remainder:
-	mov byte [si], 1 ; Header::used
+	mov byte [si], 1 ; ChunkHeader::used
 
 	; Bye!
 	add si, CHUNK_HEADER_SIZE
 	mov di, si ; Return value
+
 	pop si
 	pop bx
 	pop ax
 	ret
 
 	; Advance to the next one, if any
-PoolAllocate_continue:
-	mov word ax, [si + 2] ; Header::size
-PoolAllocate_continue_size_set:
-	dec bh ; Header::last
-	jz near PoolAllocate_failure ; Last one :(
+PoolAllocate_continue1:
+	mov word ax, [si + 2] ; ChunkHeader::size
+PoolAllocate_continue2:
+	dec bh ; ChunkHeader::last_one
+	jz near PoolAllocate_failure ; :(
 
 	add si, CHUNK_HEADER_SIZE
 	add si, ax
 	jmp near PoolAllocate_loop
 
 PoolAllocate_failure:
-	mov al, EXIT_FAILURE
-	call near Exit ; (al)
+	mov di, 0x0000 ; Return value
+
+	pop si
+	pop bx
+	pop ax
+	ret

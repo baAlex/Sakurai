@@ -29,6 +29,10 @@ COMMANDS_TABLE_LEN = 28
 COMMANDS_TABLE_SIZE = 224 ; In bytes
 GAME_SIZE = 16392 ; In bytes
 
+SPRITE_HEADER_SIZE = 4
+SPRITE_SLOT_SIZE = 4
+SPRITE_INDIRECTION_TABLE_SIZE = 128 ; 32 slots
+
 
 ;==============================
 segment seg_data
@@ -71,6 +75,8 @@ segment seg_data
 	str_offset: db " - Offset: ", 0x00
 	str_flags: db " - Flags: ", 0x00
 	str_size: db " - Size: ", 0x00
+	str_pool_a_full: db " - Pool A full", UNIX_NL, 0x00
+	str_pool_b_full: db " - Pool B full", UNIX_NL, 0x00
 
 	str_file_open_error: db "FileOpen() error, code: ", 0x00
 	str_log_filename: db "sakurai.log", 0x00
@@ -95,8 +101,8 @@ segment seg_data
 	previous_ifd_vector_offset: dw 0x0000
 
 	; Game
-	spr_header: times 2 dw 0x0000
-	spr_indirection_table: times 32 dw 0x0000
+	sprite_header: times SPRITE_HEADER_SIZE db 0x00
+	sprite_indirection_table: times SPRITE_INDIRECTION_TABLE_SIZE db 0x00
 
 
 ;==============================
@@ -146,7 +152,7 @@ GameFrame:
 segment seg_pool_a
 	pool_a_data: rb POOL_A_SIZE
 
-spr_draw:
+spr_a_draw:
 	jmp near bx
 
 
@@ -154,6 +160,8 @@ spr_draw:
 segment seg_pool_b
 	pool_b_data: rb POOL_B_SIZE
 
+spr_b_draw:
+	jmp near bx
 
 ;==============================
 segment seg_buffer_data

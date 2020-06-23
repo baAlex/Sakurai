@@ -368,20 +368,30 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	; Calculate offset in DI
 	OffsetIn di ; EBX = x, y, Destroys CX
 
-	; Load sprite offset from indirection table, in BX
-	mov dx, seg_data
-	mov ds, dx
+	; Load from sprite indirection table: offset in BX, pool in CX
+	mov cx, seg_data
+	mov ds, cx
 
 	shr ax, 8 ; Slot (ah)
 	mov si, ax
-	shl si, 1 ; Multiply by the indirection table entry size (2)
+	mov bx, word[sprite_indirection_table + si] ; Slot::Offset
+	mov cx, word[sprite_indirection_table + si + 2] ; Slot::Where (on what pool)
 
-	mov bx, word[spr_indirection_table + si]
+	; Set pool
+	cmp cx, 1
+	je near GameDrawSprite_pool_a
+	cmp cx, 2
+	je near GameDrawSprite_pool_b
 
-	; Read SI and CX from sprite header
+	jmp near GameDrawSprite_bye ; Wrong pool, return, return!!!
+
+
+;==============================
+GameDrawSprite_pool_a:
 	mov dx, seg_pool_a
 	mov ds, dx
 
+	; Read SI and CX from sprite header
 	mov si, [bx + 2] ; Data offset in header
 	mov cx, [bx + 4] ; Frame number in header
 	add si, bx
@@ -402,11 +412,48 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	add bx, [bx]
 
 	; Draw!
-	call far seg_pool_a:spr_draw
+	call far seg_pool_a:spr_a_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
 		; DS:SI = Source, specified in the header (also absolute)
 		; ES:DI = Destination
+	jmp near GameDrawSprite_bye
 
+
+;==============================
+GameDrawSprite_pool_b:
+	mov dx, seg_pool_b
+	mov ds, dx
+
+	; Read SI and CX from sprite header
+	mov si, [bx + 2] ; Data offset in header
+	mov cx, [bx + 4] ; Frame number in header
+	add si, bx
+
+	; Load frame number in AX (currently is on the higher EAX bytes)
+	shr eax, 16
+	and ax, 0x00FF
+
+	inc cl
+	div cl ; Modulo by frames number
+	shr ax, 8
+
+	; Read the frame offset table after header using AX, then
+	; point BX into the desired frame code
+	shl ax, 1 ; Multiply by the frame offsets entry size (2)
+	add bx, 6 ; Header size (to skip it)
+	add bx, ax
+	add bx, [bx]
+
+	; Draw!
+	call far seg_pool_b:spr_b_draw
+		; BX = Absolute offset (in the segment) pointing into a frame code
+		; DS:SI = Source, specified in the header (also absolute)
+		; ES:DI = Destination
+	jmp near GameDrawSprite_bye
+
+
+;==============================
+GameDrawSprite_bye:
 	; Bye!
 	pop ds
 	pop si
@@ -479,7 +526,7 @@ GameDrawText_loop:
 	push si
 
 	; Draw!
-	call far seg_pool_a:spr_draw
+	call far seg_pool_a:spr_a_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
 		; DS:SI = Source, specified in the header (also absolute)
 		; ES:DI = Destination

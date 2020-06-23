@@ -304,46 +304,6 @@ IntFDInit:
 
 
 ;==============================
-_IntFDVector:
-; http://www.ctyme.com/intr/rb-8735.htm
-
-	push ax
-	push dx
-	push ds
-
-	mov ax, seg_game_data
-	mov ds, ax
-
-	mov ax, [ifd_arg1]
-
-	cmp ax, 0x01
-	je near GamePrintString
-	cmp ax, 0x02
-	je near GamePrintNumber
-	cmp ax, 0x03
-	je near GameLoadBackground
-	cmp ax, 0x04
-	je near GameLoadSprite
-	cmp ax, 0x05
-	je near GameUnloadEverything
-	cmp ax, 0x06
-	je near GameFlushCommands
-
-	; Notify PIC to end this interruption? (TODO)
-	; http://stanislavs.org/helppc/8259.html
-_IntFDVector_bye:
-	mov dx, 0x20
-	mov al, 0x20
-	out dx, al
-
-	; Bye!
-	pop ds
-	pop dx
-	pop ax
-	iret
-
-
-;==============================
 IntFDStop:
 	push ax
 	push ds
