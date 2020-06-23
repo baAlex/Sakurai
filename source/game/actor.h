@@ -41,7 +41,6 @@ struct Actor
 	uint8_t recover_timer; /* From 255 to 0 */
 
 	uint8_t phase;
-	uint8_t sprite; /* TODO, temporary until I write a 'resources' module */
 };
 
 uint8_t g_live_heroes;           /* ActorsInitialize() */

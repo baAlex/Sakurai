@@ -32,10 +32,14 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-
-static void* sBattleFrame();
+static uint8_t s_font1;
+static uint8_t s_font2;
+static uint8_t s_spr_portraits;
+static uint8_t s_spr_fx1;
+static uint8_t s_spr_fx2;
 
 static uint8_t s_battle_no = 0;
+static void* sBattleFrame();
 
 
 /*-----------------------------
@@ -52,8 +56,6 @@ static void* sAttackChoreography()
 	{
 		if (g_actor[i].state != ACTOR_STATE_ATTACK)
 			continue;
-
-		/*CmdDrawSprite(SPRITE_FX1, g_actor[i].target->x, g_actor[i].target->y, CURRENT_FRAME - s_choreo_start);*/
 	}
 
 	if (CURRENT_FRAME < s_choreo_start + 24 && CURRENT_FRAME > s_choreo_start)
@@ -122,7 +124,7 @@ static void* sBattleFrame()
 	ActorsDraw();
 
 	if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
-		HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 	/* Bye! */
 	CmdHalt();
@@ -144,16 +146,16 @@ static void* sWait()
 
 	/* Next state! */
 	CmdDrawBackground();
-	HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+	HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 	return sBattleFrame();
 }
 
 static void* sLoad()
 {
-	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
-	IntLoadSprite("assets\\fx1.jvn", SPRITE_FX1);
-	IntLoadSprite("assets\\fx2.jvn", SPRITE_FX2);
+	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
+	s_spr_fx1 = IntLoadSprite("assets\\fx1.jvn");
+	s_spr_fx2 = IntLoadSprite("assets\\fx2.jvn");
 
 	ActorsInitializeSprites();
 
@@ -169,8 +171,8 @@ void* StateBattle()
 	IntUnloadAll();
 
 	/* Reload minimal assets for the 'loading' screen */
-	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
-	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
+	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
 	switch (Random() % 4)
 	{
@@ -184,7 +186,7 @@ void* StateBattle()
 	CmdDrawBackground();
 
 	ActorsInitialize(s_battle_no);
-	CmdDrawText(SPRITE_FONT2, 10, 10, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
+	CmdDrawText(s_font2, 10, 10, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
 
 	text_y = 10;
 
@@ -193,7 +195,7 @@ void* StateBattle()
 		if (g_actor[i].state != ACTOR_STATE_DEAD && (g_actor[i].persona->tags & TAG_ENEMY))
 		{
 			text_y += 10;
-			CmdDrawText(SPRITE_FONT1, 10, text_y, g_actor[i].persona->name);
+			CmdDrawText(s_font1, 10, text_y, g_actor[i].persona->name);
 		}
 	}
 

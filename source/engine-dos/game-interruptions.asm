@@ -235,11 +235,25 @@ GameFreeSprite:
 ;==============================
 GameUnloadEverything:
 	push cx
+	push es
+	push di
+
+	mov cx, seg_data
+	mov es, cx
+	mov di, sprite_indirection_table
+	mov cx, SPRITE_INDIRECTION_TABLE_SIZE
+	call MemoryClean ; es:di = Destination, cx = Size
 
 	SetDsDx seg_pool_a, pool_a_data
 	mov cx, POOL_A_SIZE
 	call PoolInit ; (ds:dx, cx = size)
 
+	SetDsDx seg_pool_b, pool_b_data
+	mov cx, POOL_B_SIZE
+	call PoolInit ; (ds:dx, cx = size)
+
+	pop di
+	pop es
 	pop cx
 	jmp near _IntFDVector_bye
 

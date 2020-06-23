@@ -52,6 +52,8 @@ struct Persona
 
 	uint8_t initial_health;
 	uint8_t initial_magic;
+
+	uint8_t sprite;
 };
 
 struct Action g_action[ACTIONS_NO];   /* TraitsInitialize() */

@@ -32,6 +32,7 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
+static uint8_t s_font2;
 
 static uint8_t s_dialog = 0;
 static uint16_t s_last_updated = 0;
@@ -96,20 +97,20 @@ static void* sFrame()
 
 	switch (s_dialog)
 	{
-	case 0: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro01_kuro); break;
-	case 1: DialogDraw(SPRITE_FONT2, s_last_updated, "[Sayori]", s_intro02_sao); break;
-	case 2: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro03_kuro); break;
-	case 3: DialogDraw(SPRITE_FONT2, s_last_updated, "[Sayori]", s_intro04_sao); break;
-	case 4: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro05_kuro); break;
+	case 0: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro01_kuro); break;
+	case 1: DialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro02_sao); break;
+	case 2: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro03_kuro); break;
+	case 3: DialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro04_sao); break;
+	case 4: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro05_kuro); break;
 
-	case 5: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro06_walltext); break;
-	case 6: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro07_walltext); break;
-	case 7: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro08_walltext); break;
-	case 8: DialogDraw(SPRITE_FONT2, s_last_updated, "[Sayori]", s_intro09_sao); break;
+	case 5: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro06_walltext); break;
+	case 6: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro07_walltext); break;
+	case 7: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro08_walltext); break;
+	case 8: DialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro09_sao); break;
 
-	case 9: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro10_kuro); break;
-	case 10: DialogDraw(SPRITE_FONT2, s_last_updated, "[Kuro]", s_intro11_kuro); break;
-	case 11: DialogDraw(SPRITE_FONT2, s_last_updated, "[Sayori]", s_intro12_sao); break;
+	case 9: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro10_kuro); break;
+	case 10: DialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro11_kuro); break;
+	case 11: DialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro12_sao); break;
 
 	default: break;
 	}
@@ -122,7 +123,7 @@ static void* sFrame()
 void* StateIntro()
 {
 	IntPrintText("# StateIntro\n");
-	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
+	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
 	sCleanScreen();
 	s_last_updated = CURRENT_MILLISECONDS;

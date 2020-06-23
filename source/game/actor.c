@@ -206,10 +206,8 @@ void ActorsInitializeSprites()
 		if (s_temp[index] == 0)
 		{
 			s_temp[index] = 1;
-			IntLoadSprite(g_actor[i].persona->sprite_filename, 16 + index);
+			g_actor[i].persona->sprite = IntLoadSprite(g_actor[i].persona->sprite_filename);
 		}
-
-		g_actor[i].sprite = 16 + index;
 	}
 }
 
@@ -232,9 +230,9 @@ void ActorsDraw()
 		else if (g_actor[i].state == ACTOR_STATE_IDLE)
 		{
 			if (g_actor[i].recover_timer == 0)
-				CmdDrawSprite(g_actor[i].sprite, g_actor[i].x, g_actor[i].y, 0);
+				CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 			else
-				CmdDrawSprite(g_actor[i].sprite, g_actor[i].x, g_actor[i].y, 1);
+				CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 1);
 
 			/* Time meter */
 			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 64);
@@ -255,10 +253,10 @@ void ActorsDraw()
 			{
 				g_actor[i].phase += g_actor[i].action->oscillation_velocity;
 				x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
-				CmdDrawSprite(g_actor[i].sprite, x, g_actor[i].y, 0);
+				CmdDrawSprite(g_actor[i].persona->sprite, x, g_actor[i].y, 0);
 			}
 			else
-				CmdDrawSprite(g_actor[i].sprite, g_actor[i].x, g_actor[i].y, 1);
+				CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 1);
 
 			/* Time meter */
 			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 64);
@@ -275,14 +273,14 @@ void ActorsDraw()
 
 		else if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
-			CmdDrawSprite(g_actor[i].sprite, g_actor[i].x, g_actor[i].y, 0);
+			CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 
 			/* Time meter */
 			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 41);
 		}
 
 		else if (g_actor[i].state == ACTOR_STATE_VICTORY)
-			CmdDrawSprite(g_actor[i].sprite, g_actor[i].x, g_actor[i].y, 0);
+			CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 	}
 }
 

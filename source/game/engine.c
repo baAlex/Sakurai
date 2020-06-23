@@ -65,7 +65,7 @@ struct CmdDrawSprite
 {
 	/* DRAW_SPRITE */
 	uint8_t code;
-	uint8_t slot;
+	uint8_t sprite;
 	uint8_t frame;
 	uint8_t unused;
 	uint16_t x;
@@ -76,7 +76,7 @@ struct CmdDrawText
 {
 	/* CODE_DRAW_TEXT */
 	uint8_t code;
-	uint8_t slot;
+	uint8_t sprite;
 	uint16_t text;
 	uint16_t x;
 	uint16_t y;
@@ -129,16 +129,29 @@ void IntLoadBackground(char* filename)
 }
 
 
-void IntLoadSprite(char* filename, uint16_t slot)
+uint8_t IntLoadSprite(char* filename)
 {
 #if defined(__BCC__) && defined(__MSDOS__)
-	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x04;
+	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x07;
 	*((uint16_t*)INT_FD_ARG2_OFFSET) = (uint16_t)filename;
-	*((uint16_t*)INT_FD_ARG3_OFFSET) = slot;
 	asm("int 0xFD");
+
+	return *((uint16_t*)INT_FD_ARG1_OFFSET);
 #else
 	(void)filename;
-	(void)slot;
+	return 0;
+#endif
+}
+
+
+void IntFreeSprite(uint8_t sprite)
+{
+#if defined(__BCC__) && defined(__MSDOS__)
+	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x08;
+	*((uint16_t*)INT_FD_ARG2_OFFSET) = sprite;
+	asm("int 0xFD");
+#else
+	(void)sprite;
 #endif
 }
 
@@ -231,11 +244,11 @@ void CmdDrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t
 }
 
 
-void CmdDrawSprite(uint8_t slot, uint16_t x, uint16_t y, uint8_t frame)
+void CmdDrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8_t frame)
 {
 	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;
 	c->code = CODE_DRAW_SPRITE;
-	c->sprite.slot = slot;
+	c->sprite.sprite = sprite;
 	c->sprite.x = x;
 	c->sprite.y = y;
 	c->sprite.frame = frame;
@@ -244,11 +257,11 @@ void CmdDrawSprite(uint8_t slot, uint16_t x, uint16_t y, uint8_t frame)
 }
 
 
-void CmdDrawText(uint8_t slot, uint16_t x, uint16_t y, char* text)
+void CmdDrawText(uint8_t sprite, uint16_t x, uint16_t y, char* text)
 {
 	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;
 	c->code = CODE_DRAW_TEXT;
-	c->text.slot = slot;
+	c->text.sprite = sprite;
 	c->text.x = x;
 	c->text.y = y;
 	c->text.text = (uint16_t)text;

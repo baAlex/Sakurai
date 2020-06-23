@@ -33,6 +33,10 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
+static uint8_t s_font1;
+static uint8_t s_font2;
+static uint8_t s_spr_portraits;
+static uint8_t s_spr_items;
 
 static uint8_t s_stage_no = 0;
 
@@ -89,11 +93,10 @@ void* StateScreenshots()
 	IntPrintText("# StateScreenshots\n");
 	IntUnloadAll();
 
-	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
-	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
-
-	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
-	IntLoadSprite("assets\\ui-items.jvn", SPRITE_ARROW);
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
+	s_font2 = IntLoadSprite("assets\\font2.jvn");
+	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
+	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
 
 	Seed(14850);
 	TraitsInitialize();
@@ -118,9 +121,9 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].state = ACTOR_STATE_CHARGE;
 		g_actor[ACTOR_KURO].charge_timer = 170;
 
-		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
+		MenuActionDraw_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
 		                      &g_actor[ACTOR_KURO]);
-		MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, g_actor[ACTOR_SAO].persona, 0);
+		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 0);
 
 		ActorsDraw();
 	}
@@ -141,7 +144,7 @@ void* StateScreenshots()
 
 		g_actor[ACTOR_SAO].recover_timer = 40;
 
-		HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 		ActorsDraw();
 	}
@@ -163,9 +166,9 @@ void* StateScreenshots()
 		g_actor[ACTOR_SAO].state = ACTOR_STATE_CHARGE;
 		g_actor[ACTOR_SAO].charge_timer = 64;
 
-		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, g_actor[ACTOR_KURO].persona, &g_actor[ACTOR_SAO],
+		MenuActionDraw_static(s_spr_portraits, s_font2, g_actor[ACTOR_KURO].persona, &g_actor[ACTOR_SAO],
 		                      &g_actor[ACTOR_KURO]);
-		MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, g_actor[ACTOR_KURO].persona, 2);
+		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_KURO].persona, 2);
 
 		ActorsDraw();
 	}
@@ -184,7 +187,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].health = 60;
 		g_actor[ACTOR_KURO].magic = 80;
 
-		HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 		ActorsDraw();
 	}
@@ -205,9 +208,9 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].health = 40;
 		g_actor[ACTOR_KURO].magic = 0;
 
-		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
+		MenuActionDraw_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
 		                      &g_actor[ACTOR_KURO]);
-		MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, g_actor[ACTOR_SAO].persona, 3);
+		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 3);
 
 		ActorsDraw();
 	}
@@ -226,7 +229,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].health = 100;
 		g_actor[ACTOR_KURO].magic = 30;
 
-		HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 		ActorsDraw();
 	}

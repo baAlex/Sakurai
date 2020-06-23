@@ -31,14 +31,22 @@ SOFTWARE.
 #include "state.h"
 #include "utilities.h"
 
-static char s_buffer[4] = {0, 0, 0, 0};
+static uint8_t s_sprite1;
+static uint8_t s_sprite2;
+
+static uint8_t s_prev_back;
 
 
 static void* sFrame()
 {
-	if ((CURRENT_FRAME % 96) == 0) /* Every 4 seconds */
+	uint8_t back = (uint8_t)(Random() % 4);
+
+	if ((CURRENT_FRAME % 24) == 0) /* Every 1 seconds */
 	{
-		switch (Random() % 4)
+		while (back == s_prev_back)
+			back = (uint8_t)(Random() % 4);
+
+		switch (back)
 		{
 		case 0: IntLoadBackground("assets\\bkg1.raw"); break;
 		case 1: IntLoadBackground("assets\\bkg2.raw"); break;
@@ -46,12 +54,12 @@ static void* sFrame()
 		case 3: IntLoadBackground("assets\\bkg4.raw");
 		}
 
+		s_prev_back = back;
 		CmdDrawBackground();
-		CmdDrawSprite(SPRITE_KURO, 160 - 32, 100 - 32, 0);
-	}
 
-	CmdDrawRectangleBkg(2 /* 32 px */, 1 /* 16 px*/, 10, 0);
-	CmdDrawText(SPRITE_FONT2, 10, 0, NumberToString((uint8_t)CURRENT_FRAME, s_buffer));
+		CmdDrawSprite(s_sprite1, 160 - 32, 100 - 32, 0);
+		CmdDrawSprite(s_sprite2, 0, 0, 0);
+	}
 
 	CmdHalt();
 	return (void*)sFrame;
@@ -61,9 +69,8 @@ static void* sFrame()
 void* StateTest2()
 {
 	IntPrintText("# StateTest2\n");
-
-	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
-	IntLoadSprite("assets\\kuro.jvn", SPRITE_KURO);
+	s_sprite1 = IntLoadSprite("assets\\kuro.jvn");
+	s_sprite2 = IntLoadSprite("assets\\sayori.jvn");
 
 	return sFrame();
 }

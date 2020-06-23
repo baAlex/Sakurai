@@ -33,6 +33,12 @@ SOFTWARE.
 #include "utilities.h"
 #include "actor-traits.h"
 
+static uint8_t s_font1;
+static uint8_t s_font2;
+static uint8_t s_spr_portraits;
+static uint8_t s_spr_items;
+static uint8_t s_spr_sao;
+
 static struct Actor s_actor1;
 static struct Actor s_actor2;
 
@@ -54,8 +60,7 @@ static void* sFrame()
 
 		CmdDrawBackground();
 
-		/*HudDraw(SPRITE_PORTRAITS, SPRITE_FONT2, &s_actor1, &s_actor2);*/
-		MenuActionDraw_static(SPRITE_PORTRAITS, SPRITE_FONT2, s_actor1.persona, &s_actor1, &s_actor2);
+		MenuActionDraw_static(s_spr_portraits, s_font2, s_actor1.persona, &s_actor1, &s_actor2);
 	}
 
 	/* Sprite oscillating in position */
@@ -63,10 +68,10 @@ static void* sFrame()
 	x = (uint16_t)((int16_t)s_actor1.x + ((int16_t)Sin(s_actor1.phase) >> 2));
 
 	CmdDrawRectangleBkg(4 /* 64 px */, 6 /* 96 px*/, x, s_actor1.y);
-	CmdDrawSprite(SPRITE_SAO, x, s_actor1.y, s_actor1.phase >> 4);
+	CmdDrawSprite(s_spr_sao, x, s_actor1.y, s_actor1.phase >> 4);
 
 	/* Pseudo-pseudo-random menu selection */
-	MenuActionDraw_dynamic(SPRITE_ARROW, SPRITE_FONT1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
+	MenuActionDraw_dynamic(s_spr_items, s_font1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
 
 	/* Bye! */
 	CmdHalt();
@@ -78,11 +83,11 @@ void* StateTest3()
 {
 	IntPrintText("# StateTest3\n");
 
-	IntLoadSprite("assets\\ui-ports.jvn", SPRITE_PORTRAITS);
-	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
-	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
-	IntLoadSprite("assets\\sayori.jvn", SPRITE_SAO);
-	IntLoadSprite("assets\\ui-items.jvn", SPRITE_ARROW);
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
+	s_font2 = IntLoadSprite("assets\\font2.jvn");
+	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
+	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
+	s_spr_sao = IntLoadSprite("assets\\sayori.jvn");
 
 	TraitsInitialize();
 

@@ -379,7 +379,7 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 
 	; Set pool
 	cmp cx, 1
-	je near GameDrawSprite_pool_a
+	je near GameDrawSprite_pool_a ; TODO: Rather that diverge the routine in two, can I save CX in a push?
 	cmp cx, 2
 	je near GameDrawSprite_pool_b
 
@@ -465,104 +465,4 @@ GameDrawText: ; CODE_DRAW_TEXT
 ; eax - Slot (ah), Text (high 16 bits)
 ; ebx - X, Y (low 16 bits)
 
-	push si
-	push ds
-
-	; Calculate offset in DI
-	OffsetIn di ; EBX = x, y, Destroys CX
-
-
-	push di ; TODO, here the push/pop is an incompressible mess!
-
-	; Load sprite offset from indirection table, in BX
-	mov dx, seg_data
-	mov ds, dx
-
-	shr ax, 8 ; Slot (ah)
-	mov si, ax
-	shl si, 1 ; Multiply by the indirection table entry size (2)
-
-	mov bx, word[spr_indirection_table + si]
-
-	; Read SI from sprite header
-	mov dx, seg_pool_a
-	mov ds, dx
-
-	mov si, [bx + 2] ; Data offset in header
-	add si, bx
-
-	; Set segments to use
-	mov dx, seg_game_data
-	mov fs, dx
-
-	; Load text address in CX (currently is on the higher EAX bytes)
-	shr eax, 16
-	mov cx, ax
-
-	; Save BX in DX, as in every iteration we need to get
-	; back to the beginning of the sprite code (offset)
-	mov dx, bx
-
-	; Read first character in AL, frame to draw
-	mov bx, cx
-	mov al, [fs:bx]
-	xor ah, ah
-
-	cmp al, 0x00
-	jz GameDrawText_bye
-
-GameDrawText_loop:
-
-	mov bx, dx
-
-	; Read the frame offset table after header using AX, then
-	; point BX into the desired frame code
-	shl ax, 1 ; Multiply by the frame offsets entry size (2)
-	add bx, 6 ; Header size (to skip it)
-	add bx, ax
-	add bx, [bx]
-
-	push di ; Destroyed by spr_draw()
-	push si
-
-	; Draw!
-	call far seg_pool_a:spr_a_draw
-		; BX = Absolute offset (in the segment) pointing into a frame code
-		; DS:SI = Source, specified in the header (also absolute)
-		; ES:DI = Destination
-
-	pop si
-	pop di
-
-	; Add spacing to destination
-	add di, ax
-
-	; Preparations for next character
-GameDrawText_next:
-	inc cx
-
-	mov bx, cx
-	mov al, [fs:bx]
-	xor ah, ah
-
-	; Is a new line?
-	cmp al, 0xA
-	jnz is_null
-
-	pop di
-	add di, 3200 ; New line space (HARDCODED!)
-	push di
-	jmp GameDrawText_next
-
-	; Is NULL?
-is_null:
-	cmp al, 0x00
-	jnz GameDrawText_loop
-
-GameDrawText_bye:
-
-	; Bye!
-	pop di
-	pop ds
-	pop si
 	jmp near IterateGameCommands_continue

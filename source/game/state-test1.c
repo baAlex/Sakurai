@@ -31,6 +31,10 @@ SOFTWARE.
 #include "state.h"
 #include "utilities.h"
 
+static uint8_t s_font1;
+static uint8_t s_font2;
+
+
 #define TEST_TEXT\
 	"[Sayori]\n\
 But being as this is a Schwarz Sechs Prototype MkII, the\n\
@@ -47,8 +51,8 @@ static void* sFrame()
 	{
 		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
 
-		CmdDrawText(SPRITE_FONT1, 10, 0, TEST_TEXT);
-		CmdDrawText(SPRITE_FONT2, 10, 100, TEST_TEXT);
+		CmdDrawText(s_font1, 10, 0, TEST_TEXT);
+		CmdDrawText(s_font2, 10, 100, TEST_TEXT);
 	}
 
 	CmdHalt();
@@ -60,8 +64,8 @@ void* StateTest1()
 {
 	IntPrintText("# StateTest1\n");
 
-	IntLoadSprite("assets\\font1.jvn", SPRITE_FONT1);
-	IntLoadSprite("assets\\font2.jvn", SPRITE_FONT2);
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
+	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
 	return sFrame();
 }
