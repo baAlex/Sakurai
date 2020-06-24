@@ -106,6 +106,7 @@ build ./objects/enemy-g.asm: SpriteLinear $
  ./assets-dev/enemy-g.002.bmp
 
 build ./objects/font1.asm: SpriteFont ./assets-dev/font1.bmp
+build ./objects/font1a.asm: SpriteFont ./assets-dev/font1a.bmp
 build ./objects/font2.asm: SpriteFont ./assets-dev/font2.bmp
 
 # Assets
@@ -130,6 +131,7 @@ build ./assets/enemy-f.jvn: Assembly ./objects/enemy-f.asm
 build ./assets/enemy-g.jvn: Assembly ./objects/enemy-g.asm
 
 build ./assets/font1.jvn: Assembly ./objects/font1.asm
+build ./assets/font1a.jvn: Assembly ./objects/font1a.asm
 build ./assets/font2.jvn: Assembly ./objects/font2.asm
 
 build ./assets/palette.raw: Palette ./assets-dev/palette.bmp

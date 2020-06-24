@@ -33,6 +33,7 @@ SOFTWARE.
 #include "utilities.h"
 
 static uint8_t s_font1;
+static uint8_t s_font1a;
 static uint8_t s_font2;
 static uint8_t s_spr_portraits;
 static uint8_t s_spr_fx1;
@@ -50,23 +51,12 @@ static uint16_t s_choreo_start = 0; /* In frames */
 
 static void* sAttackChoreography()
 {
-	uint8_t i = 0;
-
-	for (i = 0; i < ACTORS_NO; i++)
-	{
-		if (g_actor[i].state != ACTOR_STATE_ATTACK)
-			continue;
-	}
+	CmdHalt();
 
 	if (CURRENT_FRAME < s_choreo_start + 24 && CURRENT_FRAME > s_choreo_start)
-	{
-		CmdHalt();
 		return (void*)sAttackChoreography;
-	}
 
-	/* Back to the logic frame */
-	CmdHalt();
-	return sBattleFrame;
+	return (void*)sBattleFrame;
 }
 
 
@@ -76,7 +66,7 @@ static void* sAttackChoreography()
 -----------------------------*/
 static void* sBattleFrame()
 {
-	void* next_frame = sBattleFrame;
+	void* next_frame = (void*)sBattleFrame;
 
 	uint8_t i = 0;
 	uint8_t kuro_prev_hp = 0;
@@ -116,15 +106,15 @@ static void* sBattleFrame()
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
 			s_choreo_start = CURRENT_FRAME;
-			next_frame = sAttackChoreography;
+			next_frame = (void*)sAttackChoreography;
 		}
 	}
 
 	/* Draw */
-	ActorsDraw();
-
 	if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
 		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	ActorsDraw();
 
 	/* Bye! */
 	CmdHalt();
@@ -153,6 +143,7 @@ static void* sWait()
 
 static void* sLoad()
 {
+	s_font1a = IntLoadSprite("assets\\font1a.jvn");
 	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
 	s_spr_fx1 = IntLoadSprite("assets\\fx1.jvn");
 	s_spr_fx2 = IntLoadSprite("assets\\fx2.jvn");
