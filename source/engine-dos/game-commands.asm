@@ -421,14 +421,14 @@ GameDrawSprite_pool_set:
 GameDrawSprite_draw_a:
 	call far seg_pool_a:spr_a_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
-		; DS:SI = Source, specified in the header (also absolute)
+		; DS:SI = Data source, specified in the header (also absolute)
 		; ES:DI = Destination
 	jmp near GameDrawSprite_bye
 
 GameDrawSprite_draw_b:
 	call far seg_pool_b:spr_b_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
-		; DS:SI = Source, specified in the header (also absolute)
+		; DS:SI = Data source, specified in the header (also absolute)
 		; ES:DI = Destination
 
 GameDrawSprite_bye:
@@ -443,4 +443,134 @@ GameDrawText: ; CODE_DRAW_TEXT
 ; eax - Slot (ah), Text (high 16 bits)
 ; ebx - X, Y (low 16 bits)
 
+	; !!! Mostly a copy of GameDrawSprite !!!
+
+	push si
+	push ds
+
+	; Calculate offset in DI
+	OffsetIn di ; EBX = x, y, Destroys CX
+
+		push di ; NL HACK!
+
+	; Load from sprite indirection table: offset in BX, pool in CX
+	mov cx, seg_data
+	mov ds, cx
+
+	shr ax, 8 ; Slot (ah)
+	mov si, ax
+	mov bx, word[sprite_indirection_table + si] ; Slot::Offset
+	mov cx, word[sprite_indirection_table + si + 2] ; Slot::Where (on what pool)
+
+	; Set pool
+	dec cx
+	jz near GameDrawText_pool_a ; cx == 1
+	dec cx
+	jz near GameDrawText_pool_b ; cx == 2
+
+	jmp near GameDrawText_bye ; Wrong pool, return, return!!!
+
+GameDrawText_pool_a:
+	mov dx, seg_pool_a
+	jmp GameDrawText_pool_set
+GameDrawText_pool_b:
+	mov dx, seg_pool_b
+
+GameDrawText_pool_set:
+	mov ds, dx
+
+	; Read SI and CX from sprite header
+	mov si, [bx + 2] ; SpriteHeader::data_offset
+	add si, bx
+
+	; !!!!!!
+
+	; Use a new segment to read the text!
+	mov cx, seg_game_data
+	mov fs, cx
+
+	; Text offset currently in high EAX,
+	; lets move it to CX
+	shr eax, 16
+	mov cx, ax
+
+	xor ax, ax ; Before the loop
+
+GameDrawText_loop:
+	shl ebx, 16 ; Im out of registers :(
+
+		; Read character in AL
+		mov bx, cx
+		mov byte al, [fs:bx]
+
+	shr ebx, 16
+
+	; Is NULL?
+	cmp al, 0x00
+	je near GameDrawText_bye
+
+	; Is a new line?
+	cmp al, 0xA
+	je near GameDrawText_nl
+
+	; Draw
+	call near GameDrawText_draw_character ; Returns spacing in AX
+
+	; Advance to next character
+	inc cx
+	add di, ax
+	jmp near GameDrawText_loop
+
+GameDrawText_nl:
+	; Add a new line, and advance to next character
+	inc cx
+	pop di ; NL HACK!
+	add di, 3200 ; Line space (HARDCODED!)
+	push di ; NL HACK!
+	jmp near GameDrawText_loop
+
+	; !!!!!!
+
+GameDrawText_bye:
+	pop di
+	pop ds
+	pop si
 	jmp near IterateGameCommands_continue
+
+
+;==============================
+GameDrawText_draw_character:
+; dx:bx - Sprite-data offset
+; ds:si - Frame-data offset
+; es:di - Destination
+; ax    - Frame to draw
+; Returns spacing in ax
+
+	push bx
+	push di ; Destroyed by spr_a_draw()
+	push si ; Destroyed by spr_a_draw()
+
+	; Read frame code-offset (table after sprite header) using AX,
+	; then point BX into the desired frame code
+	shl ax, 1 ; Multiply by the frame offsets entry size (2)
+	add bx, 6 ; Sprite header size (to skip it)
+	add bx, ax
+	add bx, [bx]
+
+	; Draw!
+	cmp dx, seg_pool_b ; What pool?
+	je GameDrawText_draw_b
+
+GameDrawText_draw_a:
+	call far seg_pool_a:spr_a_draw
+	pop si
+	pop di
+	pop bx
+	ret
+
+GameDrawText_draw_b:
+	call far seg_pool_b:spr_b_draw
+	pop si
+	pop di
+	pop bx
+	ret
