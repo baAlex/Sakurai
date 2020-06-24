@@ -29,7 +29,6 @@ COMMANDS_TABLE_LEN = 28
 COMMANDS_TABLE_SIZE = 224 ; In bytes
 GAME_SIZE = 16392 ; In bytes
 
-SPRITE_HEADER_SIZE = 4
 SPRITE_SLOT_SIZE = 4
 SPRITE_INDIRECTION_TABLE_SIZE = 128 ; 32 slots
 
@@ -101,7 +100,7 @@ segment seg_data
 	previous_ifd_vector_offset: dw 0x0000
 
 	; Game
-	sprite_header: times SPRITE_HEADER_SIZE db 0x00
+	sprite_header: times 2 db 0x00 ; SpriteHeader::file_size
 	sprite_indirection_table: times SPRITE_INDIRECTION_TABLE_SIZE db 0x00
 
 

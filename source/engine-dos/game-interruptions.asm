@@ -125,7 +125,7 @@ GameLoadSprite:
 
 	; Read sprite header in 'sprite_header'
 	mov dx, sprite_header
-	mov cx, SPRITE_HEADER_SIZE
+	mov cx, 2 ; For SpriteHeader::file_size
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
 	push ax ; To keep fp
@@ -133,13 +133,7 @@ GameLoadSprite:
 		mov dx, str_size
 		call near PrintLogString ; (ds:dx)
 		mov ax, [sprite_header] ; SpriteHeader::file_size
-		mov cx, ax ; Used in the future in-memory header
-		call near PrintLogNumber ; (ax)
-
-		mov dx, str_offset
-		call near PrintLogString ; (ds:dx)
-		mov ax, [sprite_header + 2] ; SpriteHeader::data_offset
-		mov bx, ax ; Used in the future in-memory header
+		mov cx, ax
 		call near PrintLogNumber ; (ax)
 
 	pop ax
@@ -172,13 +166,12 @@ GameLoadSprite:
 GameLoadSprite_allocated:
 
 	; Fill the already read header
-	mov [di], cx     ; SpriteHeader::file_size
-	mov [di + 2], bx ; SpriteHeader::data_offset
+	mov [di], cx ; SpriteHeader::file_size
 
 	; Read the rest of the sprite file
 	mov dx, di
-	add dx, SPRITE_HEADER_SIZE
-	sub cx, SPRITE_HEADER_SIZE
+	add dx, 2 ; Already read SpriteHeader::file_size
+	sub cx, 2 ; Already read SpriteHeader::file_size
 
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 	call near FileClose ; (ax)

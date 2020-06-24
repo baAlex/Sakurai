@@ -378,81 +378,59 @@ GameDrawSprite: ; CODE_DRAW_SPRITE
 	mov cx, word[sprite_indirection_table + si + 2] ; Slot::Where (on what pool)
 
 	; Set pool
-	cmp cx, 1
-	je near GameDrawSprite_pool_a ; TODO: Rather that diverge the routine in two, can I save CX in a push?
-	cmp cx, 2
-	je near GameDrawSprite_pool_b
+	dec cx
+	jz near GameDrawSprite_pool_a ; cx == 1
+	dec cx
+	jz near GameDrawSprite_pool_b ; cx == 2
 
 	jmp near GameDrawSprite_bye ; Wrong pool, return, return!!!
 
-
-;==============================
 GameDrawSprite_pool_a:
 	mov dx, seg_pool_a
+	jmp GameDrawSprite_pool_set
+GameDrawSprite_pool_b:
+	mov dx, seg_pool_b
+
+GameDrawSprite_pool_set:
 	mov ds, dx
 
 	; Read SI and CX from sprite header
-	mov si, [bx + 2] ; Data offset in header
-	mov cx, [bx + 4] ; Frame number in header
+	mov si, [bx + 2] ; SpriteHeader::data_offset
+	mov cx, [bx + 4] ; SpriteHeader::frames_number
 	add si, bx
 
 	; Load frame number in AX (currently is on the higher EAX bytes)
 	shr eax, 16
-	and ax, 0x00FF
+	xor ah, ah
 
 	inc cl
 	div cl ; Modulo by frames number
 	shr ax, 8
 
-	; Read the frame offset table after header using AX, then
-	; point BX into the desired frame code
+	; Read frame code-offset (table after sprite header) using AX,
+	; then point BX into the desired frame code
 	shl ax, 1 ; Multiply by the frame offsets entry size (2)
-	add bx, 6 ; Header size (to skip it)
+	add bx, 6 ; Sprite header size (to skip it)
 	add bx, ax
 	add bx, [bx]
 
 	; Draw!
+	cmp dx, seg_pool_b ; What pool?
+	je GameDrawSprite_draw_b
+
+GameDrawSprite_draw_a:
 	call far seg_pool_a:spr_a_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
 		; DS:SI = Source, specified in the header (also absolute)
 		; ES:DI = Destination
 	jmp near GameDrawSprite_bye
 
-
-;==============================
-GameDrawSprite_pool_b:
-	mov dx, seg_pool_b
-	mov ds, dx
-
-	; Read SI and CX from sprite header
-	mov si, [bx + 2] ; Data offset in header
-	mov cx, [bx + 4] ; Frame number in header
-	add si, bx
-
-	; Load frame number in AX (currently is on the higher EAX bytes)
-	shr eax, 16
-	and ax, 0x00FF
-
-	inc cl
-	div cl ; Modulo by frames number
-	shr ax, 8
-
-	; Read the frame offset table after header using AX, then
-	; point BX into the desired frame code
-	shl ax, 1 ; Multiply by the frame offsets entry size (2)
-	add bx, 6 ; Header size (to skip it)
-	add bx, ax
-	add bx, [bx]
-
-	; Draw!
+GameDrawSprite_draw_b:
 	call far seg_pool_b:spr_b_draw
 		; BX = Absolute offset (in the segment) pointing into a frame code
 		; DS:SI = Source, specified in the header (also absolute)
 		; ES:DI = Destination
-	jmp near GameDrawSprite_bye
 
-
-;==============================
 GameDrawSprite_bye:
 	; Bye!
 	pop ds
