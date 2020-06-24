@@ -167,9 +167,6 @@ void IntUnloadAll()
 
 void IntFlushCommands()
 {
-	union Command* c = (union Command*)(COMMANDS_TABLE_OFFSET) + s_cmd_counter;
-	c->code = CODE_HALT;
-
 	s_cmd_counter = 0;
 
 #if defined(__BCC__) && defined(__MSDOS__)
@@ -179,7 +176,7 @@ void IntFlushCommands()
 }
 
 
-#define sIncrementCounter() {if ((s_cmd_counter += 1) == (MAX_COMMANDS - 4)){ IntFlushCommands(); }} /* Fixme? */
+#define sIncrementCounter() {if ((s_cmd_counter += 1) == (MAX_COMMANDS)){ IntFlushCommands(); }}
 
 
 void CmdDrawBackground()

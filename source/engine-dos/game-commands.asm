@@ -91,7 +91,7 @@ IterateGameCommands_continue:
 	mov byte [si], 0x00 ; Before continue lets clear the slot with CODE_HALT
 
 	add si, COMMAND_SIZE
-	cmp si, COMMANDS_TABLE_SIZE
+	cmp si, (commands_table + COMMANDS_TABLE_SIZE)
 	jb IterateGameCommands_loop
 
 	; Bye!
