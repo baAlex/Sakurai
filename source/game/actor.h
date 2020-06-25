@@ -28,10 +28,11 @@ struct Actor
 {
 	struct Persona* persona;
 	struct Action* action;
+	struct Actor* target;
+
 	uint16_t x;
 	uint16_t y;
 
-	struct Actor* target;
 	uint8_t state;
 
 	uint8_t health;
@@ -41,6 +42,7 @@ struct Actor
 	uint8_t recover_timer; /* From 255 to 0 */
 
 	uint8_t phase;
+	uint8_t prev_health;
 };
 
 uint8_t g_live_heroes;           /* ActorsInitialize() */

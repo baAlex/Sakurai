@@ -101,6 +101,7 @@ void ActorsInitialize(uint8_t battle_no)
 			/* Revive heroes for battle zero */
 			g_actor[i].state = ACTOR_STATE_IDLE;
 			g_actor[i].health = g_actor[i].persona->initial_health;
+			g_actor[i].prev_health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
 		}
 		else
@@ -178,6 +179,7 @@ void ActorsInitialize(uint8_t battle_no)
 
 			/* Finally set health and magic based on the personality */
 			g_actor[i].health = g_actor[i].persona->initial_health;
+			g_actor[i].prev_health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
 		}
 	}
@@ -357,7 +359,14 @@ static int sAttack(struct Actor* actor)
 
 	/* Apply the action */
 	actor->target->recover_timer = 255; /* TODO: use an tag in the action */
+	actor->target->prev_health = actor->target->health;
+
 	actor->action->callback(actor->action, actor);
+
+	if (actor->target->state == ACTOR_STATE_CHARGE)
+	{
+		actor->target->charge_timer = actor->target->charge_timer >> 1;
+	}
 
 	if (actor->target->health == 0)
 	{

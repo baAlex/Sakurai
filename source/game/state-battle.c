@@ -32,6 +32,8 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
+#define DEVELOPER
+
 static uint8_t s_font1;
 static uint8_t s_font1a;
 static uint8_t s_font2;
@@ -48,12 +50,51 @@ static void* sBattleFrame();
  Attack choreography
 -----------------------------*/
 static uint16_t s_choreo_start = 0; /* In frames */
+static char s_buffer1[5] = {'-', 0, 0, 0, 0};
 
 static void* sAttackChoreography()
 {
+	struct Actor* attacker;
+	char* c = NULL;
+
+	uint8_t i = 0;
+	uint8_t kuro_prev_hp = 0;
+	uint8_t sao_prev_hp = 0;
+
+	if (CURRENT_FRAME == s_choreo_start + 1)
+	{
+		kuro_prev_hp = g_actor[ACTOR_KURO].health;
+		sao_prev_hp = g_actor[ACTOR_SAO].health;
+
+		for (i = 0; i < ACTORS_NO; i++)
+		{
+			if (g_actor[i].state == ACTOR_STATE_DEAD)
+				continue;
+
+			if (g_actor[i].state == ACTOR_STATE_ATTACK)
+				attacker = &g_actor[i];
+
+			ActorLogic(&g_actor[i]);
+
+			if (g_actor[i].state == ACTOR_STATE_ATTACK)
+				g_actor[i].state = ACTOR_STATE_CHARGE; /* Nope, wait to the next choreo */
+		}
+
+		if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
+			HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+		ActorsDraw();
+
+		CmdDrawRectanglePrecise(34, 3, attacker->x, attacker->y, 41);
+		CmdDrawRectanglePrecise(34, 3, attacker->target->x, attacker->target->y, 61);
+
+		c = NumberToString((attacker->target->prev_health - attacker->target->health), s_buffer1);
+		CmdDrawText(s_font1a, attacker->target->x, attacker->target->y, c - 1);
+	}
+
 	CmdHalt();
 
-	if (CURRENT_FRAME < s_choreo_start + 24 && CURRENT_FRAME > s_choreo_start)
+	if (CURRENT_FRAME < s_choreo_start + 36 && CURRENT_FRAME > s_choreo_start)
 		return (void*)sAttackChoreography;
 
 	return (void*)sBattleFrame;
@@ -72,23 +113,19 @@ static void* sBattleFrame()
 	uint8_t kuro_prev_hp = 0;
 	uint8_t sao_prev_hp = 0;
 
-	/* Re-initialize actors on user demand */
-	if (INPUT_LEFT == 1)
+#ifdef DEVELOPER
+	/* Change battle */
+	if (INPUT_LEFT == 1 && s_battle_no >= 1)
 	{
-		if (s_battle_no >= 1)
-		{
-			s_battle_no -= 1;
-			return (void*)StateBattle; /* Restarts the entire world */
-		}
+		s_battle_no -= 1;
+		return (void*)StateBattle; /* Restarts the entire world */
 	}
-	else if (INPUT_RIGHT == 1)
+	else if (INPUT_RIGHT == 1 && s_battle_no < 255)
 	{
-		if (s_battle_no < 255)
-		{
-			s_battle_no += 1;
-			return (void*)StateBattle; /* Restarts the entire world */
-		}
+		s_battle_no += 1;
+		return (void*)StateBattle; /* Restarts the entire world */
 	}
+#endif
 
 	/* Game logic */
 	kuro_prev_hp = g_actor[ACTOR_KURO].health;
@@ -101,12 +138,14 @@ static void* sBattleFrame()
 
 		ActorLogic(&g_actor[i]);
 
-		/* This actor set itself to do an attack the following frame,
-		we intercept that and the next frame we use a custom function */
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
 			s_choreo_start = CURRENT_FRAME;
-			next_frame = (void*)sAttackChoreography;
+
+			if (next_frame != (void*)sAttackChoreography)
+				next_frame = (void*)sAttackChoreography;
+			else
+				g_actor[i].state = ACTOR_STATE_CHARGE; /* Nope, wait to the next choreo */
 		}
 	}
 
@@ -130,6 +169,21 @@ static uint16_t s_loading_start = 0;
 
 static void* sWait()
 {
+
+#ifdef DEVELOPER
+	/* Change battle */
+	if (INPUT_LEFT == 1 && s_battle_no >= 1)
+	{
+		s_battle_no -= 1;
+		return (void*)StateBattle; /* Restarts the entire world */
+	}
+	else if (INPUT_RIGHT == 1 && s_battle_no < 255)
+	{
+		s_battle_no += 1;
+		return (void*)StateBattle; /* Restarts the entire world */
+	}
+#endif
+
 	/* We need to be sure of show the loading screen for at least 1.5 seconds */
 	if (CURRENT_MILLISECONDS < s_loading_start + 1500 && CURRENT_MILLISECONDS > s_loading_start)
 		return (void*)sWait;

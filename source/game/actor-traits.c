@@ -49,7 +49,7 @@ void TraitsInitialize()
 {
 	/* Actions */
 	g_action[0].name = "Simple attack";
-	g_action[0].charge_velocity = 6;
+	g_action[0].charge_velocity = 5;
 	g_action[0].oscillation_velocity = 20;
 	g_action[0].callback = ActionAttack;
 	g_action[0].amount = 20;
@@ -67,7 +67,7 @@ void TraitsInitialize()
 	g_action[2].amount = 80;
 
 	g_action[3].name = "Bite";
-	g_action[3].charge_velocity = 6;
+	g_action[3].charge_velocity = 5;
 	g_action[3].oscillation_velocity = 20;
 	g_action[3].callback = ActionAttack;
 	g_action[3].amount = 10;
@@ -84,8 +84,8 @@ void TraitsInitialize()
 		g_heroes[HERO_KURO].sprite_filename = "assets\\kuro.jvn";
 		g_heroes[HERO_KURO].tags = TAG_NONE | TAG_LEVITATES;
 
-		g_heroes[HERO_KURO].idle_velocity = 6;
-		g_heroes[HERO_KURO].recover_velocity = 14;
+		g_heroes[HERO_KURO].idle_velocity = 5;
+		g_heroes[HERO_KURO].recover_velocity = 13;
 
 		g_heroes[HERO_KURO].initial_health = 100;
 		g_heroes[HERO_KURO].initial_magic = 0;
@@ -99,8 +99,8 @@ void TraitsInitialize()
 		g_heroes[HERO_SAO].sprite_filename = "assets\\sayori.jvn";
 		g_heroes[HERO_SAO].tags = TAG_NONE;
 
-		g_heroes[HERO_SAO].idle_velocity = 8;
-		g_heroes[HERO_SAO].recover_velocity = 10;
+		g_heroes[HERO_SAO].idle_velocity = 7;
+		g_heroes[HERO_SAO].recover_velocity = 9;
 
 		g_heroes[HERO_SAO].initial_health = 100;
 		g_heroes[HERO_SAO].initial_magic = 30;
@@ -117,7 +117,7 @@ void TraitsInitialize()
 		g_enemies[0].tags = TAG_ENEMY;
 
 		g_enemies[0].idle_velocity = 4;
-		g_enemies[0].recover_velocity = 6;
+		g_enemies[0].recover_velocity = 5;
 
 		g_enemies[0].initial_health = 40;
 		g_enemies[0].initial_magic = 0;
@@ -131,15 +131,15 @@ void TraitsInitialize()
 		g_enemies[1].sprite_filename = "assets\\enemy-b.jvn";
 		g_enemies[1].tags = TAG_ENEMY | TAG_LEVITATES;
 
-		g_enemies[1].idle_velocity = 6;
-		g_enemies[1].recover_velocity = 8;
+		g_enemies[1].idle_velocity = 3;
+		g_enemies[1].recover_velocity = 7;
 
 		g_enemies[1].initial_health = 60;
 		g_enemies[1].initial_magic = 0;
 
 		g_enemies[1].actions_preference = 70;
 		g_enemies[1].action_a = &g_action[3]; /* Bite */
-		g_enemies[1].action_b = &g_action[4]; /* Claws */
+		g_enemies[1].action_b = &g_action[3];
 	}
 
 	/* Slow motion, bullet sponges */
