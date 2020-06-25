@@ -10,7 +10,7 @@
 void* StateBattle();
 void* StateIntro();
 
-void* StateScreenshots();
+void* StateScreenshots(); /* Staged screenshoots :) */
 
 void* StateTest1(); /* Text rendering */
 void* StateTest2(); /* Background and sprites */

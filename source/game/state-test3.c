@@ -47,8 +47,7 @@ static void* sFrame()
 {
 	uint16_t x = 0;
 
-	/* Random background plus a menu, every 4 seconds */
-	if ((CURRENT_FRAME % 96) == 0)
+	if ((CURRENT_FRAME % 96) == 0) /* Every 4 seconds */
 	{
 		switch (Random() % 4)
 		{

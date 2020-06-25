@@ -49,9 +49,12 @@ static void* sBattleFrame();
 
  Attack choreography
 -----------------------------*/
+
+#define CHOREO_DURATION 36 /* In frames */
+
 static uint16_t s_choreo_start = 0; /* In frames */
 struct Actor* s_choreo_attacker;
-static char s_buffer1[5] = {'-', 0, 0, 0, 0};
+static char s_buffer[5] = {'-', 0, 0, 0, 0};
 
 static void* sAttackChoreography()
 {
@@ -61,6 +64,7 @@ static void* sAttackChoreography()
 	uint8_t kuro_prev_hp = 0;
 	uint8_t sao_prev_hp = 0;
 
+	/* For the first frame we run the logic as always... */
 	if (CURRENT_FRAME == s_choreo_start + 1)
 	{
 		kuro_prev_hp = g_actor[ACTOR_KURO].health;
@@ -71,42 +75,48 @@ static void* sAttackChoreography()
 			if (g_actor[i].state == ACTOR_STATE_DEAD)
 				continue;
 
+			/* ... except that we keep note of who is attacking */
 			if (g_actor[i].state == ACTOR_STATE_ATTACK)
 				s_choreo_attacker = &g_actor[i];
 
 			ActorLogic(&g_actor[i]);
 
+			/* After the logic step some new attackers can arise, we
+			   obligate them to wait until the next logic step */
 			if (g_actor[i].state == ACTOR_STATE_ATTACK)
-				g_actor[i].state = ACTOR_STATE_CHARGE; /* Nope, wait to the next choreo */
+				g_actor[i].state = ACTOR_STATE_CHARGE;
 		}
 
 		if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
 			HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 	}
 
-
+	/* Draw actors every frame like we normally do... */
 	ActorsDraw(0);
 
-	if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
+	/* ... and then draw a lot of new things: */
 	{
-		if (s_choreo_attacker->persona->tags & TAG_ENEMY)
-			CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
-			              (CURRENT_FRAME - s_choreo_start) - 1);
-		else
-			CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
-			              (CURRENT_FRAME - s_choreo_start) - 1);
+		if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
+		{
+			if (s_choreo_attacker->persona->tags & TAG_ENEMY)
+				CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+				              (CURRENT_FRAME - s_choreo_start) - 1);
+			else
+				CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+				              (CURRENT_FRAME - s_choreo_start) - 1);
+		}
+
+		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
+		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
+
+		c = NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health), s_buffer);
+		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y, c - 1);
 	}
 
-	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
-	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
-
-	c = NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health), s_buffer1);
-	CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y, c - 1);
-
-
+	/* Bye! */
 	CmdHalt();
 
-	if (CURRENT_FRAME < s_choreo_start + 36 && CURRENT_FRAME > s_choreo_start)
+	if (CURRENT_FRAME < s_choreo_start + CHOREO_DURATION && CURRENT_FRAME > s_choreo_start)
 		return (void*)sAttackChoreography;
 
 	return (void*)sBattleFrame;
@@ -150,14 +160,20 @@ static void* sBattleFrame()
 
 		ActorLogic(&g_actor[i]);
 
+		/* If after the logic step the actor set itself to 'attack', we
+		   prepare the attack choreography to be executed the next frame */
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
 			s_choreo_start = CURRENT_FRAME;
 
 			if (next_frame != (void*)sAttackChoreography)
 				next_frame = (void*)sAttackChoreography;
+
+			/* If a previous actor already gained the choreo, we set this
+			   one to 'charge', an state previous to 'attack'. Obligating it
+			   to wait until the next logic step */
 			else
-				g_actor[i].state = ACTOR_STATE_CHARGE; /* Nope, wait to the next choreo */
+				g_actor[i].state = ACTOR_STATE_CHARGE;
 		}
 	}
 

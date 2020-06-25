@@ -9,7 +9,6 @@
 
 
 /* Improvised Std */
-
 #if defined(__BCC__) && defined(__MSDOS__)
 
 typedef signed char int8_t;
@@ -28,8 +27,7 @@ typedef unsigned short uint16_t;
 #endif
 
 
-/* Engine internals */
-
+/* Engine internals ('Game PSP' from the engine perspective) */
 #define FRAME_COUNTER_OFFSET 0x0002
 #define MS_COUNTER_OFFSET 0x0004
 #define MAX_COMMANDS_OFFSET 0x0006
@@ -61,7 +59,6 @@ typedef unsigned short uint16_t;
 
 
 /* Interruptions */
-
 void IntPrintText(char* text);
 void IntPrintNumber(uint16_t number);
 void IntLoadBackground(char* filename);
@@ -72,7 +69,6 @@ void IntFlushCommands();
 
 
 /* Commands */
-
 void CmdDrawBackground();
 void CmdDrawPixel(uint16_t x, uint16_t y, uint8_t color);
 void CmdDrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color);

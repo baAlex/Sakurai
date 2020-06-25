@@ -40,33 +40,36 @@ SOFTWARE.
  Dialog
 -----------------------------*/
 
-#define DIALOG_TIME 125
+#define DIALOG_TIME 125 /* In milliseconds */
+#define DIALOG_X 12
+#define DIALOG_Y 140
+#define DIALOG_LINE_SPACE 12
 
 void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** text)
 {
 	uint16_t current_ms = CURRENT_MILLISECONDS;
-	uint16_t y = 140;
+	uint16_t y = DIALOG_Y;
 	uint8_t i = 0;
 
 	if (current_ms == start_ms)
 		CmdDrawText(font_sprite, 12, y, character);
 	else
 	{
-		character = NULL;
+		character = NULL; /* Reusing it, from here should be called 'text_line' */
 
-		for (i = 0; i < 4; i++)
+		for (i = 0; i < 4; i++) /* HARDCODED, maximum of 4 lines */
 		{
 			if (current_ms > (start_ms + (DIALOG_TIME * (i + 1))) && text[i] != NULL)
 			{
 				character = text[i];
-				y += 12;
+				y += DIALOG_LINE_SPACE;
 			}
 			else
 				break;
 		}
 
 		if (character != NULL)
-			CmdDrawText(font_sprite, 12, y, character);
+			CmdDrawText(font_sprite, DIALOG_X, y, character);
 	}
 }
 
@@ -76,7 +79,7 @@ void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** 
  sPortraitsDraw()
 -----------------------------*/
 
-#define PORTRAITS_X 13
+#define PORTRAITS_X 13 /* Most of this positions comes from an mockup file... sorry */
 #define PORTRAITS_Y 10
 
 #define PORTRAITS_1ST_COL (PORTRAITS_X + 43)
@@ -135,6 +138,7 @@ void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_
 
 #define MENU_BACK_COLOR 1
 #define MENU_OUTLINE_COLOR 3
+#define MENU_SHADOW_COLOR 64
 
 #define MENU_LINE_SPACE 14
 
@@ -165,8 +169,8 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 2, MENU_Y, MENU_OUTLINE_COLOR);
 
 	/* Shadow outline */
-	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 1, MENU_Y, 64);
-	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y + (MENU_HEIGHT << 4) - 1, 64);
+	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 1, MENU_Y, MENU_SHADOW_COLOR);
+	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y + (MENU_HEIGHT << 4) - 1, MENU_SHADOW_COLOR);
 
 	/* Portraits, hero name */
 	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
@@ -204,7 +208,7 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 	/* The previous rectangle overwrite the outlines */
 	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y, MENU_OUTLINE_COLOR);
 	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
-	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 1, 64);
+	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 1, MENU_SHADOW_COLOR);
 
 	/* Selection arrow */
 	if (selection > 128)
@@ -284,8 +288,7 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 		CmdDrawSprite(arrow_sprite, g_actor[i].x, g_actor[i].y + 40, 2);
 	}
 
-	/* Validate selection, we dont' want
-	attack our allies or dead enemies */
+	/* Validate selection, we dont' want attack our allies or dead enemies */
 	if (selection == 0)
 		selection = HEROES_NO;
 

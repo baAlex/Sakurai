@@ -68,7 +68,7 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 
 	triangle += 1;
 
-	/* Add noise */
+	/* Noise */
 	if ((Random() % 100) < NOISE_GATE)
 	{
 		triangle -= Random() % NOISE_MIN;
@@ -88,7 +88,7 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 #define BATTLES_NO 16 /* To fit on a DOS screen :( */
 #endif
 
-#define CHANCES_ATTACK 8      /* In number of battles*/
+#define CHANCES_ATTACK 8      /* In number of battles */
 #define CHANCES_DECAY 3       /* Same */
 #define BATTLES_DIV_ENEMIES 4 /* (BATTLES_NO / ENEMIES_NO) */
 #define OFFSET 5
@@ -130,7 +130,6 @@ uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no)
 		}
 	}
 
-	/* Bye! */
 	return FixedWhole(UFixedMultiply(chances, UFixedMake(100, 0)));
 }
 

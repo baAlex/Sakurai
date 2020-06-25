@@ -35,19 +35,24 @@ SOFTWARE.
 #define BATTLE
 
 
-void* Hello();
-static void* (*s_next_function)() = Hello;
+void* StateHello();
+static void* (*s_next_state)() = StateHello;
 
 
 int main()
 {
-	s_next_function = (void *(*)())s_next_function(); /* void *(*)() !!! */
+	/* PROTIP: 'state-battle.c' is the file you are looking for */
+	/* This entry point only has the purpose of redirect to the next state... */
+	s_next_state = (void* (*)())s_next_state();
 	return 0;
 }
 
 
-void* Hello()
+void* StateHello()
 {
+	/* ... 'StateHello' being the first state executed, from here every state should
+	   return what to call the next frame, most states returns themself */
+
 	IntPrintText("Tanaka's magical business v0.2-alpha\n");
 	IntPrintText("- Max commands: ");
 	IntPrintNumber(MAX_COMMANDS);
@@ -66,8 +71,6 @@ void* Hello()
 	#elif defined(TEST2)
 	return StateTest2();
 	#else
-	return StateTest1();
+	return StateIntro();
 	#endif
 }
-
-

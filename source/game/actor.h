@@ -50,7 +50,7 @@ uint8_t g_live_enemies;          /* ActorsInitialize() */
 struct Actor g_actor[ACTORS_NO]; /* ActorsInitialize() */
 
 void ActorsInitialize(uint8_t battle_no);
-void ActorsInitializeSprites(); /* TODO, temporary until I write a 'resources' module */
+void ActorsInitializeSprites();
 
 void ActorLogic(struct Actor* actor);
 void ActorsDraw(uint8_t oscillate);

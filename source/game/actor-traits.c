@@ -38,6 +38,7 @@ void ActionAttack(struct Action* action, struct Actor* actor)
 	target->health = (target->health < action->amount) ? 0 : (target->health - action->amount);
 }
 
+
 void ActionHeal(struct Action* action, struct Actor* actor)
 {
 	struct Actor* target = actor->target;
@@ -110,7 +111,7 @@ void TraitsInitialize()
 		g_heroes[HERO_SAO].action_b = &g_action[0];
 	}
 
-	/* "Well balanced" enemies personalities */
+	/* 'Well balanced' enemies personalities */
 	{
 		g_enemies[0].name = "Ferment";
 		g_enemies[0].sprite_filename = "assets\\enemy-a.jvn";
@@ -192,7 +193,7 @@ void TraitsInitialize()
 		g_enemies[4].action_b = &g_action[3];
 	}
 
-	/* Who knows */
+	/* Who knows? */
 	{
 		g_enemies[5].name = "Viridi";
 		g_enemies[5].sprite_filename = "assets\\enemy-f.jvn";

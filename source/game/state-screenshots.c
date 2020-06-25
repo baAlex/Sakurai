@@ -88,6 +88,7 @@ void sRandomizeActors()
 	}
 }
 
+
 void* StateScreenshots()
 {
 	IntPrintText("# StateScreenshots\n");

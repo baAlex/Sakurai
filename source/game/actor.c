@@ -33,24 +33,23 @@ SOFTWARE.
 #include "utilities.h"
 
 
+/* Most of the gameplay only happens on a tiny portion of the
+screen, the 'arena', below the dimensions and actors positions */
 #define ARENA_Y 56
 #define ARENA_HEIGHT 8 /* 128 px */
 #define ENEMIES_X 144
-#define ENEMIES_SPACING_X 32
-#define ENEMIES_SPACING_Y 10
+#define ACTORS_SPACING_X 32
+#define ACTORS_SPACING_Y 10
 #define SAO_X 16
 #define KURO_X 45
 
 
+static uint16_t s_temp[ENEMIES_NO + HEROES_NO]; /* To keep things on actors iterations */
+struct Actor s_actor_temp;
+
+
 extern uint8_t EnemiesNumber(uint8_t battle_no);
 extern uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no);
-
-
-/* Reused all over the file to iterate personalities*/
-static uint16_t s_temp[ENEMIES_NO + HEROES_NO];
-
-/* Used to move suffle actors */
-struct Actor s_actor_temp;
 
 
 void ActorsInitialize(uint8_t battle_no)
@@ -69,23 +68,22 @@ void ActorsInitialize(uint8_t battle_no)
 	for (i = 0; i < ENEMIES_NO; i++)
 	{
 		s_temp[i] = EnemyChances(i, UFixedMake(battle_no, 0));
-		sum += s_temp[i]; /* To normalizate */
+		sum += s_temp[i]; /* To normalizate them */
 
 		IntPrintNumber(s_temp[i]);
 	}
 
-	/* Initialize heroes constant information, reset heroes health
-	and magic only if is the first battle */
+	/* Initialize heroes constant information, if is the first battle reset them */
+	if (battle_no == 0)
+		g_live_heroes = 2;
+
 	g_actor[0].persona = &g_heroes[HERO_KURO];
 	g_actor[0].x = KURO_X;
 	g_actor[0].y = ARENA_Y;
 
 	g_actor[1].persona = &g_heroes[HERO_SAO];
 	g_actor[1].x = SAO_X;
-	g_actor[1].y = ARENA_Y + (ENEMIES_SPACING_Y * 2) + (ENEMIES_SPACING_Y >> 1);
-
-	if (battle_no == 0)
-		g_live_heroes = 2;
+	g_actor[1].y = ARENA_Y + (ACTORS_SPACING_Y * 2) + (ACTORS_SPACING_Y >> 1);
 
 	for (i = 0; i < HEROES_NO; i++)
 	{
@@ -106,20 +104,22 @@ void ActorsInitialize(uint8_t battle_no)
 		}
 		else
 		{
-			/* Just reset state for other battles */
+			/* For other battles just reset the state */
 			if (g_actor[i].state != ACTOR_STATE_DEAD)
 				g_actor[i].state = ACTOR_STATE_IDLE;
 		}
 	}
 
-	/* Initialize enemies, the remainder actors */
+	/* Initialize enemies */
 	{
 		/* Set the state and chose a personality between the chances */
 		for (i = HEROES_NO; i < ACTORS_NO; i++)
 		{
 			Clear(&g_actor[i], sizeof(struct Actor));
 
-			if (i >= HEROES_NO + g_live_enemies) /* Exceeded number of enemies for this battle */
+			/* Exceeded number of enemies for this battle,
+			   set actor as already dead */
+			if (i >= HEROES_NO + g_live_enemies)
 			{
 				g_actor[i].state = ACTOR_STATE_DEAD;
 				continue;
@@ -134,10 +134,10 @@ void ActorsInitialize(uint8_t battle_no)
 			if ((Random() % sum) <= s_temp[e])
 				g_actor[i].persona = &g_enemies[e];
 			else
-				goto again; /* TODO, limit this to some tries */
+				goto again; /* TODO, limit this! */
 		}
 
-		/* Shuffle positions, including those of enemies set as STATE_DEAD */
+		/* Shuffle positions, including those of dead enemies */
 		for (i = HEROES_NO; i < ACTORS_NO; i++)
 		{
 			e = ((uint8_t)Random() % (ACTORS_NO - HEROES_NO)) + HEROES_NO;
@@ -154,8 +154,8 @@ void ActorsInitialize(uint8_t battle_no)
 			/* Set screen position */
 			if (i != HEROES_NO)
 			{
-				g_actor[i].x = g_actor[i - 1].x + ENEMIES_SPACING_X;
-				g_actor[i].y = g_actor[i - 1].y + ENEMIES_SPACING_Y;
+				g_actor[i].x = g_actor[i - 1].x + ACTORS_SPACING_X;
+				g_actor[i].y = g_actor[i - 1].y + ACTORS_SPACING_Y;
 			}
 			else
 			{
@@ -174,6 +174,8 @@ void ActorsInitialize(uint8_t battle_no)
 			{
 				IntPrintText("Replaced difficult enemy ");
 				IntPrintNumber(e);
+
+				/* Replace personality with one of the 'well balanced' enemies */
 				g_actor[i].persona = &g_enemies[Random() % 2]; /* HARDCODED */
 			}
 
@@ -188,18 +190,17 @@ void ActorsInitialize(uint8_t battle_no)
 
 void ActorsInitializeSprites()
 {
-	/* TODO, temporary until I write a 'resources' module */
-
 	uint8_t i = 0;
 	uint8_t index = 0;
 
-	Clear(s_temp, sizeof(uint16_t) * (ENEMIES_NO + HEROES_NO)); /* To reuse it */
+	Clear(s_temp, sizeof(uint16_t) * (ENEMIES_NO + HEROES_NO)); /* To keep track of loaded sprites */
 
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
+		/* The personality indicates what sprite load */
 		if (i >= HEROES_NO)
 			index = EnemyPersonaIndex(g_actor[i].persona) + HEROES_NO;
 		else
@@ -220,10 +221,8 @@ void ActorsDraw(uint8_t oscillate)
 	uint8_t width = 0;
 	uint16_t x = 0;
 
-	/* Clean area */
-	CmdDrawRectangleBkg(20 /* 320 px */, ARENA_HEIGHT, 0, ARENA_Y);
+	CmdDrawRectangleBkg(20 /* 320 px */, ARENA_HEIGHT, 0, ARENA_Y); /* Clean area */
 
-	/* Draw actors */
 	for (i = 0; i < ACTORS_NO; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
@@ -231,6 +230,7 @@ void ActorsDraw(uint8_t oscillate)
 
 		else if (g_actor[i].state == ACTOR_STATE_IDLE)
 		{
+			/* A 'bloody' sprite frame if is recovering */
 			if (g_actor[i].recover_timer == 0)
 				CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 			else
@@ -242,7 +242,7 @@ void ActorsDraw(uint8_t oscillate)
 
 			if (width > 0)
 			{
-				if (g_actor[i].recover_timer == 0)
+				if (g_actor[i].recover_timer == 0) /* Red timer if recovering */
 					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 8);
 				else
 					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 60);
@@ -251,7 +251,8 @@ void ActorsDraw(uint8_t oscillate)
 
 		else if (g_actor[i].state == ACTOR_STATE_CHARGE)
 		{
-			if (g_actor[i].recover_timer == 0) /* TODO, illegible mess! */
+			/* Same as before, now with an oscillating sprite */
+			if (g_actor[i].recover_timer == 0)
 			{
 				if (oscillate == 1)
 				{
@@ -278,15 +279,7 @@ void ActorsDraw(uint8_t oscillate)
 			}
 		}
 
-		else if (g_actor[i].state == ACTOR_STATE_ATTACK)
-		{
-			CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
-
-			/* Time meter */
-			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 41);
-		}
-
-		else if (g_actor[i].state == ACTOR_STATE_VICTORY)
+		else if (g_actor[i].state == ACTOR_STATE_ATTACK || g_actor[i].state == ACTOR_STATE_VICTORY)
 			CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 	}
 }
@@ -363,21 +356,23 @@ static int sAttack(struct Actor* actor)
 	}
 
 	/* Apply the action */
-	actor->target->recover_timer = 255; /* TODO: use an tag in the action */
+	actor->target->recover_timer = 255;
 	actor->target->prev_health = actor->target->health;
 
 	actor->action->callback(actor->action, actor);
 
 	if (actor->target->state == ACTOR_STATE_CHARGE)
 	{
+		/* If the target was 'charging', penalize it, this
+		   to lower the game pace in a subtle way */
 		actor->target->charge_timer = actor->target->charge_timer >> 1;
 	}
 
 	if (actor->target->health == 0)
 	{
+		/* Well done, we killed it! */
 		actor->target->state = ACTOR_STATE_DEAD;
 
-		/* Take note of what we killed */
 		if ((actor->target->persona->tags & TAG_ENEMY))
 			g_live_enemies -= 1;
 		else
@@ -390,21 +385,26 @@ static int sAttack(struct Actor* actor)
 
 void ActorLogic(struct Actor* actor)
 {
+
+	/* If hurt, we do nothing but wait */
 	if (actor->recover_timer != 0)
 	{
 		/* There are cases when an actor gets hurts being in 'attack'
 		state, an state that should last only for a single frame as the
 		idea is to act as a signal allowing external modules intercept.
-		Well, if hurt while in 'attack' state, this last long as it takes
-		the actor to recover. We avoid this going an step backward*/
+		Well, if hurt while in 'attack' state, this state now will last
+		as long it takes the actor to recover.
+
+		We avoid this going an state backward */
 		if (actor->state == ACTOR_STATE_ATTACK)
-			actor->state = ACTOR_STATE_CHARGE; /* The next frame this pal attacks */
+			actor->state = ACTOR_STATE_CHARGE;
 
 		/* Wait substracting time */
 		if (actor->recover_timer > actor->persona->recover_velocity)
 		{
 			if ((CURRENT_FRAME % 2) == 0)
 				actor->recover_timer -= actor->persona->recover_velocity;
+
 			return;
 		}
 		else
@@ -421,7 +421,7 @@ void ActorLogic(struct Actor* actor)
 		}
 		else
 		{
-			/* Check if there are something to charge against */
+			/* Check if there are something live to charge against */
 			if (g_live_enemies != 0 && g_live_heroes != 0)
 				sSetChargeState(actor);
 			else
@@ -434,7 +434,7 @@ void ActorLogic(struct Actor* actor)
 			actor->charge_timer += actor->action->charge_velocity;
 		else
 		{
-			/* Check if there are something to attack */
+			/* Check if there are something live to attack */
 			if (g_live_enemies != 0 && g_live_heroes != 0)
 				actor->state = ACTOR_STATE_ATTACK;
 			else

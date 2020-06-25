@@ -41,7 +41,7 @@ static void* sFrame()
 {
 	uint8_t back = (uint8_t)(Random() % 4);
 
-	if ((CURRENT_FRAME % 24) == 0) /* Every 1 seconds */
+	if ((CURRENT_FRAME % 24) == 0) /* Every 1 second */
 	{
 		while (back == s_prev_back)
 			back = (uint8_t)(Random() % 4);
