@@ -50,11 +50,11 @@ static void* sBattleFrame();
  Attack choreography
 -----------------------------*/
 static uint16_t s_choreo_start = 0; /* In frames */
+struct Actor* s_choreo_attacker;
 static char s_buffer1[5] = {'-', 0, 0, 0, 0};
 
 static void* sAttackChoreography()
 {
-	struct Actor* attacker;
 	char* c = NULL;
 
 	uint8_t i = 0;
@@ -72,7 +72,7 @@ static void* sAttackChoreography()
 				continue;
 
 			if (g_actor[i].state == ACTOR_STATE_ATTACK)
-				attacker = &g_actor[i];
+				s_choreo_attacker = &g_actor[i];
 
 			ActorLogic(&g_actor[i]);
 
@@ -82,15 +82,27 @@ static void* sAttackChoreography()
 
 		if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
 			HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-		ActorsDraw();
-
-		CmdDrawRectanglePrecise(34, 3, attacker->x, attacker->y, 41);
-		CmdDrawRectanglePrecise(34, 3, attacker->target->x, attacker->target->y, 61);
-
-		c = NumberToString((attacker->target->prev_health - attacker->target->health), s_buffer1);
-		CmdDrawText(s_font1a, attacker->target->x, attacker->target->y, c - 1);
 	}
+
+
+	ActorsDraw(0);
+
+	if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
+	{
+		if (s_choreo_attacker->persona->tags & TAG_ENEMY)
+			CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+			              (CURRENT_FRAME - s_choreo_start) - 1);
+		else
+			CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+			              (CURRENT_FRAME - s_choreo_start) - 1);
+	}
+
+	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
+	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
+
+	c = NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health), s_buffer1);
+	CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y, c - 1);
+
 
 	CmdHalt();
 
@@ -153,7 +165,7 @@ static void* sBattleFrame()
 	if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
 		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-	ActorsDraw();
+	ActorsDraw(1);
 
 	/* Bye! */
 	CmdHalt();

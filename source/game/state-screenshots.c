@@ -125,7 +125,7 @@ void* StateScreenshots()
 		                      &g_actor[ACTOR_KURO]);
 		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 0);
 
-		ActorsDraw();
+		ActorsDraw(1);
 	}
 	else if (s_stage_no == 1)
 	{
@@ -146,7 +146,7 @@ void* StateScreenshots()
 
 		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-		ActorsDraw();
+		ActorsDraw(1);
 	}
 	else if (s_stage_no == 2)
 	{
@@ -170,7 +170,7 @@ void* StateScreenshots()
 		                      &g_actor[ACTOR_KURO]);
 		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_KURO].persona, 2);
 
-		ActorsDraw();
+		ActorsDraw(1);
 	}
 	else if (s_stage_no == 3)
 	{
@@ -189,7 +189,7 @@ void* StateScreenshots()
 
 		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-		ActorsDraw();
+		ActorsDraw(1);
 	}
 
 	/* Two for GitHub */
@@ -212,7 +212,7 @@ void* StateScreenshots()
 		                      &g_actor[ACTOR_KURO]);
 		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 3);
 
-		ActorsDraw();
+		ActorsDraw(1);
 	}
 	else
 	{
@@ -231,7 +231,7 @@ void* StateScreenshots()
 
 		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-		ActorsDraw();
+		ActorsDraw(1);
 	}
 
 	return sFrame();

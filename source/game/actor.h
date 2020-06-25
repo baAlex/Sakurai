@@ -53,6 +53,6 @@ void ActorsInitialize(uint8_t battle_no);
 void ActorsInitializeSprites(); /* TODO, temporary until I write a 'resources' module */
 
 void ActorLogic(struct Actor* actor);
-void ActorsDraw();
+void ActorsDraw(uint8_t oscillate);
 
 #endif

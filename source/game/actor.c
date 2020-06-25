@@ -214,7 +214,7 @@ void ActorsInitializeSprites()
 }
 
 
-void ActorsDraw()
+void ActorsDraw(uint8_t oscillate)
 {
 	uint8_t i = 0;
 	uint8_t width = 0;
@@ -251,11 +251,16 @@ void ActorsDraw()
 
 		else if (g_actor[i].state == ACTOR_STATE_CHARGE)
 		{
-			if (g_actor[i].recover_timer == 0)
+			if (g_actor[i].recover_timer == 0) /* TODO, illegible mess! */
 			{
-				g_actor[i].phase += g_actor[i].action->oscillation_velocity;
-				x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
-				CmdDrawSprite(g_actor[i].persona->sprite, x, g_actor[i].y, 0);
+				if (oscillate == 1)
+				{
+					g_actor[i].phase += g_actor[i].action->oscillation_velocity;
+					x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
+					CmdDrawSprite(g_actor[i].persona->sprite, x, g_actor[i].y, 0);
+				}
+				else
+					CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 			}
 			else
 				CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 1);
