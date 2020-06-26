@@ -44,7 +44,7 @@ screen, the 'arena', below the dimensions and actors positions */
 #define KURO_X 45
 
 
-static uint16_t s_temp[ENEMIES_NO + HEROES_NO]; /* To keep things on actors iterations */
+static uint16_t s_temp[ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO]; /* To keep things on actors iterations */
 struct Actor s_actor_temp;
 
 
@@ -62,10 +62,16 @@ void ActorsInitialize(uint8_t battle_no)
 
 	TraitsInitialize();
 
+	IntPrintText("Battle: ");
+	IntPrintNumber(battle_no + 1);
+
+	IntPrintText("Enemies number: ");
+	IntPrintNumber(g_live_enemies);
+
 	/* Enemies chances for this battle */
 	IntPrintText("Enemies chances:\n");
 
-	for (i = 0; i < ENEMIES_NO; i++)
+	for (i = 0; i < ENEMIES_PERSONALITIES_NO; i++)
 	{
 		s_temp[i] = EnemyChances(i, UFixedMake(battle_no, 0));
 		sum += s_temp[i]; /* To normalizate them */
@@ -77,15 +83,15 @@ void ActorsInitialize(uint8_t battle_no)
 	if (battle_no == 0)
 		g_live_heroes = 2;
 
-	g_actor[0].persona = &g_heroes[HERO_KURO];
+	g_actor[0].persona = &g_heroes[ACTOR_KURO];
 	g_actor[0].x = KURO_X;
 	g_actor[0].y = ARENA_Y;
 
-	g_actor[1].persona = &g_heroes[HERO_SAO];
+	g_actor[1].persona = &g_heroes[ACTOR_SAO];
 	g_actor[1].x = SAO_X;
 	g_actor[1].y = ARENA_Y + (ACTORS_SPACING_Y * 2) + (ACTORS_SPACING_Y >> 1);
 
-	for (i = 0; i < HEROES_NO; i++)
+	for (i = 0; i < ON_SCREEN_HEROES; i++)
 	{
 		g_actor[i].target = NULL;
 		g_actor[i].phase = (uint8_t)Random();
@@ -113,13 +119,13 @@ void ActorsInitialize(uint8_t battle_no)
 	/* Initialize enemies */
 	{
 		/* Set the state and chose a personality between the chances */
-		for (i = HEROES_NO; i < ACTORS_NO; i++)
+		for (i = ON_SCREEN_HEROES; i < ON_SCREEN_ACTORS; i++)
 		{
 			Clear(&g_actor[i], sizeof(struct Actor));
 
 			/* Exceeded number of enemies for this battle,
 			   set actor as already dead */
-			if (i >= HEROES_NO + g_live_enemies)
+			if (i >= ON_SCREEN_HEROES + g_live_enemies)
 			{
 				g_actor[i].state = ACTOR_STATE_DEAD;
 				continue;
@@ -130,7 +136,7 @@ void ActorsInitialize(uint8_t battle_no)
 
 		again:
 
-			e = ((uint8_t)Random() % ENEMIES_NO);
+			e = ((uint8_t)Random() % ENEMIES_PERSONALITIES_NO);
 			if ((Random() % sum) <= s_temp[e])
 				g_actor[i].persona = &g_enemies[e];
 			else
@@ -138,21 +144,21 @@ void ActorsInitialize(uint8_t battle_no)
 		}
 
 		/* Shuffle positions, including those of dead enemies */
-		for (i = HEROES_NO; i < ACTORS_NO; i++)
+		for (i = ON_SCREEN_HEROES; i < ON_SCREEN_ACTORS; i++)
 		{
-			e = ((uint8_t)Random() % (ACTORS_NO - HEROES_NO)) + HEROES_NO;
+			e = ((uint8_t)Random() % (ON_SCREEN_ACTORS - ON_SCREEN_HEROES)) + ON_SCREEN_HEROES;
 			Copy(&g_actor[e], &s_actor_temp, sizeof(struct Actor));
 			Copy(&g_actor[i], &g_actor[e], sizeof(struct Actor));
 			Copy(&s_actor_temp, &g_actor[i], sizeof(struct Actor));
 		}
 
 		/* One last iteration */
-		Clear(s_temp, sizeof(uint16_t) * (ENEMIES_NO + HEROES_NO)); /* To reuse it */
+		Clear(s_temp, sizeof(uint16_t) * (ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO)); /* To reuse it */
 
-		for (i = HEROES_NO; i < ACTORS_NO; i++)
+		for (i = ON_SCREEN_HEROES; i < ON_SCREEN_ACTORS; i++)
 		{
 			/* Set screen position */
-			if (i != HEROES_NO)
+			if (i != ON_SCREEN_HEROES)
 			{
 				g_actor[i].x = g_actor[i - 1].x + ACTORS_SPACING_X;
 				g_actor[i].y = g_actor[i - 1].y + ACTORS_SPACING_Y;
@@ -193,16 +199,17 @@ void ActorsInitializeSprites()
 	uint8_t i = 0;
 	uint8_t index = 0;
 
-	Clear(s_temp, sizeof(uint16_t) * (ENEMIES_NO + HEROES_NO)); /* To keep track of loaded sprites */
+	Clear(s_temp, sizeof(uint16_t) *
+	                  (ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO)); /* To keep track of loaded sprites */
 
-	for (i = 0; i < ACTORS_NO; i++)
+	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
 
 		/* The personality indicates what sprite load */
-		if (i >= HEROES_NO)
-			index = EnemyPersonaIndex(g_actor[i].persona) + HEROES_NO;
+		if (i >= HEROES_PERSONALITIES_NO)
+			index = EnemyPersonaIndex(g_actor[i].persona) + HEROES_PERSONALITIES_NO;
 		else
 			index = HeroPersonaIndex(g_actor[i].persona);
 
@@ -223,7 +230,7 @@ void ActorsDraw(uint8_t oscillate)
 
 	CmdDrawRectangleBkg(20 /* 320 px */, ARENA_HEIGHT, 0, ARENA_Y); /* Clean area */
 
-	for (i = 0; i < ACTORS_NO; i++)
+	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
@@ -293,28 +300,28 @@ static struct Actor* sFindTarget(struct Actor* actor)
 	/* Find a hero for this enemy */
 	if (actor->persona->tags & TAG_ENEMY)
 	{
-		i = (uint8_t)Random() % HEROES_NO;
+		i = (uint8_t)Random() % ON_SCREEN_HEROES;
 
-		for (step = 0; step < HEROES_NO; step++)
+		for (step = 0; step < ON_SCREEN_HEROES; step++)
 		{
 			if (g_actor[i].state != ACTOR_STATE_DEAD)
 				return &g_actor[i];
 
-			i = (i + 1) % HEROES_NO;
+			i = (i + 1) % ON_SCREEN_HEROES;
 		}
 	}
 
 	/* Find an enemy for this hero */
 	else
 	{
-		i = (uint8_t)Random() % (ACTORS_NO - HEROES_NO);
+		i = (uint8_t)Random() % (ON_SCREEN_ACTORS - ON_SCREEN_HEROES);
 
-		for (step = 0; step < (ACTORS_NO - HEROES_NO); step++)
+		for (step = 0; step < (ON_SCREEN_ACTORS - ON_SCREEN_HEROES); step++)
 		{
-			if (g_actor[HEROES_NO + i].state != ACTOR_STATE_DEAD)
-				return &g_actor[HEROES_NO + i];
+			if (g_actor[ON_SCREEN_HEROES + i].state != ACTOR_STATE_DEAD)
+				return &g_actor[ON_SCREEN_HEROES + i];
 
-			i = (i + 1) % (ACTORS_NO - HEROES_NO);
+			i = (i + 1) % (ON_SCREEN_ACTORS - ON_SCREEN_HEROES);
 		}
 	}
 
@@ -377,6 +384,11 @@ static int sAttack(struct Actor* actor)
 			g_live_enemies -= 1;
 		else
 			g_live_heroes -= 1;
+
+		IntPrintText("Death happens:\n - Live enemies: ");
+		IntPrintNumber(g_live_enemies);
+		IntPrintText(" - Live heroes: ");
+		IntPrintNumber(g_live_heroes);
 	}
 
 	return 0;

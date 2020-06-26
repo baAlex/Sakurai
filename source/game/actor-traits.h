@@ -11,11 +11,11 @@
 #include "engine.h"
 
 #define ACTIONS_NO 5
-#define HEROES_NO 2
-#define ENEMIES_NO 7
 
-#define HERO_KURO 0
-#define HERO_SAO 1
+#define HEROES_PERSONALITIES_NO 2
+#define ENEMIES_PERSONALITIES_NO 7
+#define PERSONALITY_KURO 0
+#define PERSONALITY_SAO 1
 
 #define TAG_NONE 0
 #define TAG_ENEMY 2
@@ -56,9 +56,9 @@ struct Persona
 	uint8_t sprite;
 };
 
-struct Action g_action[ACTIONS_NO];   /* TraitsInitialize() */
-struct Persona g_heroes[HEROES_NO];   /* TraitsInitialize() */
-struct Persona g_enemies[ENEMIES_NO]; /* TraitsInitialize() */
+struct Action g_action[ACTIONS_NO];                 /* TraitsInitialize() */
+struct Persona g_heroes[HEROES_PERSONALITIES_NO];   /* TraitsInitialize() */
+struct Persona g_enemies[ENEMIES_PERSONALITIES_NO]; /* TraitsInitialize() */
 
 void TraitsInitialize();
 

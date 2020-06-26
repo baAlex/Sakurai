@@ -10,8 +10,9 @@
 #include "actor.h"
 #include "engine.h"
 
-void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** text);
+void GenericDialogDraw(uint8_t font_sprite, char* text);
 
+void CharacterDialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines);
 void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b);
 
 void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a, struct Actor* hud_b);

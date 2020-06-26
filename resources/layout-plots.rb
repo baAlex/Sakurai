@@ -2,7 +2,8 @@
 require "gnuplot"
 
 BATTLES_NO = 32
-ENEMIES_NO = 7
+ON_SCREEN_ENEMIES = 4
+ENEMIES_PERSONALITIES_NO = 7
 
 NOISE_GATE = 40
 NOISE_MIN = 2
@@ -14,8 +15,8 @@ RETURN_TRIANGLE = 3
 
 CHANCES_ATTACK = 8      # In number of battles
 CHANCES_DECAY = 3       # Same
-BATTLES_DIV_ENEMIES = 4 # (BATTLES_NO / ENEMIES_NO)
-OFFSET = 5
+BATTLES_DIV_ENEMIES = 4 # (BATTLES_NO / ENEMIES_PERSONALITIES_NO)
+OFFSET = 6
 
 
 class Fixed
@@ -106,16 +107,16 @@ def EnemiesNumber(battle_no, rng, ret)
 
 	# Sawtooth
 	sawtooth = battle_no >> 1
-	sawtooth = sawtooth % (ENEMIES_NO)
+	sawtooth = sawtooth % (ON_SCREEN_ENEMIES)
 	sawtooth += 1
 
 	# Triangle
 	triangle = battle_no >> 1
 
-	if triangle % ((ENEMIES_NO - 1) << 1) < (ENEMIES_NO - 1) then
-		triangle = triangle % (ENEMIES_NO - 1)
+	if triangle % ((ON_SCREEN_ENEMIES - 1) << 1) < (ON_SCREEN_ENEMIES - 1) then
+		triangle = triangle % (ON_SCREEN_ENEMIES - 1)
 	elsif
-		triangle = (ENEMIES_NO - 1) - triangle % (ENEMIES_NO - 1)
+		triangle = (ON_SCREEN_ENEMIES - 1) - triangle % (ON_SCREEN_ENEMIES - 1)
 	end
 
 	triangle += 1
@@ -132,7 +133,7 @@ def EnemiesNumber(battle_no, rng, ret)
 	if (ret == RETURN_SAWTOOTH) then return sawtooth end
 	if (ret == RETURN_TRIANGLE) then return triangle end
 
-	return ((triangle + sawtooth) >> 1).clamp(1, ENEMIES_NO)
+	return ((triangle + sawtooth) >> 1).clamp(1, ON_SCREEN_ENEMIES)
 end
 
 
@@ -141,7 +142,7 @@ def EnemyChances(enemy_i, battle_no)
 
 	def ImaginaryLine(battle_no)
 		chances = FixedStep(Fixed.new(0, 0), Fixed.new(BATTLES_NO, 0), battle_no)
-		chances = chances / Fixed.new(ENEMIES_NO, 0)
+		chances = chances / Fixed.new(ENEMIES_PERSONALITIES_NO, 0)
 		return chances
 	end
 
@@ -199,7 +200,7 @@ for i in 0...2 do
 		plot.terminal "png"
 
 		plot.xlabel "Battle"
-		plot.yrange "[-1 to #{ENEMIES_NO + 2}]"
+		plot.yrange "[-1 to #{ON_SCREEN_ENEMIES + 2}]"
 
 		x = (0...(BATTLES_NO * 2)).collect { |v| v }
 
@@ -246,7 +247,7 @@ Gnuplot::Plot.new(gp) do |plot|
 
 	x = (0...(BATTLES_NO * 1.25)).collect { |v| v }
 
-	for e in 0...ENEMIES_NO do
+	for e in 0...ENEMIES_PERSONALITIES_NO do
 
 		y = x.collect { |v| EnemyChances(e, Fixed.new(v, 0)) }
 

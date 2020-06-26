@@ -70,7 +70,7 @@ static void* sAttackChoreography()
 		kuro_prev_hp = g_actor[ACTOR_KURO].health;
 		sao_prev_hp = g_actor[ACTOR_SAO].health;
 
-		for (i = 0; i < ACTORS_NO; i++)
+		for (i = 0; i < ON_SCREEN_ACTORS; i++)
 		{
 			if (g_actor[i].state == ACTOR_STATE_DEAD)
 				continue;
@@ -88,7 +88,14 @@ static void* sAttackChoreography()
 		}
 
 		if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
+		{
+
+#ifdef DEVELOPER
+			g_actor[ACTOR_KURO].health = 100;
+			g_actor[ACTOR_SAO].health = 100;
+#endif
 			HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		}
 	}
 
 	/* Draw actors every frame like we normally do... */
@@ -127,6 +134,8 @@ static void* sAttackChoreography()
 
  Battle frame
 -----------------------------*/
+static uint16_t s_show_banner = 0;
+
 static void* sBattleFrame()
 {
 	void* next_frame = (void*)sBattleFrame;
@@ -153,7 +162,7 @@ static void* sBattleFrame()
 	kuro_prev_hp = g_actor[ACTOR_KURO].health;
 	sao_prev_hp = g_actor[ACTOR_SAO].health;
 
-	for (i = 0; i < ACTORS_NO; i++)
+	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD) /* You are dead, not big surprise */
 			continue;
@@ -177,11 +186,30 @@ static void* sBattleFrame()
 		}
 	}
 
-	/* Draw */
+	/* Draw
 	if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
-		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+	    HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);*/
 
 	ActorsDraw(1);
+
+	/* 'Victory!', 'Game over' dialogs */
+	if (g_live_enemies == 0)
+	{
+		s_show_banner += 1;
+
+		if (s_show_banner > 36)
+			GenericDialogDraw(s_font2, "Victory!");
+
+		if (s_show_banner > 96)
+		{
+			s_battle_no += 1;
+			CmdHalt();
+			return (void*)StateBattle; /* Restarts the entire world */
+		}
+	}
+
+	if (g_live_heroes == 0)
+		GenericDialogDraw(s_font2, "Game Over");
 
 	/* Bye! */
 	CmdHalt();
@@ -219,6 +247,8 @@ static void* sWait()
 	/* Next state! */
 	CmdDrawBackground();
 	HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	s_show_banner = 0;
 
 	return sBattleFrame();
 }
@@ -263,7 +293,7 @@ void* StateBattle()
 
 	text_y = 10;
 
-	for (i = 0; i < ACTORS_NO; i++)
+	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state != ACTOR_STATE_DEAD && (g_actor[i].persona->tags & TAG_ENEMY))
 		{

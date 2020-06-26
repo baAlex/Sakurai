@@ -69,8 +69,9 @@ static void* sFrame()
 	CmdDrawRectangleBkg(4 /* 64 px */, 6 /* 96 px*/, x, s_actor1.y);
 	CmdDrawSprite(s_spr_sao, x, s_actor1.y, s_actor1.phase >> 4);
 
-	/* Pseudo-pseudo-random menu selection */
+	/* Ui elements */
 	MenuActionDraw_dynamic(s_spr_items, s_font1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
+	GenericDialogDraw(s_font2, "Victory!");
 
 	/* Bye! */
 	CmdHalt();
@@ -97,8 +98,8 @@ void* StateTest3()
 	s_actor2.magic = 50;
 
 	/* ...and to draw the Action menu */
-	s_actor1.persona = &g_heroes[HERO_SAO];
-	s_actor2.persona = &g_heroes[HERO_KURO];
+	s_actor1.persona = &g_heroes[PERSONALITY_SAO];
+	s_actor2.persona = &g_heroes[PERSONALITY_KURO];
 
 	/* Finally, fields to draw the actor */
 	s_actor1.x = 160 - 32;

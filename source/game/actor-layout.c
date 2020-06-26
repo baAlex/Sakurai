@@ -55,16 +55,16 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 
 	/* Sawtooth */
 	sawtooth = ((int16_t)battle_no) >> 1;
-	sawtooth = sawtooth % (ENEMIES_NO);
+	sawtooth = sawtooth % (ON_SCREEN_ENEMIES);
 	sawtooth += 1;
 
 	/* Triangle */
 	triangle = ((int16_t)battle_no) >> 1;
 
-	if (triangle % ((ENEMIES_NO - 1) << 1) < (ENEMIES_NO - 1))
-		triangle = triangle % (ENEMIES_NO - 1);
+	if (triangle % ((ON_SCREEN_ENEMIES - 1) << 1) < (ON_SCREEN_ENEMIES - 1))
+		triangle = triangle % (ON_SCREEN_ENEMIES - 1);
 	else
-		triangle = (ENEMIES_NO - 1) - triangle % (ENEMIES_NO - 1);
+		triangle = (ON_SCREEN_ENEMIES - 1) - triangle % (ON_SCREEN_ENEMIES - 1);
 
 	triangle += 1;
 
@@ -78,7 +78,7 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 	}
 
 	/* Yay! */
-	return (uint8_t)(CLAMP((triangle + sawtooth) >> 1, 1, ENEMIES_NO));
+	return (uint8_t)(CLAMP((triangle + sawtooth) >> 1, 1, ON_SCREEN_ENEMIES));
 }
 
 
@@ -90,15 +90,15 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 
 #define CHANCES_ATTACK 8      /* In number of battles */
 #define CHANCES_DECAY 3       /* Same */
-#define BATTLES_DIV_ENEMIES 4 /* (BATTLES_NO / ENEMIES_NO) */
-#define OFFSET 5
+#define BATTLES_DIV_ENEMIES 4 /* (BATTLES_NO / ENEMIES_PERSONALITIES_NO) */
+#define OFFSET 6
 
 ufixed_t sImaginaryLine(ufixed_t battle_no)
 {
 	ufixed_t chances;
 
 	chances = UFixedStep(UFixedMake(0, 0), UFixedMake(BATTLES_NO, 0), battle_no);
-	chances = UFixedDivide(chances, UFixedMake(ENEMIES_NO, 0));
+	chances = UFixedDivide(chances, UFixedMake(ENEMIES_PERSONALITIES_NO, 0));
 
 	return chances;
 }
@@ -142,7 +142,7 @@ int main()
 	uint8_t enemy = 0;
 	uint8_t battle = 0;
 
-	for (enemy = 0; enemy < ENEMIES_NO; enemy++)
+	for (enemy = 0; enemy < ENEMIES_PERSONALITIES_NO; enemy++)
 	{
 		for (battle = 0; battle < (BATTLES_NO + CHANCES_DECAY); battle++)
 		{

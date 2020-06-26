@@ -34,21 +34,53 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
+#define MENU_BACK_COLOR 1
+#define MENU_OUTLINE_COLOR 3
+#define MENU_SHADOW_COLOR 64
+
 
 /*-----------------------------
 
- Dialog
+ GenericDialog
 -----------------------------*/
 
-#define DIALOG_TIME 125 /* In milliseconds */
-#define DIALOG_X 12
-#define DIALOG_Y 140
-#define DIALOG_LINE_SPACE 12
+#define GENERIC_DIALOG_WIDTH 20 /* 96 px */
+#define GENERIC_DIALOG_HEIGHT 3 /* 64 px */
 
-void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** text)
+#define GENERIC_DIALOG_X (160 - (GENERIC_DIALOG_WIDTH << 3))
+#define GENERIC_DIALOG_Y (100 - (GENERIC_DIALOG_HEIGHT << 3))
+
+#define GENERIC_DIALOG_TEXT_X 13
+#define GENERIC_DIALOG_TEXT_Y (GENERIC_DIALOG_Y + 16)
+
+void GenericDialogDraw(uint8_t font_sprite, char* text)
+{
+	CmdDrawRectangle(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_HEIGHT, GENERIC_DIALOG_X, GENERIC_DIALOG_Y, MENU_BACK_COLOR);
+	CmdDrawText(font_sprite, GENERIC_DIALOG_TEXT_X, GENERIC_DIALOG_TEXT_Y, text);
+
+	/* Light outline */
+	CmdDrawHLine(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_X, GENERIC_DIALOG_Y, MENU_OUTLINE_COLOR);
+	CmdDrawHLine(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_X, GENERIC_DIALOG_Y + (GENERIC_DIALOG_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
+
+	/* Shadow outline */
+	CmdDrawHLine(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_X, GENERIC_DIALOG_Y + (GENERIC_DIALOG_HEIGHT << 4) - 1, MENU_SHADOW_COLOR);
+}
+
+
+/*-----------------------------
+
+ CharacterDialog
+-----------------------------*/
+
+#define CH_DIALOG_TIME 125 /* In milliseconds */
+#define CH_DIALOG_X 12
+#define CH_DIALOG_Y 140
+#define CH_DIALOG_LINE_SPACE 12
+
+void CharacterDialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines)
 {
 	uint16_t current_ms = CURRENT_MILLISECONDS;
-	uint16_t y = DIALOG_Y;
+	uint16_t y = CH_DIALOG_Y;
 	uint8_t i = 0;
 
 	if (current_ms == start_ms)
@@ -59,17 +91,17 @@ void DialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** 
 
 		for (i = 0; i < 4; i++) /* HARDCODED, maximum of 4 lines */
 		{
-			if (current_ms > (start_ms + (DIALOG_TIME * (i + 1))) && text[i] != NULL)
+			if (current_ms > (start_ms + (CH_DIALOG_TIME * (i + 1))) && lines[i] != NULL)
 			{
-				character = text[i];
-				y += DIALOG_LINE_SPACE;
+				character = lines[i];
+				y += CH_DIALOG_LINE_SPACE;
 			}
 			else
 				break;
 		}
 
 		if (character != NULL)
-			CmdDrawText(font_sprite, DIALOG_X, y, character);
+			CmdDrawText(font_sprite, CH_DIALOG_X, y, character);
 	}
 }
 
@@ -136,10 +168,6 @@ void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_
 #define MENU_X 8
 #define MENU_Y 6 /* Not 8 because the 1.2 ratio */
 
-#define MENU_BACK_COLOR 1
-#define MENU_OUTLINE_COLOR 3
-#define MENU_SHADOW_COLOR 64
-
 #define MENU_LINE_SPACE 14
 
 #define MENU_PADDING_Y 3
@@ -182,7 +210,7 @@ void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct
 	CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + (MENU_LINE_SPACE << 1), "Hold");
 
 	/* Kuro actions */
-	if (persona == &g_heroes[HERO_KURO])
+	if (persona == &g_heroes[PERSONALITY_KURO])
 	{
 		CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Heal");
 		CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Meditate");
@@ -236,7 +264,7 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 		else if (selection == 4)
 			CmdDrawText(font_sprite, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
 
-		if (persona == &g_heroes[HERO_KURO])
+		if (persona == &g_heroes[PERSONALITY_KURO])
 		{
 			if (selection == 2)
 				CmdDrawText(font_sprite, 8, 200 - 16, "Restores party HP.");
@@ -280,7 +308,7 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 	uint8_t i = 0;
 
 	/* Black arrow, to clean previous frame */
-	for (i = (HEROES_NO); i < ACTORS_NO; i++)
+	for (i = ON_SCREEN_HEROES; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
@@ -290,7 +318,7 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 
 	/* Validate selection, we dont' want attack our allies or dead enemies */
 	if (selection == 0)
-		selection = HEROES_NO;
+		selection = ON_SCREEN_HEROES;
 
 	while (g_actor[selection].state == ACTOR_STATE_DEAD)
 	{
@@ -300,15 +328,15 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 			selection -= 1;
 	}
 
-	if (selection < HEROES_NO)
+	if (selection < ON_SCREEN_HEROES)
 	{
-		selection = HEROES_NO;
+		selection = ON_SCREEN_HEROES;
 		while (g_actor[selection].state == ACTOR_STATE_DEAD)
 			selection += 1;
 	}
-	else if (selection >= ACTORS_NO)
+	else if (selection >= ON_SCREEN_ACTORS)
 	{
-		selection = ACTORS_NO - 1;
+		selection = ON_SCREEN_ACTORS - 1;
 		while (g_actor[selection].state == ACTOR_STATE_DEAD)
 			selection -= 1;
 	}

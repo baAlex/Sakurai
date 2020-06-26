@@ -10,7 +10,9 @@
 #include "actor-traits.h"
 #include "engine.h"
 
-#define ACTORS_NO 6
+#define ON_SCREEN_ACTORS 6
+#define ON_SCREEN_HEROES 2
+#define ON_SCREEN_ENEMIES 4
 
 #define ACTOR_STATE_DEAD 0
 #define ACTOR_STATE_IDLE 1
@@ -45,9 +47,9 @@ struct Actor
 	uint8_t prev_health;
 };
 
-uint8_t g_live_heroes;           /* ActorsInitialize() */
-uint8_t g_live_enemies;          /* ActorsInitialize() */
-struct Actor g_actor[ACTORS_NO]; /* ActorsInitialize() */
+uint8_t g_live_heroes;                  /* ActorsInitialize() */
+uint8_t g_live_enemies;                 /* ActorsInitialize() */
+struct Actor g_actor[ON_SCREEN_ACTORS]; /* ActorsInitialize() */
 
 void ActorsInitialize(uint8_t battle_no);
 void ActorsInitializeSprites();

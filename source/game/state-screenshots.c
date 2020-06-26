@@ -69,7 +69,7 @@ void sRandomizeActors()
 {
 	uint8_t i = 0;
 
-	for (i = 0; i < ACTORS_NO; i++)
+	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD)
 			continue;
@@ -77,7 +77,7 @@ void sRandomizeActors()
 		g_actor[i].idle_timer = (uint8_t)Random();
 		g_actor[i].charge_timer = (uint8_t)Random();
 
-		if (i >= HEROES_NO)
+		if (i >= ON_SCREEN_HEROES)
 		{
 			if ((Random() % 100) < 60)
 				g_actor[i].state = ACTOR_STATE_CHARGE;

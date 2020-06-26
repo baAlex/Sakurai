@@ -81,34 +81,34 @@ void TraitsInitialize()
 
 	/* Heroes personalities */
 	{
-		g_heroes[HERO_KURO].name = "Kuro";
-		g_heroes[HERO_KURO].sprite_filename = "assets\\kuro.jvn";
-		g_heroes[HERO_KURO].tags = TAG_NONE | TAG_LEVITATES;
+		g_heroes[PERSONALITY_KURO].name = "Kuro";
+		g_heroes[PERSONALITY_KURO].sprite_filename = "assets\\kuro.jvn";
+		g_heroes[PERSONALITY_KURO].tags = TAG_NONE | TAG_LEVITATES;
 
-		g_heroes[HERO_KURO].idle_velocity = 5;
-		g_heroes[HERO_KURO].recover_velocity = 13;
+		g_heroes[PERSONALITY_KURO].idle_velocity = 5;
+		g_heroes[PERSONALITY_KURO].recover_velocity = 13;
 
-		g_heroes[HERO_KURO].initial_health = 100;
-		g_heroes[HERO_KURO].initial_magic = 0;
+		g_heroes[PERSONALITY_KURO].initial_health = 100;
+		g_heroes[PERSONALITY_KURO].initial_magic = 0;
 
-		g_heroes[HERO_KURO].actions_preference = 50;
-		g_heroes[HERO_KURO].action_a = &g_action[1]; /* Combined attack */
-		g_heroes[HERO_KURO].action_b = &g_action[1];
+		g_heroes[PERSONALITY_KURO].actions_preference = 50;
+		g_heroes[PERSONALITY_KURO].action_a = &g_action[1]; /* Combined attack */
+		g_heroes[PERSONALITY_KURO].action_b = &g_action[1];
 	}
 	{
-		g_heroes[HERO_SAO].name = "Sayori";
-		g_heroes[HERO_SAO].sprite_filename = "assets\\sayori.jvn";
-		g_heroes[HERO_SAO].tags = TAG_NONE;
+		g_heroes[PERSONALITY_SAO].name = "Sayori";
+		g_heroes[PERSONALITY_SAO].sprite_filename = "assets\\sayori.jvn";
+		g_heroes[PERSONALITY_SAO].tags = TAG_NONE;
 
-		g_heroes[HERO_SAO].idle_velocity = 7;
-		g_heroes[HERO_SAO].recover_velocity = 9;
+		g_heroes[PERSONALITY_SAO].idle_velocity = 7;
+		g_heroes[PERSONALITY_SAO].recover_velocity = 9;
 
-		g_heroes[HERO_SAO].initial_health = 100;
-		g_heroes[HERO_SAO].initial_magic = 30;
+		g_heroes[PERSONALITY_SAO].initial_health = 100;
+		g_heroes[PERSONALITY_SAO].initial_magic = 30;
 
-		g_heroes[HERO_SAO].actions_preference = 50;
-		g_heroes[HERO_SAO].action_a = &g_action[0]; /* Simple attack */
-		g_heroes[HERO_SAO].action_b = &g_action[0];
+		g_heroes[PERSONALITY_SAO].actions_preference = 50;
+		g_heroes[PERSONALITY_SAO].action_a = &g_action[0]; /* Simple attack */
+		g_heroes[PERSONALITY_SAO].action_b = &g_action[0];
 	}
 
 	/* 'Well balanced' enemies personalities */
@@ -164,9 +164,8 @@ void TraitsInitialize()
 		g_enemies[3].sprite_filename = "assets\\enemy-d.jvn";
 		g_enemies[3].tags = TAG_ENEMY | TAG_DIFFICULT;
 
-		g_enemies[3].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
-		g_enemies[3].recover_velocity =
-		    MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
+		g_enemies[3].idle_velocity = 1;
+		g_enemies[3].recover_velocity = 1;
 
 		g_enemies[3].initial_health = 120;
 		g_enemies[3].initial_magic = 0;
@@ -182,8 +181,8 @@ void TraitsInitialize()
 		g_enemies[4].sprite_filename = "assets\\enemy-e.jvn";
 		g_enemies[4].tags = TAG_ENEMY | TAG_DIFFICULT;
 
-		g_enemies[4].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity);
-		g_enemies[4].recover_velocity = MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity);
+		g_enemies[4].idle_velocity = 1;
+		g_enemies[4].recover_velocity = 1;
 
 		g_enemies[4].initial_health = 50;
 		g_enemies[4].initial_magic = 0;
@@ -199,9 +198,8 @@ void TraitsInitialize()
 		g_enemies[5].sprite_filename = "assets\\enemy-f.jvn";
 		g_enemies[5].tags = TAG_ENEMY | TAG_DIFFICULT;
 
-		g_enemies[5].idle_velocity = MIN(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
-		g_enemies[5].recover_velocity =
-		    MIN(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
+		g_enemies[5].idle_velocity = 1;
+		g_enemies[5].recover_velocity = 1;
 
 		g_enemies[5].initial_health = 180;
 		g_enemies[5].initial_magic = 0;
@@ -215,9 +213,8 @@ void TraitsInitialize()
 		g_enemies[6].sprite_filename = "assets\\enemy-g.jvn";
 		g_enemies[6].tags = TAG_ENEMY | TAG_DIFFICULT;
 
-		g_enemies[6].idle_velocity = MAX(g_heroes[HERO_KURO].idle_velocity, g_heroes[HERO_SAO].idle_velocity) >> 1;
-		g_enemies[6].recover_velocity =
-		    MAX(g_heroes[HERO_KURO].recover_velocity, g_heroes[HERO_SAO].recover_velocity) >> 1;
+		g_enemies[6].idle_velocity = 1;
+		g_enemies[6].recover_velocity = 1;
 
 		g_enemies[6].initial_health = 120;
 		g_enemies[6].initial_magic = 0;
