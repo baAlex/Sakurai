@@ -59,7 +59,7 @@ static void* sFrame()
 
 		CmdDrawBackground();
 
-		MenuActionDraw_static(s_spr_portraits, s_font2, s_actor1.persona, &s_actor1, &s_actor2);
+		UiPanelAction_static(s_spr_portraits, s_font2, s_actor1.persona, &s_actor1, &s_actor2);
 	}
 
 	/* Sprite oscillating in position */
@@ -70,8 +70,8 @@ static void* sFrame()
 	CmdDrawSprite(s_spr_sao, x, s_actor1.y, s_actor1.phase >> 4);
 
 	/* Ui elements */
-	MenuActionDraw_dynamic(s_spr_items, s_font1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
-	GenericDialogDraw(s_font2, "Victory!");
+	UiPanelAction_dynamic(s_spr_items, s_font1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
+	UiBanner(s_font2, "Victory!");
 
 	/* Bye! */
 	CmdHalt();

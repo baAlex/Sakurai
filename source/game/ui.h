@@ -10,17 +10,17 @@
 #include "actor.h"
 #include "engine.h"
 
-void GenericDialogDraw(uint8_t font_sprite, char* text);
+void UiDialog(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines);
 
-void CharacterDialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines);
-void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b);
+void UiBanner(uint8_t font_sprite, char* text);
+void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b);
 
-void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a, struct Actor* hud_b);
-uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Persona* persona, uint8_t selection);
+void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a, struct Actor* hud_b);
+uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Persona* persona, uint8_t selection);
 
-void MenuTargetDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b);
-uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection);
+void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b);
+uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection);
 
-void MenuClean(); /* For MenuAction and MenuTarget */
+void UiPanelClean(); /* For PanelAction and PanelTarget */
 
 #endif

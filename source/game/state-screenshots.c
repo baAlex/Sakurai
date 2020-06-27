@@ -122,9 +122,9 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].state = ACTOR_STATE_CHARGE;
 		g_actor[ACTOR_KURO].charge_timer = 170;
 
-		MenuActionDraw_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
+		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
 		                      &g_actor[ACTOR_KURO]);
-		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 0);
+		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 0);
 
 		ActorsDraw(1);
 	}
@@ -145,7 +145,7 @@ void* StateScreenshots()
 
 		g_actor[ACTOR_SAO].recover_timer = 40;
 
-		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 		ActorsDraw(1);
 	}
@@ -167,9 +167,9 @@ void* StateScreenshots()
 		g_actor[ACTOR_SAO].state = ACTOR_STATE_CHARGE;
 		g_actor[ACTOR_SAO].charge_timer = 64;
 
-		MenuActionDraw_static(s_spr_portraits, s_font2, g_actor[ACTOR_KURO].persona, &g_actor[ACTOR_SAO],
+		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[ACTOR_KURO].persona, &g_actor[ACTOR_SAO],
 		                      &g_actor[ACTOR_KURO]);
-		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_KURO].persona, 2);
+		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_KURO].persona, 2);
 
 		ActorsDraw(1);
 	}
@@ -188,7 +188,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].health = 60;
 		g_actor[ACTOR_KURO].magic = 80;
 
-		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 		ActorsDraw(1);
 	}
@@ -209,9 +209,9 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].health = 40;
 		g_actor[ACTOR_KURO].magic = 0;
 
-		MenuActionDraw_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
+		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
 		                      &g_actor[ACTOR_KURO]);
-		MenuActionDraw_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 3);
+		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 3);
 
 		ActorsDraw(1);
 	}
@@ -230,7 +230,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].health = 100;
 		g_actor[ACTOR_KURO].magic = 30;
 
-		HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 		ActorsDraw(1);
 	}

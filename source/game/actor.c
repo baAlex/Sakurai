@@ -58,7 +58,7 @@ void ActorsInitialize(uint8_t battle_no)
 	uint8_t e = 0;
 	uint16_t sum = 0;
 
-	g_live_enemies = EnemiesNumber(battle_no);
+	g_live_enemies = EnemiesNumber(battle_no + 1); /* TODO, just a try */
 
 	TraitsInitialize();
 

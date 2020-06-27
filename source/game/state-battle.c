@@ -87,15 +87,10 @@ static void* sAttackChoreography()
 				g_actor[i].state = ACTOR_STATE_CHARGE;
 		}
 
+		/* During a choreography is also the only time that actors lose
+		   health, we keep an eye on the main heroes */
 		if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
-		{
-
-#ifdef DEVELOPER
-			g_actor[ACTOR_KURO].health = 100;
-			g_actor[ACTOR_SAO].health = 100;
-#endif
-			HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-		}
+			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 	}
 
 	/* Draw actors every frame like we normally do... */
@@ -139,10 +134,7 @@ static uint16_t s_show_banner = 0;
 static void* sBattleFrame()
 {
 	void* next_frame = (void*)sBattleFrame;
-
 	uint8_t i = 0;
-	uint8_t kuro_prev_hp = 0;
-	uint8_t sao_prev_hp = 0;
 
 #ifdef DEVELOPER
 	/* Change battle */
@@ -156,12 +148,16 @@ static void* sBattleFrame()
 		s_battle_no += 1;
 		return (void*)StateBattle; /* Restarts the entire world */
 	}
+	/* Heal */
+	if (INPUT_UP)
+	{
+		g_actor[ACTOR_KURO].health = 100;
+		g_actor[ACTOR_SAO].health = 100;
+		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+	}
 #endif
 
 	/* Game logic */
-	kuro_prev_hp = g_actor[ACTOR_KURO].health;
-	sao_prev_hp = g_actor[ACTOR_SAO].health;
-
 	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
 		if (g_actor[i].state == ACTOR_STATE_DEAD) /* You are dead, not big surprise */
@@ -186,10 +182,7 @@ static void* sBattleFrame()
 		}
 	}
 
-	/* Draw
-	if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
-	    HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);*/
-
+	/* Draw */
 	ActorsDraw(1);
 
 	/* 'Victory!', 'Game over' dialogs */
@@ -198,18 +191,20 @@ static void* sBattleFrame()
 		s_show_banner += 1;
 
 		if (s_show_banner > 36)
-			GenericDialogDraw(s_font2, "Victory!");
+			UiBanner(s_font2, "Victory!");
 
 		if (s_show_banner > 96)
 		{
+			s_show_banner = 0;
 			s_battle_no += 1;
 			CmdHalt();
+
 			return (void*)StateBattle; /* Restarts the entire world */
 		}
 	}
 
 	if (g_live_heroes == 0)
-		GenericDialogDraw(s_font2, "Game Over");
+		UiBanner(s_font2, "Game Over");
 
 	/* Bye! */
 	CmdHalt();
@@ -222,6 +217,7 @@ static void* sBattleFrame()
  Start a new battle
 -----------------------------*/
 static uint16_t s_loading_start = 0;
+static uint8_t s_prev_back;
 
 static void* sWait()
 {
@@ -240,13 +236,13 @@ static void* sWait()
 	}
 #endif
 
-	/* We need to be sure of show the loading screen for at least 1.5 seconds */
-	if (CURRENT_MILLISECONDS < s_loading_start + 1500 && CURRENT_MILLISECONDS > s_loading_start)
+	/* We need to be sure of show the loading screen for at least 2 seconds */
+	if (CURRENT_MILLISECONDS < s_loading_start + 2000 && CURRENT_MILLISECONDS > s_loading_start)
 		return (void*)sWait;
 
 	/* Next state! */
 	CmdDrawBackground();
-	HudDraw(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 	s_show_banner = 0;
 
@@ -255,6 +251,7 @@ static void* sWait()
 
 static void* sLoad()
 {
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
 	s_font1a = IntLoadSprite("assets\\font1a.jvn");
 	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
 	s_spr_fx1 = IntLoadSprite("assets\\fx1.jvn");
@@ -267,17 +264,18 @@ static void* sLoad()
 
 void* StateBattle()
 {
-	uint8_t i = 0;
-	uint16_t text_y = 0;
+	uint8_t back = 0;
 
 	IntPrintText("# StateBattle\n");
 	IntUnloadAll();
 
 	/* Reload minimal assets for the 'loading' screen */
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
 	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
-	switch (Random() % 4)
+	while (back == s_prev_back)
+		back = (uint8_t)(Random() % 4);
+
+	switch (back)
 	{
 	case 0: IntLoadBackground("assets\\bkg1.raw"); break;
 	case 1: IntLoadBackground("assets\\bkg2.raw"); break;
@@ -285,22 +283,14 @@ void* StateBattle()
 	case 3: IntLoadBackground("assets\\bkg4.raw");
 	}
 
+	s_prev_back = back;
+	CmdDrawBackground();
+
 	/* Draw loading screen */
 	CmdDrawBackground();
 
 	ActorsInitialize(s_battle_no);
-	CmdDrawText(s_font2, 10, 10, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
-
-	text_y = 10;
-
-	for (i = 0; i < ON_SCREEN_ACTORS; i++)
-	{
-		if (g_actor[i].state != ACTOR_STATE_DEAD && (g_actor[i].persona->tags & TAG_ENEMY))
-		{
-			text_y += 10;
-			CmdDrawText(s_font1, 10, text_y, g_actor[i].persona->name);
-		}
-	}
+	UiBanner(s_font2, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
 
 	/* Bye! */
 	s_loading_start = CURRENT_MILLISECONDS;

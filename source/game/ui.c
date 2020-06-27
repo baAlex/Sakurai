@@ -34,53 +34,85 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-#define MENU_BACK_COLOR 1
-#define MENU_OUTLINE_COLOR 3
-#define MENU_SHADOW_COLOR 64
+#define WINDOW_BACK_COLOR 1
+#define WINDOW_OUTLINE_COLOR 3
+#define WINDOW_SHADOW_COLOR 64
+
+#define PORTRAITS_X 13
+#define PORTRAITS_Y 10
+
+#define PORTRAITS_1COL_TEXT_X (PORTRAITS_X + 43) /* TODO */
+#define PORTRAITS_2COL_TEXT_X (PORTRAITS_X + 68) /* TODO */
+
+#define PORTRAITS_1ROW_TEXT_Y (PORTRAITS_Y + 7)  /* TODO */
+#define PORTRAITS_2ROW_TEXT_Y (PORTRAITS_Y + 28) /* TODO */
+
+static char s_buffer1[4] = {0, 0, 0, 0};
+static char s_buffer2[4] = {0, 0, 0, 0};
+static char s_buffer3[4] = {0, 0, 0, 0};
+static char s_buffer4[4] = {0, 0, 0, 0};
 
 
-/*-----------------------------
-
- GenericDialog
------------------------------*/
-
-#define GENERIC_DIALOG_WIDTH 20 /* 96 px */
-#define GENERIC_DIALOG_HEIGHT 3 /* 64 px */
-
-#define GENERIC_DIALOG_X (160 - (GENERIC_DIALOG_WIDTH << 3))
-#define GENERIC_DIALOG_Y (100 - (GENERIC_DIALOG_HEIGHT << 3))
-
-#define GENERIC_DIALOG_TEXT_X 13
-#define GENERIC_DIALOG_TEXT_Y (GENERIC_DIALOG_Y + 16)
-
-void GenericDialogDraw(uint8_t font_sprite, char* text)
+static void sDrawWindow(uint8_t width, uint8_t height, uint16_t x, uint16_t y)
 {
-	CmdDrawRectangle(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_HEIGHT, GENERIC_DIALOG_X, GENERIC_DIALOG_Y, MENU_BACK_COLOR);
-	CmdDrawText(font_sprite, GENERIC_DIALOG_TEXT_X, GENERIC_DIALOG_TEXT_Y, text);
+	CmdDrawRectangle(width, height, x, y, WINDOW_BACK_COLOR);
 
-	/* Light outline */
-	CmdDrawHLine(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_X, GENERIC_DIALOG_Y, MENU_OUTLINE_COLOR);
-	CmdDrawHLine(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_X, GENERIC_DIALOG_Y + (GENERIC_DIALOG_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
+	if (y != 0)
+		CmdDrawHLine(width, x, y, WINDOW_OUTLINE_COLOR);
 
-	/* Shadow outline */
-	CmdDrawHLine(GENERIC_DIALOG_WIDTH, GENERIC_DIALOG_X, GENERIC_DIALOG_Y + (GENERIC_DIALOG_HEIGHT << 4) - 1, MENU_SHADOW_COLOR);
+	if ((y + (height << 4) - 2) != 198)
+		CmdDrawHLine(width, x, (y + (height << 4) - 2), WINDOW_OUTLINE_COLOR);
+
+	if (x != 0)
+		CmdDrawVLine(height, x, y, WINDOW_OUTLINE_COLOR);
+
+	if ((x + (width << 4) - 2) != 318)
+		CmdDrawVLine(height, (x + (width << 4) - 2), y, WINDOW_OUTLINE_COLOR);
+
+	if ((x + (width << 4) - 1) != 319)
+		CmdDrawVLine(height, (x + (width << 4) - 1), y, WINDOW_SHADOW_COLOR);
+
+	if ((y + (height << 4) - 1) != 199)
+		CmdDrawHLine(width, x, (y + (height << 4) - 1), WINDOW_SHADOW_COLOR);
+}
+
+
+static void sDrawPortraits(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
+{
+	char* c;
+
+	CmdDrawSprite(portraits_sprite, PORTRAITS_X, PORTRAITS_Y, 0);
+
+	/* Actor A */
+	c = NumberToString(actor_a->health, s_buffer3);
+	CmdDrawText(font_sprite, PORTRAITS_1COL_TEXT_X, PORTRAITS_1ROW_TEXT_Y, c);
+
+	c = NumberToString(actor_a->magic, s_buffer4);
+	CmdDrawText(font_sprite, PORTRAITS_2COL_TEXT_X, PORTRAITS_1ROW_TEXT_Y, c);
+
+	/* Actor B */
+	c = NumberToString(actor_b->health, s_buffer1);
+	CmdDrawText(font_sprite, PORTRAITS_1COL_TEXT_X, PORTRAITS_2ROW_TEXT_Y, c);
+
+	c = NumberToString(actor_b->magic, s_buffer2);
+	CmdDrawText(font_sprite, PORTRAITS_2COL_TEXT_X, PORTRAITS_2ROW_TEXT_Y, c);
 }
 
 
 /*-----------------------------
 
- CharacterDialog
+ Dialog
 -----------------------------*/
 
-#define CH_DIALOG_TIME 125 /* In milliseconds */
-#define CH_DIALOG_X 12
-#define CH_DIALOG_Y 140
-#define CH_DIALOG_LINE_SPACE 12
+#define DIALOG_TIME 125 /* In milliseconds */
+#define DIALOG_X 13
+#define DIALOG_Y 140
+#define DIALOG_SPACING 12
 
-void CharacterDialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines)
+void UiDialog(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines)
 {
 	uint16_t current_ms = CURRENT_MILLISECONDS;
-	uint16_t y = CH_DIALOG_Y;
+	uint16_t y = DIALOG_Y;
 	uint8_t i = 0;
 
 	if (current_ms == start_ms)
@@ -91,59 +123,38 @@ void CharacterDialogDraw(uint8_t font_sprite, uint16_t start_ms, char* character
 
 		for (i = 0; i < 4; i++) /* HARDCODED, maximum of 4 lines */
 		{
-			if (current_ms > (start_ms + (CH_DIALOG_TIME * (i + 1))) && lines[i] != NULL)
+			if (current_ms > (start_ms + (DIALOG_TIME * (i + 1))) && lines[i] != NULL)
 			{
 				character = lines[i];
-				y += CH_DIALOG_LINE_SPACE;
+				y += DIALOG_SPACING;
 			}
 			else
 				break;
 		}
 
 		if (character != NULL)
-			CmdDrawText(font_sprite, CH_DIALOG_X, y, character);
+			CmdDrawText(font_sprite, DIALOG_X, y, character);
 	}
 }
 
 
 /*-----------------------------
 
- sPortraitsDraw()
+ Banner
 -----------------------------*/
 
-#define PORTRAITS_X 13 /* Most of this positions comes from an mockup file... sorry */
-#define PORTRAITS_Y 10
+#define BANNER_W 20 /* 320 px */
+#define BANNER_H 3  /* 48 px */
+#define BANNER_X 0
+#define BANNER_Y 76
 
-#define PORTRAITS_1ST_COL (PORTRAITS_X + 43)
-#define PORTRAITS_2ND_COL (PORTRAITS_X + 68)
+#define BANNER_TEXT_X 13
+#define BANNER_TEXT_Y 92
 
-#define PORTRAITS_1ST_ROW (PORTRAITS_Y + 7)
-#define PORTRAITS_2ND_ROW (PORTRAITS_Y + 28)
-
-static char s_buffer1[4] = {0, 0, 0, 0};
-static char s_buffer2[4] = {0, 0, 0, 0};
-static char s_buffer3[4] = {0, 0, 0, 0};
-static char s_buffer4[4] = {0, 0, 0, 0};
-
-static void sPortraitsDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
+void UiBanner(uint8_t font_sprite, char* text)
 {
-	char* c;
-
-	CmdDrawSprite(portraits_sprite, PORTRAITS_X, PORTRAITS_Y, 0);
-
-	/* Actor A */
-	c = NumberToString(actor_a->health, s_buffer3);
-	CmdDrawText(font_sprite, PORTRAITS_1ST_COL, PORTRAITS_1ST_ROW, c);
-
-	c = NumberToString(actor_a->magic, s_buffer4);
-	CmdDrawText(font_sprite, PORTRAITS_2ND_COL, PORTRAITS_1ST_ROW, c);
-
-	/* Actor B */
-	c = NumberToString(actor_b->health, s_buffer1);
-	CmdDrawText(font_sprite, PORTRAITS_1ST_COL, PORTRAITS_2ND_ROW, c);
-
-	c = NumberToString(actor_b->magic, s_buffer2);
-	CmdDrawText(font_sprite, PORTRAITS_2ND_COL, PORTRAITS_2ND_ROW, c);
+	sDrawWindow(BANNER_W, BANNER_H, BANNER_X, BANNER_Y);
+	CmdDrawText(font_sprite, BANNER_TEXT_X, BANNER_TEXT_Y, text);
 }
 
 
@@ -151,92 +162,83 @@ static void sPortraitsDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct
 
  Hud
 -----------------------------*/
-void HudDraw(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
+void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
 {
 	CmdDrawRectangleBkg(5 /* 80 px */, 3 /* 48 px */, PORTRAITS_X, PORTRAITS_Y);
-	sPortraitsDraw(portraits_sprite, font_sprite, actor_a, actor_b);
+	sDrawPortraits(portraits_sprite, font_sprite, actor_a, actor_b);
 }
 
 
 /*-----------------------------
 
- Action menu
+ Action Panel
 ------------------------------*/
 
-#define MENU_WIDTH 19 /* 304 px */
-#define MENU_HEIGHT 3 /* 48 px */
-#define MENU_X 8
-#define MENU_Y 6 /* Not 8 because the 1.2 ratio */
+#define PANEL_W 19 /* 304 px */
+#define PANEL_H 3  /* 48 px */
+#define PANEL_X 8
+#define PANEL_Y 6
 
-#define MENU_LINE_SPACE 14
+#define PANEL_3COL_TEXT_X 168
+#define PANEL_4COL_TEXT_X 244
 
-#define MENU_PADDING_Y 3
+#define PANEL_1ROW_TEXT_Y 9
+#define PANEL_2ROW_TEXT_Y 23
+#define PANEL_3ROW_TEXT_Y 37
 
-#define MENU_1ST_COL 8
-#define MENU_2ND_COL 110
-#define MENU_3RD_COL (MENU_2ND_COL + 60)
-#define MENU_4TH_COL (MENU_3RD_COL + 60)
+#define PANEL_1COL_SELECTION_X 152
+#define PANEL_2COL_SELECTION_X 228
+#define PANEL_SELECTION_Y 7
+#define PANEL_SELECTION_SPACING 14
+
+#define TIP_X 0
+#define TIP_Y 184
+#define TIP_W 20 /* 320 px */
+#define TIP_H 1  /* 16 px */
+
+#define TIP_TEXT_X 13
+#define TIP_TEXT_Y 185
 
 static uint8_t s_prev_action_selection = 255;
 
-void MenuActionDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a,
-                           struct Actor* hud_b)
+
+void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a,
+                          struct Actor* hud_b)
 {
-	/*
-	TODO, in the future the actors themself should have an entry: 'actor->action[]'
-	      so I can delete all the following harcoded values.
-	*/
+	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
+	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
-	CmdDrawRectangle(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y, MENU_BACK_COLOR);
-
-	/* Light outline */
-	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y, MENU_OUTLINE_COLOR);
-	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y + (MENU_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
-
-	CmdDrawVLine(MENU_HEIGHT, MENU_X, MENU_Y, MENU_OUTLINE_COLOR);
-	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 2, MENU_Y, MENU_OUTLINE_COLOR);
-
-	/* Shadow outline */
-	CmdDrawVLine(MENU_HEIGHT, MENU_X + (MENU_WIDTH << 4) - 1, MENU_Y, MENU_SHADOW_COLOR);
-	CmdDrawHLine(MENU_WIDTH, MENU_X, MENU_Y + (MENU_HEIGHT << 4) - 1, MENU_SHADOW_COLOR);
-
-	/* Portraits, hero name */
-	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
-	CmdDrawText(font_sprite, MENU_X + MENU_2ND_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, persona->name);
+	CmdDrawText(font_sprite, 105, PANEL_2ROW_TEXT_Y, persona->name); /* TODO */
 
 	/* Common actions */
-	CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y, "Attack");
-	CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y, "A. Combined");
-	CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + (MENU_LINE_SPACE << 1), "Hold");
+	CmdDrawText(font_sprite, PANEL_3COL_TEXT_X, PANEL_1ROW_TEXT_Y, "Attack");
+	CmdDrawText(font_sprite, PANEL_4COL_TEXT_X, PANEL_1ROW_TEXT_Y, "Combined");
+	CmdDrawText(font_sprite, PANEL_3COL_TEXT_X, PANEL_3ROW_TEXT_Y, "Hold");
 
 	/* Kuro actions */
 	if (persona == &g_heroes[PERSONALITY_KURO])
 	{
-		CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Heal");
-		CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Meditate");
+		CmdDrawText(font_sprite, PANEL_3COL_TEXT_X, PANEL_2ROW_TEXT_Y, "Heal");
+		CmdDrawText(font_sprite, PANEL_4COL_TEXT_X, PANEL_2ROW_TEXT_Y, "Meditate");
 	}
 
 	/* Sayori */
 	else
 	{
-		CmdDrawText(font_sprite, MENU_X + MENU_3RD_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Shock");
-		CmdDrawText(font_sprite, MENU_X + MENU_4TH_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Thunder");
+		CmdDrawText(font_sprite, PANEL_3COL_TEXT_X, PANEL_2ROW_TEXT_Y, "Shock");
+		CmdDrawText(font_sprite, PANEL_4COL_TEXT_X, PANEL_2ROW_TEXT_Y, "Thunder");
 	}
 }
 
-uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Persona* persona, uint8_t selection)
+uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Persona* persona, uint8_t selection)
 {
-	/*
-	TODO, same as before, every action should be in companion with a tip.
-	*/
+	CmdDrawRectangle(1 /* 16 px */, PANEL_H, PANEL_1COL_SELECTION_X, PANEL_Y, WINDOW_BACK_COLOR);
+	CmdDrawRectangle(1 /* 16 px */, PANEL_H, PANEL_2COL_SELECTION_X, PANEL_Y, WINDOW_BACK_COLOR);
 
-	CmdDrawRectangle(1 /* 16 px */, MENU_HEIGHT, MENU_X + MENU_3RD_COL - 16, MENU_Y, MENU_BACK_COLOR);
-	CmdDrawRectangle(1 /* 16 px */, MENU_HEIGHT, MENU_X + MENU_4TH_COL - 16, MENU_Y, MENU_BACK_COLOR);
-
-	/* The previous rectangle overwrite the outlines */
-	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y, MENU_OUTLINE_COLOR);
-	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 2, MENU_OUTLINE_COLOR);
-	CmdDrawHLine(5 /* 80 px */, MENU_X + MENU_3RD_COL - 16, MENU_Y + (MENU_HEIGHT << 4) - 1, MENU_SHADOW_COLOR);
+	/* The previous rectangle overwrite window outline */
+	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y, WINDOW_OUTLINE_COLOR);
+	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y + (PANEL_H << 4) - 2, WINDOW_OUTLINE_COLOR);
+	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y + (PANEL_H << 4) - 1, WINDOW_SHADOW_COLOR);
 
 	/* Selection arrow */
 	if (selection > 128)
@@ -245,38 +247,38 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 		selection = 4;
 
 	if ((selection % 2) == 1)
-		CmdDrawSprite(arrow_sprite, MENU_X + MENU_4TH_COL - 16,
-		              MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE * (selection >> 1), (CURRENT_FRAME >> 2) % 2);
+		CmdDrawSprite(arrow_sprite, PANEL_2COL_SELECTION_X,
+		              PANEL_SELECTION_Y + PANEL_SELECTION_SPACING * (selection >> 1), (CURRENT_FRAME >> 2) % 2);
 	else
-		CmdDrawSprite(arrow_sprite, MENU_X + MENU_3RD_COL - 16,
-		              MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE * (selection >> 1), (CURRENT_FRAME >> 2) % 2);
+		CmdDrawSprite(arrow_sprite, PANEL_1COL_SELECTION_X,
+		              PANEL_SELECTION_Y + PANEL_SELECTION_SPACING * (selection >> 1), (CURRENT_FRAME >> 2) % 2);
 
 	/* Draw a tip at the bottom of the screen */
 	if (selection != s_prev_action_selection)
 	{
-		CmdDrawRectangle(20 /* 320 */, 1 /* 16 px */, 0, 200 - 16, MENU_BACK_COLOR);
 		s_prev_action_selection = selection;
+		sDrawWindow(TIP_W, TIP_H, TIP_X, TIP_Y);
 
 		if (selection == 0)
-			CmdDrawText(font_sprite, 8, 200 - 16, "Simple attack.");
+			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Simple attack.");
 		else if (selection == 1)
-			CmdDrawText(font_sprite, 8, 200 - 16, "Combined attack, uses 20 MP.");
+			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Combined attack, uses 20 MP.");
 		else if (selection == 4)
-			CmdDrawText(font_sprite, 8, 200 - 16, "Hold position, mitigates damage from imminent attack.");
+			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Hold position, mitigates damage from imminent attack.");
 
 		if (persona == &g_heroes[PERSONALITY_KURO])
 		{
 			if (selection == 2)
-				CmdDrawText(font_sprite, 8, 200 - 16, "Restores party HP.");
+				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Restores party HP.");
 			else if (selection == 3)
-				CmdDrawText(font_sprite, 8, 200 - 16, "Restores party MP.");
+				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Restores party MP.");
 		}
 		else
 		{
 			if (selection == 2)
-				CmdDrawText(font_sprite, 8, 200 - 16, "Immobilizes target, uses 30 MP.");
+				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Immobilizes target, uses 30 MP.");
 			else if (selection == 3)
-				CmdDrawText(font_sprite, 8, 200 - 16, "Desintegrates target, uses 60 MP.");
+				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Desintegrates target, uses 60 MP.");
 		}
 	}
 
@@ -290,16 +292,19 @@ uint8_t MenuActionDraw_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct
 -----------------------------*/
 static uint8_t s_prev_target_selection = 255;
 
-void MenuTargetDraw_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b)
+void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b)
 {
-	CmdDrawRectangle(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y, MENU_BACK_COLOR);
-	sPortraitsDraw(portraits_sprite, font_sprite, hud_a, hud_b);
+#if 0
+	CmdDrawRectangle(PANEL_W, PANEL_H, PANEL_X, PANEL_Y, WINDOW_BACK_COLOR);
+	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
-	CmdDrawText(font_sprite, MENU_X + MENU_2ND_COL, MENU_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Select your target.");
+	CmdDrawText(font_sprite, PANEL_X + MENU_2ND_COL, PANEL_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Select your target.");
+#endif
 }
 
-uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
+uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {
+#if 0
 	/*
 	TODO, determinate if an actor selection is a valid one should be responsability of
 	      the actor module. Here we simply should ask something like: 'GetNearValidActor()'
@@ -346,14 +351,15 @@ uint8_t MenuTargetDraw_dynamic(uint8_t arrow_sprite, uint8_t selection)
 
 	s_prev_target_selection = selection;
 	return selection;
+#endif
 }
 
 
 /*-----------------------------
 
- MenuClean()
+ UiPanelClean()
 -----------------------------*/
-void MenuClean()
+void UiPanelClean()
 {
-	CmdDrawRectangleBkg(MENU_WIDTH, MENU_HEIGHT, MENU_X, MENU_Y);
+	CmdDrawRectangleBkg(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
 }

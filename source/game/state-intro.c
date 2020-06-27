@@ -97,20 +97,20 @@ static void* sFrame()
 
 	switch (s_dialog)
 	{
-	case 0: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro01_kuro); break;
-	case 1: CharacterDialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro02_sao); break;
-	case 2: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro03_kuro); break;
-	case 3: CharacterDialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro04_sao); break;
-	case 4: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro05_kuro); break;
+	case 0: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro01_kuro); break;
+	case 1: UiDialog(s_font2, s_last_updated, "[Sayori]", s_intro02_sao); break;
+	case 2: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro03_kuro); break;
+	case 3: UiDialog(s_font2, s_last_updated, "[Sayori]", s_intro04_sao); break;
+	case 4: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro05_kuro); break;
 
-	case 5: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro06_walltext); break;
-	case 6: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro07_walltext); break;
-	case 7: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro08_walltext); break;
-	case 8: CharacterDialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro09_sao); break;
+	case 5: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro06_walltext); break;
+	case 6: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro07_walltext); break;
+	case 7: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro08_walltext); break;
+	case 8: UiDialog(s_font2, s_last_updated, "[Sayori]", s_intro09_sao); break;
 
-	case 9: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro10_kuro); break;
-	case 10: CharacterDialogDraw(s_font2, s_last_updated, "[Kuro]", s_intro11_kuro); break;
-	case 11: CharacterDialogDraw(s_font2, s_last_updated, "[Sayori]", s_intro12_sao); break;
+	case 9: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro10_kuro); break;
+	case 10: UiDialog(s_font2, s_last_updated, "[Kuro]", s_intro11_kuro); break;
+	case 11: UiDialog(s_font2, s_last_updated, "[Sayori]", s_intro12_sao); break;
 
 	default: break;
 	}
