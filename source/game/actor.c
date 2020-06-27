@@ -252,7 +252,7 @@ void ActorsDraw(uint8_t oscillate)
 				if (g_actor[i].recover_timer == 0) /* Red timer if recovering */
 					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 8);
 				else
-					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 60);
+					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 5);
 			}
 		}
 
@@ -282,7 +282,7 @@ void ActorsDraw(uint8_t oscillate)
 				if (g_actor[i].recover_timer == 0)
 					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 41);
 				else
-					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 60);
+					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 52);
 			}
 		}
 
@@ -372,7 +372,14 @@ static int sAttack(struct Actor* actor)
 	{
 		/* If the target was 'charging', penalize it, this
 		   to lower the game pace in a subtle way */
-		actor->target->charge_timer = actor->target->charge_timer >> 1;
+
+		/* FIXME: just like the 'attack' limbo. The interceptor
+		   didn't want actors that travel back in time */
+
+		if((actor->target->charge_timer >> 1) == 0)
+			actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1; /* FIXME!!!!!!!!!!!! */
+		else
+			actor->target->charge_timer = actor->target->charge_timer >> 1;
 	}
 
 	if (actor->target->health == 0)

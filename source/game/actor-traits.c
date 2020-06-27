@@ -86,7 +86,7 @@ void TraitsInitialize()
 		g_heroes[PERSONALITY_KURO].tags = TAG_NONE | TAG_LEVITATES;
 
 		g_heroes[PERSONALITY_KURO].idle_velocity = 5;
-		g_heroes[PERSONALITY_KURO].recover_velocity = 13;
+		g_heroes[PERSONALITY_KURO].recover_velocity = 12;
 
 		g_heroes[PERSONALITY_KURO].initial_health = 100;
 		g_heroes[PERSONALITY_KURO].initial_magic = 0;
@@ -101,7 +101,7 @@ void TraitsInitialize()
 		g_heroes[PERSONALITY_SAO].tags = TAG_NONE;
 
 		g_heroes[PERSONALITY_SAO].idle_velocity = 7;
-		g_heroes[PERSONALITY_SAO].recover_velocity = 9;
+		g_heroes[PERSONALITY_SAO].recover_velocity = 8;
 
 		g_heroes[PERSONALITY_SAO].initial_health = 100;
 		g_heroes[PERSONALITY_SAO].initial_magic = 30;

@@ -33,6 +33,9 @@ SOFTWARE.
 #include "utilities.h"
 
 #define DEVELOPER
+/*#define AUTO_BATTLE*/
+
+static uint8_t s_battle_no = 0;
 
 static uint8_t s_font1;
 static uint8_t s_font1a;
@@ -41,7 +44,6 @@ static uint8_t s_spr_portraits;
 static uint8_t s_spr_fx1;
 static uint8_t s_spr_fx2;
 
-static uint8_t s_battle_no = 0;
 static void* sBattleFrame();
 
 
@@ -127,6 +129,52 @@ static void* sAttackChoreography()
 
 /*-----------------------------
 
+ Panel frame
+-----------------------------*/
+
+static uint16_t s_panel_start = 0; /* In frames */
+static uint8_t s_panel_actor = 0;
+
+static void* sPanelFrame()
+{
+	struct Actor* actor = &g_actor[s_panel_actor];
+
+	if (CURRENT_FRAME == s_panel_start + 1)
+	{
+		UiPanelAction_static(s_spr_portraits, s_font2, actor->persona, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+		CmdDrawRectanglePrecise(34, 3, actor->x, actor->y, 8);
+	}
+
+	if (INPUT_X == 1)
+	{
+		s_panel_start = CURRENT_FRAME;
+
+	again:
+
+		if (s_panel_actor < ON_SCREEN_HEROES)
+		{
+			s_panel_actor += 1;
+
+			if (g_actor[s_panel_actor].state != ACTOR_STATE_CHARGE || g_actor[s_panel_actor].charge_timer != 0)
+				goto again;
+		}
+		else
+		{
+			UiPanelClean();
+			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+			CmdHalt();
+			return (void*)sBattleFrame;
+		}
+	}
+
+	CmdHalt();
+	return (void*)sPanelFrame;
+}
+
+
+/*-----------------------------
+
  Battle frame
 -----------------------------*/
 static uint16_t s_show_banner = 0;
@@ -180,6 +228,20 @@ static void* sBattleFrame()
 			else
 				g_actor[i].state = ACTOR_STATE_CHARGE;
 		}
+
+#ifndef AUTO_BATTLE
+		if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].charge_timer == 0 &&
+		    !(g_actor[i].persona->tags & TAG_ENEMY))
+		{
+			s_panel_start = CURRENT_FRAME;
+
+			if (next_frame != (void*)sPanelFrame)
+			{
+				next_frame = (void*)sPanelFrame;
+				s_panel_actor = i;
+			}
+		}
+#endif
 	}
 
 	/* Draw */
@@ -197,9 +259,7 @@ static void* sBattleFrame()
 		{
 			s_show_banner = 0;
 			s_battle_no += 1;
-			CmdHalt();
-
-			return (void*)StateBattle; /* Restarts the entire world */
+			next_frame = (void*)StateBattle; /* Restarts the entire world */
 		}
 	}
 
@@ -217,7 +277,7 @@ static void* sBattleFrame()
  Start a new battle
 -----------------------------*/
 static uint16_t s_loading_start = 0;
-static uint8_t s_prev_back;
+static uint8_t s_prev_background = 0;
 
 static void* sWait()
 {
@@ -243,8 +303,6 @@ static void* sWait()
 	/* Next state! */
 	CmdDrawBackground();
 	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-	s_show_banner = 0;
 
 	return sBattleFrame();
 }
@@ -272,7 +330,7 @@ void* StateBattle()
 	/* Reload minimal assets for the 'loading' screen */
 	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
-	while (back == s_prev_back)
+	while (back == s_prev_background)
 		back = (uint8_t)(Random() % 4);
 
 	switch (back)
@@ -283,12 +341,10 @@ void* StateBattle()
 	case 3: IntLoadBackground("assets\\bkg4.raw");
 	}
 
-	s_prev_back = back;
+	s_prev_background = back;
 	CmdDrawBackground();
 
 	/* Draw loading screen */
-	CmdDrawBackground();
-
 	ActorsInitialize(s_battle_no);
 	UiBanner(s_font2, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
 
