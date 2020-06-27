@@ -40,7 +40,7 @@ layout.exe
 
 
 #define NOISE_GATE 40
-#define NOISE_MIN 2
+#define NOISE_MIN 1
 #define NOISE_MAX 2
 
 
@@ -54,7 +54,7 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 		return 1;
 
 	/* Sawtooth */
-	sawtooth = ((int16_t)battle_no) >> 1;
+	sawtooth = ((int16_t)battle_no);
 	sawtooth = sawtooth % (ON_SCREEN_ENEMIES);
 	sawtooth += 1;
 

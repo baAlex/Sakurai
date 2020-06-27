@@ -6,7 +6,7 @@ ON_SCREEN_ENEMIES = 4
 ENEMIES_PERSONALITIES_NO = 7
 
 NOISE_GATE = 40
-NOISE_MIN = 2
+NOISE_MIN = 1
 NOISE_MAX = 2
 
 RETURN_MEDIAN = 1
@@ -106,7 +106,7 @@ def EnemiesNumber(battle_no, rng, ret)
 	end
 
 	# Sawtooth
-	sawtooth = battle_no >> 1
+	sawtooth = battle_no
 	sawtooth = sawtooth % (ON_SCREEN_ENEMIES)
 	sawtooth += 1
 
@@ -202,7 +202,7 @@ for i in 0...2 do
 		plot.xlabel "Battle"
 		plot.yrange "[-1 to #{ON_SCREEN_ENEMIES + 2}]"
 
-		x = (0...(BATTLES_NO * 2)).collect { |v| v }
+		x = (0...(BATTLES_NO)).collect { |v| v }
 
 		# Sawtooth
 		rng.seed(123)
