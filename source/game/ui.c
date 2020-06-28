@@ -103,7 +103,6 @@ static void sDrawPortraits(uint8_t portraits_sprite, uint8_t font_sprite, struct
 
  Dialog
 -----------------------------*/
-
 #define DIALOG_TIME 125 /* In milliseconds */
 #define DIALOG_X 13
 #define DIALOG_Y 140
@@ -142,7 +141,6 @@ void UiDialog(uint8_t font_sprite, uint16_t start_ms, char* character, char** li
 
  Banner
 -----------------------------*/
-
 #define BANNER_W 20 /* 320 px */
 #define BANNER_H 3  /* 48 px */
 #define BANNER_X 0
@@ -164,7 +162,7 @@ void UiBanner(uint8_t font_sprite, char* text)
 -----------------------------*/
 void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
 {
-	CmdDrawRectangleBkg(5 /* 80 px */, 3 /* 48 px */, PORTRAITS_X, PORTRAITS_Y);
+	CmdDrawRectangleBkg(5 /* 80 px */, 3 /* 48 px */, 8, 6); /* TODO */
 	sDrawPortraits(portraits_sprite, font_sprite, actor_a, actor_b);
 }
 
@@ -173,7 +171,6 @@ void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a,
 
  Action Panel
 ------------------------------*/
-
 #define PANEL_W 19 /* 304 px */
 #define PANEL_H 3  /* 48 px */
 #define PANEL_X 8

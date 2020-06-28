@@ -71,7 +71,7 @@ static void* sFrame()
 
 	/* Ui elements */
 	UiPanelAction_dynamic(s_spr_items, s_font1, s_actor1.persona, (uint8_t)(x >> 4) % 6);
-	UiBanner(s_font2, "Victory!");
+	UiBanner(s_font2, "Victory");
 
 	/* Bye! */
 	CmdHalt();

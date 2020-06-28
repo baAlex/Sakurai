@@ -79,10 +79,10 @@ void sRandomizeActors()
 
 		if (i >= ON_SCREEN_HEROES)
 		{
-			if ((Random() % 100) < 60)
+			if ((Random() % 100) < 50)
 				g_actor[i].state = ACTOR_STATE_CHARGE;
 
-			if ((Random() % 100) < 40)
+			if ((Random() % 100) < 20)
 				g_actor[i].recover_timer = (uint8_t)Random();
 		}
 	}
@@ -99,7 +99,7 @@ void* StateScreenshots()
 	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
 	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
 
-	Seed(14850);
+	Seed(300);
 	TraitsInitialize();
 	ActorsInitialize(0);
 
@@ -127,6 +127,8 @@ void* StateScreenshots()
 		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 0);
 
 		ActorsDraw(1);
+
+		CmdDrawRectanglePrecise(34, 3, g_actor[ACTOR_SAO].x, g_actor[ACTOR_SAO].y, 8); /* Indicate who charges */
 	}
 	else if (s_stage_no == 1)
 	{
@@ -172,6 +174,8 @@ void* StateScreenshots()
 		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_KURO].persona, 2);
 
 		ActorsDraw(1);
+
+		CmdDrawRectanglePrecise(34, 3, g_actor[ACTOR_KURO].x, g_actor[ACTOR_KURO].y, 8); /* Indicate who charges */
 	}
 	else if (s_stage_no == 3)
 	{
@@ -214,6 +218,8 @@ void* StateScreenshots()
 		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 3);
 
 		ActorsDraw(1);
+
+		CmdDrawRectanglePrecise(34, 3, g_actor[ACTOR_SAO].x, g_actor[ACTOR_SAO].y, 8); /* Indicate who charges */
 	}
 	else
 	{

@@ -44,62 +44,76 @@ static uint8_t s_spr_portraits;
 static uint8_t s_spr_fx1;
 static uint8_t s_spr_fx2;
 
+/* Don't set states directly!... */
+static void* sChoreographyFrame();
+static void* sPanelFrame();
 static void* sBattleFrame();
+
+/* Use the following setters: */
+static void* sSetChoreography();
+static void* sSetPanel(uint8_t actor_index);
+static void* sSetBattle();
 
 
 /*-----------------------------
 
- Attack choreography
+ Choreography
 -----------------------------*/
-
 #define CHOREO_DURATION 36 /* In frames */
 
 static uint16_t s_choreo_start = 0; /* In frames */
-struct Actor* s_choreo_attacker;
-static char s_buffer[5] = {'-', 0, 0, 0, 0};
+static struct Actor* s_choreo_attacker = NULL;
 
-static void* sAttackChoreography()
+static char s_choreo_buffer[4] = {0, 0, 0, 0};
+static char* s_choreo_hp_str = NULL;
+
+static void* sSetChoreography()
 {
-	char* c = NULL;
+	s_choreo_start = CURRENT_FRAME;
+	s_choreo_attacker = NULL;
+	s_choreo_hp_str = NULL;
 
+	return (void*)sChoreographyFrame;
+}
+
+static void* sChoreographyFrame()
+{
 	uint8_t i = 0;
-	uint8_t kuro_prev_hp = 0;
-	uint8_t sao_prev_hp = 0;
 
-	/* For the first frame we run the logic as always... */
+	/* Just for the first frame we run the logic */
 	if (CURRENT_FRAME == s_choreo_start + 1)
 	{
-		kuro_prev_hp = g_actor[ACTOR_KURO].health;
-		sao_prev_hp = g_actor[ACTOR_SAO].health;
-
 		for (i = 0; i < ON_SCREEN_ACTORS; i++)
 		{
 			if (g_actor[i].state == ACTOR_STATE_DEAD)
 				continue;
 
-			/* ... except that we keep note of who is attacking */
 			if (g_actor[i].state == ACTOR_STATE_ATTACK)
 				s_choreo_attacker = &g_actor[i];
 
 			ActorLogic(&g_actor[i]);
 
-			/* After the logic step some new attackers can arise, we
-			   obligate them to wait until the next logic step */
+			/* Some new attackers can arise, we obligate them to wait until
+			   the next logic step (that isn't gonna happens on this choreo) */
 			if (g_actor[i].state == ACTOR_STATE_ATTACK)
 				g_actor[i].state = ACTOR_STATE_CHARGE;
 		}
 
-		/* During a choreography is also the only time that actors lose
-		   health, we keep an eye on the main heroes */
-		if (g_actor[ACTOR_KURO].health != kuro_prev_hp || g_actor[ACTOR_SAO].health != sao_prev_hp)
+		/* During a choreography is the only time that actors lose health,
+		   so we keep an eye on the main heroes to update the Hud accordingly */
+		if (g_actor[ACTOR_KURO].health != g_actor[ACTOR_KURO].prev_health ||
+		    g_actor[ACTOR_SAO].health != g_actor[ACTOR_SAO].prev_health)
 			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+		/* How many health our target loss? */
+		s_choreo_hp_str = NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health),
+		                                 s_choreo_buffer);
 	}
 
-	/* Draw actors every frame like we normally do... */
-	ActorsDraw(0);
-
-	/* ... and then draw a lot of new things: */
+	/* Draw actors and other things, every frame for the rest of the choreography */
 	{
+		ActorsDraw(0);
+
 		if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
 		{
 			if (s_choreo_attacker->persona->tags & TAG_ENEMY)
@@ -112,28 +126,32 @@ static void* sAttackChoreography()
 
 		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
 		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
-
-		c = NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health), s_buffer);
-		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y, c - 1);
+		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y, s_choreo_hp_str);
 	}
 
 	/* Bye! */
 	CmdHalt();
 
 	if (CURRENT_FRAME < s_choreo_start + CHOREO_DURATION && CURRENT_FRAME > s_choreo_start)
-		return (void*)sAttackChoreography;
+		return (void*)sChoreographyFrame;
 
-	return (void*)sBattleFrame;
+	return sSetBattle();
 }
 
 
 /*-----------------------------
 
- Panel frame
+ Panel
 -----------------------------*/
-
 static uint16_t s_panel_start = 0; /* In frames */
 static uint8_t s_panel_actor = 0;
+
+static void* sSetPanel(uint8_t actor_index)
+{
+	s_panel_start = CURRENT_FRAME;
+	s_panel_actor = actor_index;
+	return (void*)sPanelFrame;
+}
 
 static void* sPanelFrame()
 {
@@ -142,7 +160,7 @@ static void* sPanelFrame()
 	if (CURRENT_FRAME == s_panel_start + 1)
 	{
 		UiPanelAction_static(s_spr_portraits, s_font2, actor->persona, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-		CmdDrawRectanglePrecise(34, 3, actor->x, actor->y, 8);
+		CmdDrawRectanglePrecise(34, 3, actor->x, actor->y, 8); /* Indicate who charges */
 	}
 
 	if (INPUT_X == 1)
@@ -164,7 +182,7 @@ static void* sPanelFrame()
 			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
 			CmdHalt();
-			return (void*)sBattleFrame;
+			return sSetBattle();
 		}
 	}
 
@@ -175,9 +193,15 @@ static void* sPanelFrame()
 
 /*-----------------------------
 
- Battle frame
+ Battle
 -----------------------------*/
-static uint16_t s_show_banner = 0;
+static uint16_t s_battle_banner = 0;
+
+static void* sSetBattle()
+{
+	s_battle_banner = 0;
+	return (void*)sBattleFrame;
+}
 
 static void* sBattleFrame()
 {
@@ -217,10 +241,8 @@ static void* sBattleFrame()
 		   prepare the attack choreography to be executed the next frame */
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
-			s_choreo_start = CURRENT_FRAME;
-
-			if (next_frame != (void*)sAttackChoreography)
-				next_frame = (void*)sAttackChoreography;
+			if (next_frame != (void*)sChoreographyFrame)
+				next_frame = sSetChoreography();
 
 			/* If a previous actor already gained the choreo, we set this
 			   one to 'charge', an state previous to 'attack'. Obligating it
@@ -233,13 +255,8 @@ static void* sBattleFrame()
 		if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].charge_timer == 0 &&
 		    !(g_actor[i].persona->tags & TAG_ENEMY))
 		{
-			s_panel_start = CURRENT_FRAME;
-
 			if (next_frame != (void*)sPanelFrame)
-			{
-				next_frame = (void*)sPanelFrame;
-				s_panel_actor = i;
-			}
+				next_frame = sSetPanel(i);
 		}
 #endif
 	}
@@ -250,14 +267,14 @@ static void* sBattleFrame()
 	/* 'Victory!', 'Game over' dialogs */
 	if (g_live_enemies == 0)
 	{
-		s_show_banner += 1;
+		s_battle_banner += 1;
 
-		if (s_show_banner > 36)
-			UiBanner(s_font2, "Victory!");
+		if (s_battle_banner > 36) /* One second and half */
+			UiBanner(s_font2, "Victory");
 
-		if (s_show_banner > 96)
+		if (s_battle_banner > 96) /* Four seconds */
 		{
-			s_show_banner = 0;
+			s_battle_banner = 0;
 			s_battle_no += 1;
 			next_frame = (void*)StateBattle; /* Restarts the entire world */
 		}
@@ -274,37 +291,27 @@ static void* sBattleFrame()
 
 /*-----------------------------
 
- Start a new battle
+ Initialize the entire state
 -----------------------------*/
-static uint16_t s_loading_start = 0;
-static uint8_t s_prev_background = 0;
+static uint16_t s_state_start = 0; /* In milliseconds */
+static uint8_t s_state_prev_bkg = 0;
 
 static void* sWait()
 {
+	/* We need to be sure of show the loading screen for at least 2 seconds in
+	   those cpus that did the loading job unrealistically fast (emulated software).
 
-#ifdef DEVELOPER
-	/* Change battle */
-	if (INPUT_LEFT == 1 && s_battle_no >= 1)
-	{
-		s_battle_no -= 1;
-		return (void*)StateBattle; /* Restarts the entire world */
-	}
-	else if (INPUT_RIGHT == 1 && s_battle_no < 255)
-	{
-		s_battle_no += 1;
-		return (void*)StateBattle; /* Restarts the entire world */
-	}
-#endif
-
-	/* We need to be sure of show the loading screen for at least 2 seconds */
-	if (CURRENT_MILLISECONDS < s_loading_start + 2000 && CURRENT_MILLISECONDS > s_loading_start)
+	   In slower cpus this timer will overflow if the loading time pass the
+	   ~6 seconds mark, making a final wait of ~8 seconds. Not really a problem */
+	if (CURRENT_MILLISECONDS < s_state_start + 2000 && CURRENT_MILLISECONDS > s_state_start)
 		return (void*)sWait;
 
-	/* Next state! */
+	/* Yay, next state! */
 	CmdDrawBackground();
 	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 
-	return sBattleFrame();
+	CmdHalt();
+	return sSetBattle();
 }
 
 static void* sLoad()
@@ -322,7 +329,9 @@ static void* sLoad()
 
 void* StateBattle()
 {
-	uint8_t back = 0;
+	uint8_t bkg = 0;
+
+	s_state_start = CURRENT_MILLISECONDS;
 
 	IntPrintText("# StateBattle\n");
 	IntUnloadAll();
@@ -330,10 +339,10 @@ void* StateBattle()
 	/* Reload minimal assets for the 'loading' screen */
 	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
-	while (back == s_prev_background)
-		back = (uint8_t)(Random() % 4);
+	while (bkg == s_state_prev_bkg)
+		bkg = (uint8_t)(Random() % 4);
 
-	switch (back)
+	switch (bkg)
 	{
 	case 0: IntLoadBackground("assets\\bkg1.raw"); break;
 	case 1: IntLoadBackground("assets\\bkg2.raw"); break;
@@ -341,7 +350,7 @@ void* StateBattle()
 	case 3: IntLoadBackground("assets\\bkg4.raw");
 	}
 
-	s_prev_background = back;
+	s_state_prev_bkg = bkg;
 	CmdDrawBackground();
 
 	/* Draw loading screen */
@@ -349,8 +358,6 @@ void* StateBattle()
 	UiBanner(s_font2, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
 
 	/* Bye! */
-	s_loading_start = CURRENT_MILLISECONDS;
-
 	CmdHalt();
 	return (void*)sLoad;
 }
