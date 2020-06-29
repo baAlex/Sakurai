@@ -27,8 +27,11 @@ SOFTWARE.
  [ui.c]
  - Alexander Brandt 2020
 
-* TODO: remove reads to 'g_info' and 'g_actor'
-* Plus other TODOs below :)
+* TODO: (v0.1-alpha) remove reads to 'g_info' and 'g_actor'
+* TODO: (v0.2-alpha) still there are lots of hardcoded values
+over this file. I replaced most of them, but knowing that in
+a future the addition of an inventory will require a mayor
+rewrite... Im simply trowing myself into the lazy sidewalk.
 -----------------------------*/
 
 #include "ui.h"
@@ -291,20 +294,19 @@ static uint8_t s_prev_target_selection = 255;
 
 void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b)
 {
-#if 0
-	CmdDrawRectangle(PANEL_W, PANEL_H, PANEL_X, PANEL_Y, WINDOW_BACK_COLOR);
+	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
 	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
-	CmdDrawText(font_sprite, PANEL_X + MENU_2ND_COL, PANEL_Y + MENU_PADDING_Y + MENU_LINE_SPACE, "Select your target.");
-#endif
+	CmdDrawText(font_sprite, 109, PANEL_2ROW_TEXT_Y, "Select a target."); /* TODO */
 }
 
 uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {
-#if 0
 	/*
 	TODO, determinate if an actor selection is a valid one should be responsability of
 	      the actor module. Here we simply should ask something like: 'GetNearValidActor()'
+
+	Currently in v0.2-alpha, im not sure if make this change... unnecessary complexity.
 	*/
 
 	uint8_t i = 0;
@@ -348,7 +350,6 @@ uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 
 	s_prev_target_selection = selection;
 	return selection;
-#endif
 }
 
 

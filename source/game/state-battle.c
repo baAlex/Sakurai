@@ -144,13 +144,18 @@ static void* sChoreographyFrame()
 
  Panel
 -----------------------------*/
+#define PANEL_SCREEN_ACTION 0
+#define PANEL_SCREEN_TARGET 1
+
 static uint16_t s_panel_start = 0; /* In frames */
+static uint8_t s_panel_screen = 0;
 static uint8_t s_panel_actor = 0;
 static uint8_t s_panel_selection = 0;
 
 static void* sSetPanel(uint8_t actor_index)
 {
 	s_panel_start = CURRENT_FRAME;
+	s_panel_screen = PANEL_SCREEN_ACTION;
 	s_panel_actor = actor_index;
 	s_panel_selection = 0;
 	return (void*)sPanelFrame;
@@ -158,49 +163,78 @@ static void* sSetPanel(uint8_t actor_index)
 
 static void* sPanelFrame()
 {
-	if (CURRENT_FRAME == s_panel_start + 1)
+	void* next_frame = (void*)sPanelFrame;
+
+	/* Select an action for the current actor... */
+	if (s_panel_screen == PANEL_SCREEN_ACTION)
 	{
-		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
-		                     &g_actor[ACTOR_KURO]);
-		CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y,
-		                        8); /* Indicate who charges */
+		if (CURRENT_FRAME == s_panel_start + 1) /* First frame only */
+		{
+			UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
+			                     &g_actor[ACTOR_KURO]);
+			CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y, 8);
+		}
+
+		if (INPUT_UP == 1)
+			s_panel_selection -= 2;
+		if (INPUT_DOWN == 1)
+			s_panel_selection += 2;
+		if (INPUT_LEFT == 1)
+			s_panel_selection -= 1;
+		if (INPUT_RIGHT == 1)
+			s_panel_selection += 1;
+
+		s_panel_selection =
+		    UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[s_panel_actor].persona, s_panel_selection);
 	}
 
+	/* Select a target for the current actor */
+	else if (s_panel_screen == PANEL_SCREEN_TARGET)
+	{
+		if (CURRENT_FRAME == s_panel_start + 1) /* First frame only */
+			UiPanelTarget_static(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+		if (INPUT_LEFT == 1 || INPUT_UP == 1)
+			s_panel_selection -= 1;
+		if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
+			s_panel_selection += 1;
+
+		s_panel_selection = UiPanelTarget_dynamic(s_spr_items, s_panel_selection);
+	}
+
+	/* Player pressed enter, is turn for the next screen, next player or go back to the battle? */
 	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1)
 	{
 		s_panel_start = CURRENT_FRAME;
-		g_actor[s_panel_actor].panel_done = 1; /* To avoid show the panel multiple times */
 
-	again:
-		if (s_panel_actor < (ON_SCREEN_HEROES - 1))
-		{
-			s_panel_actor += 1;
-
-			if (g_actor[s_panel_actor].state != ACTOR_STATE_CHARGE || g_actor[s_panel_actor].panel_done == 1)
-				goto again;
-		}
+		/* Go to next screen, show next one? */
+		if (s_panel_screen == PANEL_SCREEN_ACTION)
+			s_panel_screen = PANEL_SCREEN_TARGET;
 		else
 		{
-			UiPanelClean();
-			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-			CmdHalt();
-			return sSetBattle();
+			g_actor[s_panel_actor].panel_done = 1; /* To avoid show the panel multiple times */
+
+		again:
+			/* Check the next actor (if it need the panel) */
+			if (s_panel_actor < (ON_SCREEN_HEROES - 1))
+			{
+				s_panel_actor += 1;
+
+				if (g_actor[s_panel_actor].state != ACTOR_STATE_CHARGE || g_actor[s_panel_actor].panel_done == 1)
+					goto again;
+			}
+			else
+			{
+				/* Back to battle! */
+				UiPanelClean();
+				UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+				next_frame = sSetBattle();
+			}
 		}
 	}
 
-	if (INPUT_UP == 1)
-		s_panel_selection -= 2;
-	if (INPUT_DOWN == 1)
-		s_panel_selection += 2;
-	if (INPUT_LEFT == 1)
-		s_panel_selection -= 1;
-	if (INPUT_RIGHT == 1)
-		s_panel_selection += 1;
-
-	s_panel_selection = UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[s_panel_actor].persona, s_panel_selection);
-
 	CmdHalt();
-	return (void*)sPanelFrame;
+	return next_frame;
 }
 
 
@@ -250,7 +284,6 @@ static void* sBattleFrame()
 
 		ActorLogic(&g_actor[i]);
 
-
 #ifndef AUTO_BATTLE
 		if (i < ON_SCREEN_HEROES)
 		{
@@ -261,7 +294,6 @@ static void* sBattleFrame()
 				g_actor[i].panel_done = 0;
 		}
 #endif
-
 
 		/* If after the logic step the actor set itself to 'attack', we
 		   prepare the attack choreography to be executed the next frame */
