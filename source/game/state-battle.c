@@ -43,6 +43,7 @@ static uint8_t s_font2;
 static uint8_t s_spr_portraits;
 static uint8_t s_spr_fx1;
 static uint8_t s_spr_fx2;
+static uint8_t s_spr_items;
 
 /* Don't set states directly!... */
 static void* sChoreographyFrame();
@@ -145,46 +146,58 @@ static void* sChoreographyFrame()
 -----------------------------*/
 static uint16_t s_panel_start = 0; /* In frames */
 static uint8_t s_panel_actor = 0;
+static uint8_t s_panel_selection = 0;
 
 static void* sSetPanel(uint8_t actor_index)
 {
 	s_panel_start = CURRENT_FRAME;
 	s_panel_actor = actor_index;
+	s_panel_selection = 0;
 	return (void*)sPanelFrame;
 }
 
 static void* sPanelFrame()
 {
-	struct Actor* actor = &g_actor[s_panel_actor];
-
 	if (CURRENT_FRAME == s_panel_start + 1)
 	{
-		UiPanelAction_static(s_spr_portraits, s_font2, actor->persona, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-		CmdDrawRectanglePrecise(34, 3, actor->x, actor->y, 8); /* Indicate who charges */
+		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
+		                     &g_actor[ACTOR_KURO]);
+		CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y,
+		                        8); /* Indicate who charges */
 	}
 
-	if (INPUT_X == 1)
+	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1)
 	{
 		s_panel_start = CURRENT_FRAME;
+		g_actor[s_panel_actor].panel_done = 1; /* To avoid show the panel multiple times */
 
 	again:
-
-		if (s_panel_actor < ON_SCREEN_HEROES)
+		if (s_panel_actor < (ON_SCREEN_HEROES - 1))
 		{
 			s_panel_actor += 1;
 
-			if (g_actor[s_panel_actor].state != ACTOR_STATE_CHARGE || g_actor[s_panel_actor].charge_timer != 0)
+			if (g_actor[s_panel_actor].state != ACTOR_STATE_CHARGE || g_actor[s_panel_actor].panel_done == 1)
 				goto again;
 		}
 		else
 		{
 			UiPanelClean();
 			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
 			CmdHalt();
 			return sSetBattle();
 		}
 	}
+
+	if (INPUT_UP == 1)
+		s_panel_selection -= 2;
+	if (INPUT_DOWN == 1)
+		s_panel_selection += 2;
+	if (INPUT_LEFT == 1)
+		s_panel_selection -= 1;
+	if (INPUT_RIGHT == 1)
+		s_panel_selection += 1;
+
+	s_panel_selection = UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[s_panel_actor].persona, s_panel_selection);
 
 	CmdHalt();
 	return (void*)sPanelFrame;
@@ -237,11 +250,24 @@ static void* sBattleFrame()
 
 		ActorLogic(&g_actor[i]);
 
+
+#ifndef AUTO_BATTLE
+		if (i < ON_SCREEN_HEROES)
+		{
+			if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].panel_done == 0)
+				next_frame = sSetPanel(i);
+
+			if (g_actor[i].state != ACTOR_STATE_CHARGE)
+				g_actor[i].panel_done = 0;
+		}
+#endif
+
+
 		/* If after the logic step the actor set itself to 'attack', we
 		   prepare the attack choreography to be executed the next frame */
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
-			if (next_frame != (void*)sChoreographyFrame)
+			if (next_frame == (void*)sBattleFrame) /* Indirectly this check gives 'Panel' an high priority */
 				next_frame = sSetChoreography();
 
 			/* If a previous actor already gained the choreo, we set this
@@ -250,15 +276,6 @@ static void* sBattleFrame()
 			else
 				g_actor[i].state = ACTOR_STATE_CHARGE;
 		}
-
-#ifndef AUTO_BATTLE
-		if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].charge_timer == 0 &&
-		    !(g_actor[i].persona->tags & TAG_ENEMY))
-		{
-			if (next_frame != (void*)sPanelFrame)
-				next_frame = sSetPanel(i);
-		}
-#endif
 	}
 
 	/* Draw */
@@ -321,6 +338,7 @@ static void* sLoad()
 	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
 	s_spr_fx1 = IntLoadSprite("assets\\fx1.jvn");
 	s_spr_fx2 = IntLoadSprite("assets\\fx2.jvn");
+	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
 
 	ActorsInitializeSprites();
 

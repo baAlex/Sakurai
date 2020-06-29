@@ -205,7 +205,7 @@ void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, struct 
 	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
 	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
-	CmdDrawText(font_sprite, 105, PANEL_2ROW_TEXT_Y, persona->name); /* TODO */
+	CmdDrawText(font_sprite, 109, PANEL_2ROW_TEXT_Y, persona->name); /* TODO */
 
 	/* Common actions */
 	CmdDrawText(font_sprite, PANEL_3COL_TEXT_X, PANEL_1ROW_TEXT_Y, "Attack");
@@ -359,4 +359,5 @@ uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 void UiPanelClean()
 {
 	CmdDrawRectangleBkg(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
+	CmdDrawRectangleBkg(TIP_W, TIP_H, TIP_X, TIP_Y);
 }
