@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cp "./sakurai.exe" "./tanakas.exe"
-cp "./ASSETS-LICENSE" "./license.txt"
+cp "./resources/distributable-license.txt" "./license.txt"
 cp "./resources/distributable-readme.txt" "./readme.txt"
 
 root_files="./tanakas.exe
