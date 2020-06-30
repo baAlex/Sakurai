@@ -75,7 +75,9 @@ build ./objects/sayori.asm: SpriteLinear $
  ./assets-dev/sayori.001.bmp $
  ./assets-dev/sayori.002.bmp
 
-build ./objects/kuro.asm: SpriteLinear ./assets-dev/kuro.bmp
+build ./objects/kuro.asm: SpriteLinear $
+ ./assets-dev/kuro.001.bmp $
+ ./assets-dev/kuro.002.bmp
 
 build ./objects/ui-ports.asm: SpriteLinear ./assets-dev/ui-ports.bmp
 build ./objects/ui-items.asm: SpriteLinear $
