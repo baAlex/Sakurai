@@ -7,8 +7,6 @@ Submission for [MS-DOS game jam #2](https://itch.io/jam/dos-game-jam-2).
 
 **Currently in development**.
 
-**(!) Project broken (!). As since the first release I'm making an almost entirely rewrite of the code, organizing folders, and simplifying compilation procedures (of both code and assets).**
-
 ![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/media/banner-gameplay.png)
 
 

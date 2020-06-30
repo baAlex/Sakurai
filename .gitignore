@@ -17,9 +17,8 @@
 /SAKURAI.LOG
 /game.dll
 
-# Distributables
-/sakurai.zip
-/sakurai.img
+# Distributable
+/tanakas.zip
 
 # Developers, developers, developers
 /plot-*.png
