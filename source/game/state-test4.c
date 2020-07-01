@@ -24,55 +24,31 @@ SOFTWARE.
 
 -------------------------------
 
- [main.c]
+ [state-test4.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
 #include "state.h"
+#include "ui.h"
 #include "utilities.h"
+#include "actor-traits.h"
+
+static uint8_t s_font1;
+static uint8_t s_font2;
 
 
-/*#define BATTLE*/
-
-
-void* StateHello();
-static void* (*s_next_state)() = StateHello;
-
-
-int main()
+static void* sFrame()
 {
-	/* PROTIP: 'state-battle.c' is the file you are looking for */
-	/* This entry point only has the purpose of redirect to the next state... */
-	s_next_state = (void* (*)())s_next_state();
-	return 0;
+	CmdHalt();
+	return (void*)sFrame;
 }
 
 
-void* StateHello()
+void* StateTest4()
 {
-	/* ... 'StateHello' being the first state executed, from here every state should
-	   return what to call the next frame, most states returns themself */
+	IntPrintText("# StateTest4\n");
 
-	IntPrintText("Tanaka's magical business v0.2-alpha\n");
-	IntPrintText("- Max commands: ");
-	IntPrintNumber(MAX_COMMANDS);
-	IntPrintText("- Current milliseconds: ");
-	IntPrintNumber(CURRENT_MILLISECONDS);
-	IntPrintText("\n");
-
-	#if defined(INTRO)
-	return StateIntro();
-	#elif defined(BATTLE)
-	return StateBattle();
-	#elif defined(SCREENSHOTS)
-	return StateScreenshots();
-	#elif defined(TEST4)
-	return StateTest4();
-	#elif defined(TEST3)
-	return StateTest3();
-	#elif defined(TEST2)
-	return StateTest2();
-	#else
-	return StateIntro();
-	#endif
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
+	s_font2 = IntLoadSprite("assets\\font2.jvn");
+	return sFrame();
 }

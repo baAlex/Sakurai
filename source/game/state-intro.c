@@ -76,6 +76,27 @@ static void sCleanScreen()
 }
 
 
+static uint16_t s_title_start = 0; /* In milliseconds */
+
+static void* sTitle()
+{
+	if (CURRENT_MILLISECONDS < s_title_start + 3000 && CURRENT_MILLISECONDS > s_title_start)
+		return (void*)sTitle;
+
+	CmdDrawText(s_font2, 100, 140, "Press a key to continue...");
+	CmdHalt();
+
+	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_RIGHT == 1 || INPUT_DOWN == 1 ||
+	    INPUT_LEFT == 1 || INPUT_UP == 1)
+	{
+		Seed(CURRENT_MILLISECONDS);
+		return StateBattle();
+	}
+
+	return (void*)sTitle;
+}
+
+
 static void* sFrame()
 {
 	if (INPUT_LEFT == 1 || INPUT_UP == 1)
@@ -115,6 +136,14 @@ static void* sFrame()
 	default: break;
 	}
 
+	if (s_dialog == 12)
+	{
+		s_title_start = CURRENT_MILLISECONDS;
+		CmdDrawBackground();
+		CmdHalt();
+		return (void*)sTitle;
+	}
+
 	CmdHalt();
 	return (void*)sFrame;
 }
@@ -123,6 +152,7 @@ static void* sFrame()
 void* StateIntro()
 {
 	IntPrintText("# StateIntro\n");
+	IntLoadBackground("assets\\title.raw");
 	s_font2 = IntLoadSprite("assets\\font2.jvn");
 
 	sCleanScreen();
