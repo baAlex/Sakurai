@@ -240,7 +240,7 @@ uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct 
 	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y + (PANEL_H << 4) - 2, WINDOW_OUTLINE_COLOR);
 	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y + (PANEL_H << 4) - 1, WINDOW_SHADOW_COLOR);
 
-	/* Selection arrow */
+	/* Selection */
 	if (selection > 128)
 		selection = 0;
 	else if (selection > 4)
@@ -345,7 +345,7 @@ uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 			selection -= 1;
 	}
 
-	/* Active arrow */
+	/* Selection */
 	CmdDrawSprite(arrow_sprite, g_actor[selection].x, g_actor[selection].y + 40, (CURRENT_FRAME >> 2) % 2);
 
 	s_prev_target_selection = selection;
@@ -361,4 +361,36 @@ void UiPanelClean()
 {
 	CmdDrawRectangleBkg(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
 	CmdDrawRectangleBkg(TIP_W, TIP_H, TIP_X, TIP_Y);
+}
+
+
+/*-----------------------------
+
+ Pause Menu
+-----------------------------*/
+void UiMenuPause_static(uint8_t font_sprite1, uint8_t font_sprite2)
+{
+	sDrawWindow(6, 4, (160 - (6 << 3)), (100 - (4 << 3)));
+	CmdDrawText(font_sprite1, (160 - (6 << 3)) + 8, (100 - (4 << 3)), "Game paused");
+	CmdDrawText(font_sprite2, (160 - (6 << 3)) + 16, (100 - (4 << 3)) + 15, "Resume");
+	CmdDrawText(font_sprite2, (160 - (6 << 3)) + 16, (100 - (4 << 3)) + (15 << 1), "Restart game");
+	CmdDrawText(font_sprite2, (160 - (6 << 3)) + 16, (100 - (4 << 3)) + (15 << 1) + 15, "Exit to system");
+}
+
+uint8_t UiMenuPause_dynamic(uint8_t arrow_sprite, uint8_t selection)
+{
+	CmdDrawRectangle(1, 3, (160 - (6 << 3)), (100 - (4 << 3)) + 13, WINDOW_BACK_COLOR);
+
+	/* The previous rectangle overwrite window outline */
+	CmdDrawVLine(3, (160 - (6 << 3)), (100 - (4 << 3)) + 13, WINDOW_OUTLINE_COLOR);
+
+	/* Selection */
+	if (selection == 255)
+		selection = 0;
+	else if (selection > 2)
+		selection = 2;
+
+	CmdDrawSprite(arrow_sprite, (160 - (6 << 3)), (100 - (4 << 3)) + 13 + (15 * selection), (CURRENT_FRAME >> 2) % 2);
+
+	return selection;
 }
