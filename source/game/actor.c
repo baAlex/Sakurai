@@ -137,7 +137,7 @@ void ActorsInitialize(uint8_t battle_no)
 		again:
 
 			e = ((uint8_t)Random() % ENEMIES_PERSONALITIES_NO);
-			if ((Random() % sum) <= s_temp[e])
+			if ((Random() % sum) < s_temp[e])
 				g_actor[i].persona = &g_enemies[e];
 			else
 				goto again; /* TODO, limit this! */
