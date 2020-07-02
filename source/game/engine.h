@@ -66,6 +66,7 @@ uint8_t IntLoadSprite(char* filename);
 void IntFreeSprite(uint8_t sprite);
 void IntUnloadAll();
 void IntFlushCommands();
+void IntExitRequest();
 
 
 /* Commands */

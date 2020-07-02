@@ -156,8 +156,8 @@ Main_loop_no_sleep:
 		call near TimeGet ; (ax = return, ds implicit)
 		mov bx, ax
 
-		; Check ESC key (0x01)
-		dec byte [keyboard_state + 0x01]
+		; Is a good bye?
+		dec word [exit_request]
 		jz near Main_bye
 
 		; Provide input to game logic
@@ -165,12 +165,12 @@ Main_loop_no_sleep:
 		push ax ; Has the TimeGet() return
 		mov dx, [keyboard_state + 0x2C] ; X
 		push dx
-		mov dx, [keyboard_state + 0x2D] ; Y
-		push dx
-		mov dx, [keyboard_state + 0x1E] ; A
-		push dx
-		mov dx, [keyboard_state + 0x1F] ; B
-		push dx
+		;mov dx, [keyboard_state + 0x2D] ; Y
+		;push dx
+		;mov dx, [keyboard_state + 0x1E] ; A
+		;push dx
+		;mov dx, [keyboard_state + 0x1F] ; B
+		;push dx
 		mov dx, [keyboard_state + 0x48] ; Up
 		push dx
 		mov dx, [keyboard_state + 0x50] ; Down
@@ -179,9 +179,9 @@ Main_loop_no_sleep:
 		push dx
 		mov dx, [keyboard_state + 0x4D] ; Right
 		push dx
-		mov dx, [keyboard_state + 0x39] ; Select
-		push dx
-		mov dx, [keyboard_state + 0x1C] ; Start
+		;mov dx, [keyboard_state + 0x39] ; Select
+		;push dx
+		mov dx, [keyboard_state + 0x01] ; Start
 		push dx
 
 		; Welcome to 'seg_game_data'
@@ -190,8 +190,8 @@ Main_loop_no_sleep:
 
 		pop dx
 		mov byte [input_start], dl
-		pop dx
-		mov byte [input_select], dl
+		;pop dx
+		;mov byte [input_select], dl
 		pop dx
 		mov byte [input_right], dl
 		pop dx
@@ -200,12 +200,12 @@ Main_loop_no_sleep:
 		mov byte [input_down], dl
 		pop dx
 		mov byte [input_up], dl
-		pop dx
-		mov byte [input_b], dl
-		pop dx
-		mov byte [input_a], dl
-		pop dx
-		mov byte [input_y], dl
+		;pop dx
+		;mov byte [input_b], dl
+		;pop dx
+		;mov byte [input_a], dl
+		;pop dx
+		;mov byte [input_y], dl
 		pop dx
 		mov byte [input_x], dl
 		pop dx

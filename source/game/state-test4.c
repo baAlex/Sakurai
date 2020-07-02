@@ -36,18 +36,13 @@ SOFTWARE.
 static uint8_t s_font1;
 static uint8_t s_font2;
 static uint8_t s_spr_items;
+static void* s_resume_to;
 
 static uint8_t s_selection = 0;
 
 
-static void* sFrame()
+static void* sPauseFrame()
 {
-	if (CURRENT_FRAME == 0)
-	{
-		CmdDrawBackground();
-		UiMenuPause_static(s_font1, s_font2);
-	}
-
 	if (INPUT_LEFT == 1 || INPUT_UP == 1)
 		s_selection -= 1;
 	if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
@@ -55,19 +50,52 @@ static void* sFrame()
 
 	s_selection = UiMenuPause_dynamic(s_spr_items, s_selection);
 
+	if (INPUT_START == 1 && s_resume_to != NULL)
+	{
+		CmdHalt();
+		return s_resume_to;
+	}
+
+	if (INPUT_X == 1 || INPUT_Y == 1)
+	{
+		if (s_selection == 0 && s_resume_to != NULL)
+		{
+			CmdHalt();
+			return s_resume_to;
+		}
+		else if (s_selection == 1)
+		{
+			CmdHalt();
+			return StateIntro;
+		}
+		else if (s_selection == 2)
+			IntExitRequest();
+	}
+
 	CmdHalt();
-	return (void*)sFrame;
+	return (void*)sPauseFrame;
+}
+
+
+void* SetStatePause(uint8_t spr_font1, uint8_t spr_font2, uint8_t spr_items, void* resume_to)
+{
+	s_font1 = spr_font1;
+	s_font2 = spr_font2;
+	s_spr_items = spr_items;
+	s_resume_to = resume_to;
+	s_selection = 0;
+
+	UiMenuPause_static(s_font1, s_font2);
+
+	return (void*)sPauseFrame;
 }
 
 
 void* StateTest4()
 {
 	IntPrintText("# StateTest4\n");
-
 	IntLoadBackground("assets\\bkg4.raw");
 
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
-	s_font2 = IntLoadSprite("assets\\font2.jvn");
-	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
-	return sFrame();
+	return SetStatePause(IntLoadSprite("assets\\font1.jvn"), IntLoadSprite("assets\\font2.jvn"),
+	                     IntLoadSprite("assets\\ui-items.jvn"), StateBattle);
 }

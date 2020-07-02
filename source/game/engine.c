@@ -176,6 +176,15 @@ void IntFlushCommands()
 }
 
 
+void IntExitRequest()
+{
+#if defined(__BCC__) && defined(__MSDOS__)
+	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x09;
+	asm("int 0xFD");
+#endif
+}
+
+
 #define sIncrementCounter() {if ((s_cmd_counter += 1) == (MAX_COMMANDS)){ IntFlushCommands(); }}
 
 

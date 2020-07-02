@@ -32,7 +32,7 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-#define DEVELOPER
+/*#define DEVELOPER*/
 /*#define AUTO_BATTLE*/
 
 static uint8_t s_battle_no = 0;
@@ -54,6 +54,10 @@ static void* sBattleFrame();
 static void* sSetChoreography();
 static void* sSetPanel(uint8_t actor_index);
 static void* sSetBattle();
+
+static void* sResumeChoreography();
+static void* sResumePanel();
+static void* sResumeBattle();
 
 
 /*-----------------------------
@@ -77,9 +81,17 @@ static void* sSetChoreography()
 	return (void*)sChoreographyFrame;
 }
 
+static void* sResumeChoreography()
+{
+	return sChoreographyFrame();
+}
+
 static void* sChoreographyFrame()
 {
 	uint8_t i = 0;
+
+	if (INPUT_START == 1)
+		return SetStatePause(s_font1, s_font2, s_spr_items, sResumeChoreography);
 
 	/* Just for the first frame we run the logic */
 	if (CURRENT_FRAME == s_choreo_start + 1)
@@ -127,7 +139,7 @@ static void* sChoreographyFrame()
 
 		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
 		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
-		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y, s_choreo_hp_str);
+		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y + 3, s_choreo_hp_str);
 	}
 
 	/* Bye! */
@@ -158,12 +170,32 @@ static void* sSetPanel(uint8_t actor_index)
 	s_panel_screen = PANEL_SCREEN_ACTION;
 	s_panel_actor = actor_index;
 	s_panel_selection = 0;
+
 	return (void*)sPanelFrame;
+}
+
+static void* sResumePanel()
+{
+	CmdDrawBackground();
+	ActorsDraw(0);
+
+	if (s_panel_screen == PANEL_SCREEN_ACTION)
+		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
+		                     &g_actor[ACTOR_KURO]);
+	else if (s_panel_screen == PANEL_SCREEN_TARGET)
+		UiPanelTarget_static(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y, 8);
+
+	return sPanelFrame();
 }
 
 static void* sPanelFrame()
 {
 	void* next_frame = (void*)sPanelFrame;
+
+	if (INPUT_START == 1)
+		return SetStatePause(s_font1, s_font2, s_spr_items, sResumePanel);
 
 	/* Select an action for the current actor... */
 	if (s_panel_screen == PANEL_SCREEN_ACTION)
@@ -203,7 +235,7 @@ static void* sPanelFrame()
 	}
 
 	/* Player pressed enter, is turn for the next screen, next player or go back to the battle? */
-	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1)
+	if (INPUT_X == 1 || INPUT_Y == 1)
 	{
 		s_panel_start = CURRENT_FRAME;
 
@@ -247,7 +279,20 @@ static uint16_t s_battle_banner = 0;
 static void* sSetBattle()
 {
 	s_battle_banner = 0;
+
+	CmdDrawBackground();
+	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	/*CmdHalt();*/
 	return (void*)sBattleFrame;
+}
+
+static void* sResumeBattle()
+{
+	CmdDrawBackground();
+	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	return sBattleFrame();
 }
 
 static void* sBattleFrame()
@@ -275,6 +320,9 @@ static void* sBattleFrame()
 		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 	}
 #endif
+
+	if (INPUT_START == 1)
+		return SetStatePause(s_font1, s_font2, s_spr_items, sResumeBattle);
 
 	/* Game logic */
 	for (i = 0; i < ON_SCREEN_ACTORS; i++)
@@ -356,10 +404,6 @@ static void* sWait()
 		return (void*)sWait;
 
 	/* Yay, next state! */
-	CmdDrawBackground();
-	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-	CmdHalt();
 	return sSetBattle();
 }
 

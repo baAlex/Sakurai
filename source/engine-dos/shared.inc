@@ -98,6 +98,7 @@ segment seg_data
 	; IntFD
 	previous_ifd_vector_segment: dw 0x0000
 	previous_ifd_vector_offset: dw 0x0000
+	exit_request: dw 0x0000
 
 	; Game
 	sprite_header: times 2 db 0x00 ; SpriteHeader::file_size

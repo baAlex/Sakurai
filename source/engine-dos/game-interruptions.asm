@@ -56,6 +56,8 @@ _IntFDVector:
 	je near GameLoadSprite
 	cmp ax, 0x08
 	je near GameFreeSprite
+	cmp ax, 0x09
+	je near GameExitRequest
 
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
@@ -267,5 +269,20 @@ GameFlushCommands:
 
 	pop es
 	pop si
+
+	jmp near _IntFDVector_bye
+
+
+;==============================
+GameExitRequest:
+
+	;push ax ; Done by the caller
+	;push dx ; Done by the caller
+	;push ds ; Done by the caller
+
+	mov dx, seg_data
+	mov ds, dx
+
+	mov word [exit_request], 0x0001
 
 	jmp near _IntFDVector_bye

@@ -32,7 +32,9 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
+static uint8_t s_font1;
 static uint8_t s_font2;
+static uint8_t s_spr_items;
 
 static uint8_t s_dialog = 0;
 static uint16_t s_last_updated = 0;
@@ -96,9 +98,21 @@ static void* sTitle()
 	return (void*)sTitle;
 }
 
+static void* sFrame();
+
+static void sResume()
+{
+	sCleanScreen();
+	s_last_updated = CURRENT_MILLISECONDS;
+
+	return sFrame();
+}
 
 static void* sFrame()
 {
+	if (INPUT_START == 1)
+		return SetStatePause(s_font1, s_font2, s_spr_items, sResume);
+
 	if (INPUT_LEFT == 1 || INPUT_UP == 1)
 	{
 		sCleanScreen();
@@ -152,10 +166,15 @@ static void* sFrame()
 void* StateIntro()
 {
 	IntPrintText("# StateIntro\n");
+	IntUnloadAll();
+
 	IntLoadBackground("assets\\title.raw");
+	s_font1 = IntLoadSprite("assets\\font1.jvn");
 	s_font2 = IntLoadSprite("assets\\font2.jvn");
+	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
 
 	sCleanScreen();
+	s_dialog = 0;
 	s_last_updated = CURRENT_MILLISECONDS;
 
 	return sFrame();
