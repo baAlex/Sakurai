@@ -373,11 +373,6 @@ void UiPanelClean()
 
  Pause Menu
 -----------------------------*/
-#define PAUSE_W 6 /* 96 px */
-#define PAUSE_H 4 /* 64 px */
-#define PAUSE_X 112
-#define PAUSE_Y 68
-
 #define PAUSE_TITLE_X 119
 #define PAUSE_TITLE_Y 73
 

@@ -24,11 +24,10 @@ SOFTWARE.
 
 -------------------------------
 
- [state-test4.c]
+ [state-pause.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "actor-traits.h"
 #include "state.h"
 #include "ui.h"
 #include "utilities.h"
@@ -36,12 +35,12 @@ SOFTWARE.
 static uint8_t s_font1;
 static uint8_t s_font2;
 static uint8_t s_spr_items;
-static void* s_resume_to;
 
+static void* s_resume_to;
 static uint8_t s_selection = 0;
 
 
-static void* sPauseFrame()
+static void* sFrame()
 {
 	if (INPUT_LEFT == 1 || INPUT_UP == 1)
 		s_selection -= 1;
@@ -49,53 +48,42 @@ static void* sPauseFrame()
 		s_selection += 1;
 
 	s_selection = UiMenuPause_dynamic(s_spr_items, s_selection);
+	CmdHalt();
 
 	if (INPUT_START == 1 && s_resume_to != NULL)
-	{
-		CmdHalt();
 		return s_resume_to;
-	}
 
 	if (INPUT_X == 1 || INPUT_Y == 1)
 	{
 		if (s_selection == 0 && s_resume_to != NULL)
-		{
-			CmdHalt();
 			return s_resume_to;
-		}
 		else if (s_selection == 1)
-		{
-			CmdHalt();
-			return StateIntro;
-		}
+			return StatePrepareIntro();
 		else if (s_selection == 2)
 			IntExitRequest();
 	}
 
-	CmdHalt();
-	return (void*)sPauseFrame;
+	return (void*)sFrame;
 }
 
 
-void* SetStatePause(uint8_t spr_font1, uint8_t spr_font2, uint8_t spr_items, void* resume_to)
+/*-----------------------------
+
+ State management
+-----------------------------*/
+static void* sInit()
+{
+	UiMenuPause_static(s_font1, s_font2);
+	return sFrame();
+}
+
+void* StatePreparePause(uint8_t spr_font1, uint8_t spr_font2, uint8_t spr_items, void* resume_to)
 {
 	s_font1 = spr_font1;
 	s_font2 = spr_font2;
 	s_spr_items = spr_items;
-	s_resume_to = resume_to;
+	s_resume_to = (void*)resume_to;
 	s_selection = 0;
 
-	UiMenuPause_static(s_font1, s_font2);
-
-	return (void*)sPauseFrame;
-}
-
-
-void* StateTest4()
-{
-	IntPrintText("# StateTest4\n");
-	IntLoadBackground("assets\\bkg4.raw");
-
-	return SetStatePause(IntLoadSprite("assets\\font1.jvn"), IntLoadSprite("assets\\font2.jvn"),
-	                     IntLoadSprite("assets\\ui-items.jvn"), StateBattle);
+	return (void*)sInit;
 }

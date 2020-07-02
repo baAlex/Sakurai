@@ -60,19 +60,18 @@ void* StateHello()
 	IntPrintNumber(CURRENT_MILLISECONDS);
 	IntPrintText("\n");
 
-	#if defined(INTRO)
-	return StateIntro();
-	#elif defined(BATTLE)
-	return StateBattle();
+	#if defined(BATTLE)
+	return StatePrepareBattle(0);
 	#elif defined(SCREENSHOTS)
 	return StateScreenshots();
-	#elif defined(TEST4)
-	return StateTest4();
 	#elif defined(TEST3)
 	return StateTest3();
 	#elif defined(TEST2)
 	return StateTest2();
+	#elif defined(TEST1)
+	return StateTest1();
+
 	#else
-	return StateIntro();
+	return StatePrepareIntro();
 	#endif
 }

@@ -26,4 +26,9 @@ void UiPanelClean(); /* For PanelAction and PanelTarget */
 void UiMenuPause_static(uint8_t font_sprite1, uint8_t font_sprite2);
 uint8_t UiMenuPause_dynamic(uint8_t arrow_sprite, uint8_t selection);
 
+#define PAUSE_W 6 /* 96 px */
+#define PAUSE_H 4 /* 64 px */
+#define PAUSE_X 112
+#define PAUSE_Y 68
+
 #endif

@@ -36,10 +36,6 @@ static uint8_t s_font1;
 static uint8_t s_font2;
 static uint8_t s_spr_items;
 
-static uint8_t s_dialog = 0;
-static uint16_t s_last_updated = 0;
-
-
 /* Presenting the main characters */
 static char* s_intro01_kuro[] = {"Sao, your magical girl license already expired!.",
                                  "The last time we renewed it was ten years ago!...", NULL};
@@ -72,18 +68,26 @@ static char* s_intro11_kuro[] = {"Ends with: «Further details following...».",
 static char* s_intro12_sao[] = {"???", NULL};
 
 
-static void sCleanScreen()
-{
-	CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64);
-}
+static void* sTitleFrame();
+static void* sDialogsFrame();
+static void* sInit();
+static void* sResumeFromPause();
 
 
+#define CLEAN_SCREEN() (CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64))
+#define CLEAN_PAUSE() (CmdDrawRectangle(PAUSE_W, PAUSE_H, PAUSE_X, PAUSE_Y, 64))
+
+
+/*-----------------------------
+
+ Title ("press a key...")
+-----------------------------*/
 static uint16_t s_title_start = 0; /* In milliseconds */
 
-static void* sTitle()
+static void* sTitleFrame()
 {
 	if (CURRENT_MILLISECONDS < s_title_start + 3000 && CURRENT_MILLISECONDS > s_title_start)
-		return (void*)sTitle;
+		return (void*)sTitleFrame;
 
 	CmdDrawText(s_font2, 100, 140, "Press a key to continue...");
 	CmdHalt();
@@ -92,30 +96,28 @@ static void* sTitle()
 	    INPUT_LEFT == 1 || INPUT_UP == 1)
 	{
 		Seed(CURRENT_MILLISECONDS);
-		return StateBattle();
+		return StatePrepareBattle(0);
 	}
 
-	return (void*)sTitle;
+	return (void*)sTitleFrame;
 }
 
-static void* sFrame();
 
-static void sResume()
-{
-	sCleanScreen();
-	s_last_updated = CURRENT_MILLISECONDS;
+/*-----------------------------
 
-	return sFrame();
-}
+ Character dialogs
+-----------------------------*/
+static uint8_t s_dialog = 0;
+static uint16_t s_last_updated = 0;
 
-static void* sFrame()
+static void* sDialogsFrame()
 {
 	if (INPUT_START == 1)
-		return SetStatePause(s_font1, s_font2, s_spr_items, sResume);
+		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sResumeFromPause);
 
 	if (INPUT_LEFT == 1 || INPUT_UP == 1)
 	{
-		sCleanScreen();
+		CLEAN_SCREEN();
 		s_last_updated = CURRENT_MILLISECONDS;
 
 		if (s_dialog > 0)
@@ -124,7 +126,7 @@ static void* sFrame()
 
 	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_RIGHT == 1 || INPUT_DOWN == 1)
 	{
-		sCleanScreen();
+		CLEAN_SCREEN();
 		s_last_updated = CURRENT_MILLISECONDS;
 
 		s_dialog += 1;
@@ -150,20 +152,25 @@ static void* sFrame()
 	default: break;
 	}
 
+	/* Bye! */
 	if (s_dialog == 12)
 	{
 		s_title_start = CURRENT_MILLISECONDS;
 		CmdDrawBackground();
 		CmdHalt();
-		return (void*)sTitle;
+		return (void*)sTitleFrame;
 	}
 
 	CmdHalt();
-	return (void*)sFrame;
+	return (void*)sDialogsFrame;
 }
 
 
-void* StateIntro()
+/*-----------------------------
+
+ State management
+-----------------------------*/
+static void* sInit()
 {
 	IntPrintText("# StateIntro\n");
 	IntUnloadAll();
@@ -173,9 +180,20 @@ void* StateIntro()
 	s_font2 = IntLoadSprite("assets\\font2.jvn");
 	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
 
-	sCleanScreen();
 	s_dialog = 0;
 	s_last_updated = CURRENT_MILLISECONDS;
 
-	return sFrame();
+	CLEAN_SCREEN();
+	return sDialogsFrame();
+}
+
+static void* sResumeFromPause()
+{
+	CLEAN_PAUSE();
+	return sDialogsFrame();
+}
+
+void* StatePrepareIntro()
+{
+	return (void*)sInit;
 }

@@ -45,19 +45,14 @@ static uint8_t s_spr_fx1;
 static uint8_t s_spr_fx2;
 static uint8_t s_spr_items;
 
-/* Don't set states directly!... */
-static void* sChoreographyFrame();
-static void* sPanelFrame();
-static void* sBattleFrame();
 
-/* Use the following setters: */
-static void* sSetChoreography();
-static void* sSetPanel(uint8_t actor_index);
-static void* sSetBattle();
+static void* sPrepareChoreography();
+static void* sPreparePanel(uint8_t actor_index, uint8_t screen);
+static void* sPrepareBattle();
 
-static void* sResumeChoreography();
-static void* sResumePanel();
-static void* sResumeBattle();
+static void* sChoreographyResumeFromPause();
+static void* sPanelResumeFromPause();
+static void* sBattleResumeFromPause();
 
 
 /*-----------------------------
@@ -72,75 +67,27 @@ static struct Actor* s_choreo_attacker = NULL;
 static char s_choreo_buffer[4] = {0, 0, 0, 0};
 static char* s_choreo_hp_str = NULL;
 
-static void* sSetChoreography()
-{
-	s_choreo_start = CURRENT_FRAME;
-	s_choreo_attacker = NULL;
-	s_choreo_hp_str = NULL;
-
-	return (void*)sChoreographyFrame;
-}
-
-static void* sResumeChoreography()
-{
-	return sChoreographyFrame();
-}
-
 static void* sChoreographyFrame()
 {
-	uint8_t i = 0;
-
 	if (INPUT_START == 1)
-		return SetStatePause(s_font1, s_font2, s_spr_items, sResumeChoreography);
+		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sChoreographyResumeFromPause);
 
-	/* Just for the first frame we run the logic */
-	if (CURRENT_FRAME == s_choreo_start + 1)
+	/* Draw actors and other things, every frame */
+	ActorsDraw(0);
+
+	if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
 	{
-		for (i = 0; i < ON_SCREEN_ACTORS; i++)
-		{
-			if (g_actor[i].state == ACTOR_STATE_DEAD)
-				continue;
-
-			if (g_actor[i].state == ACTOR_STATE_ATTACK)
-				s_choreo_attacker = &g_actor[i];
-
-			ActorLogic(&g_actor[i]);
-
-			/* Some new attackers can arise, we obligate them to wait until
-			   the next logic step (that isn't gonna happens on this choreo) */
-			if (g_actor[i].state == ACTOR_STATE_ATTACK)
-				g_actor[i].state = ACTOR_STATE_CHARGE;
-		}
-
-		/* During a choreography is the only time that actors lose health,
-		   so we keep an eye on the main heroes to update the Hud accordingly */
-		if (g_actor[ACTOR_KURO].health != g_actor[ACTOR_KURO].prev_health ||
-		    g_actor[ACTOR_SAO].health != g_actor[ACTOR_SAO].prev_health)
-			UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-		/* How many health our target loss? */
-		s_choreo_hp_str = NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health),
-		                                 s_choreo_buffer);
+		if (s_choreo_attacker->persona->tags & TAG_ENEMY)
+			CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+			              (CURRENT_FRAME - s_choreo_start) - 1);
+		else
+			CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+			              (CURRENT_FRAME - s_choreo_start) - 1);
 	}
 
-	/* Draw actors and other things, every frame for the rest of the choreography */
-	{
-		ActorsDraw(0);
-
-		if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
-		{
-			if (s_choreo_attacker->persona->tags & TAG_ENEMY)
-				CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
-				              (CURRENT_FRAME - s_choreo_start) - 1);
-			else
-				CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
-				              (CURRENT_FRAME - s_choreo_start) - 1);
-		}
-
-		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
-		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
-		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y + 3, s_choreo_hp_str);
-	}
+	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
+	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
+	CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y + 3, s_choreo_hp_str);
 
 	/* Bye! */
 	CmdHalt();
@@ -148,7 +95,55 @@ static void* sChoreographyFrame()
 	if (CURRENT_FRAME < s_choreo_start + CHOREO_DURATION && CURRENT_FRAME > s_choreo_start)
 		return (void*)sChoreographyFrame;
 
-	return sSetBattle();
+	return sPrepareBattle();
+}
+
+static void* sChoreographyInit()
+{
+	uint8_t i = 0;
+
+	/* Just for the first frame we run the logic */
+	for (i = 0; i < ON_SCREEN_ACTORS; i++)
+	{
+		if (g_actor[i].state == ACTOR_STATE_DEAD)
+			continue;
+
+		if (g_actor[i].state == ACTOR_STATE_ATTACK)
+			s_choreo_attacker = &g_actor[i];
+
+		ActorLogic(&g_actor[i]);
+
+		/* Some new attackers can arise, we obligate them to wait until
+		   the next logic step (that isn't gonna happens on this choreo) */
+		if (g_actor[i].state == ACTOR_STATE_ATTACK)
+			g_actor[i].state = ACTOR_STATE_CHARGE;
+	}
+
+	/* During a choreography is the only time that actors lose health,
+	   so we keep an eye on the main heroes to update the Hud accordingly */
+	if (g_actor[ACTOR_KURO].health != g_actor[ACTOR_KURO].prev_health ||
+	    g_actor[ACTOR_SAO].health != g_actor[ACTOR_SAO].prev_health)
+		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	/* How many health our target loss? */
+	s_choreo_hp_str =
+	    NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health), s_choreo_buffer);
+
+	return sChoreographyFrame();
+}
+
+static void* sChoreographyResumeFromPause()
+{
+	return sChoreographyInit();
+}
+
+static void* sPrepareChoreography()
+{
+	s_choreo_start = CURRENT_FRAME;
+	s_choreo_attacker = NULL;
+	s_choreo_hp_str = NULL;
+
+	return (void*)sChoreographyInit;
 }
 
 
@@ -159,54 +154,20 @@ static void* sChoreographyFrame()
 #define PANEL_SCREEN_ACTION 0
 #define PANEL_SCREEN_TARGET 1
 
-static uint16_t s_panel_start = 0; /* In frames */
 static uint8_t s_panel_screen = 0;
 static uint8_t s_panel_actor = 0;
 static uint8_t s_panel_selection = 0;
-
-static void* sSetPanel(uint8_t actor_index)
-{
-	s_panel_start = CURRENT_FRAME;
-	s_panel_screen = PANEL_SCREEN_ACTION;
-	s_panel_actor = actor_index;
-	s_panel_selection = 0;
-
-	return (void*)sPanelFrame;
-}
-
-static void* sResumePanel()
-{
-	CmdDrawBackground();
-	ActorsDraw(0);
-
-	if (s_panel_screen == PANEL_SCREEN_ACTION)
-		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
-		                     &g_actor[ACTOR_KURO]);
-	else if (s_panel_screen == PANEL_SCREEN_TARGET)
-		UiPanelTarget_static(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-	CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y, 8);
-
-	return sPanelFrame();
-}
 
 static void* sPanelFrame()
 {
 	void* next_frame = (void*)sPanelFrame;
 
 	if (INPUT_START == 1)
-		return SetStatePause(s_font1, s_font2, s_spr_items, sResumePanel);
+		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sPanelResumeFromPause);
 
 	/* Select an action for the current actor... */
 	if (s_panel_screen == PANEL_SCREEN_ACTION)
 	{
-		if (CURRENT_FRAME == s_panel_start + 1) /* First frame only */
-		{
-			UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
-			                     &g_actor[ACTOR_KURO]);
-			CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y, 8);
-		}
-
 		if (INPUT_UP == 1)
 			s_panel_selection -= 2;
 		if (INPUT_DOWN == 1)
@@ -223,9 +184,6 @@ static void* sPanelFrame()
 	/* Select a target for the current actor */
 	else if (s_panel_screen == PANEL_SCREEN_TARGET)
 	{
-		if (CURRENT_FRAME == s_panel_start + 1) /* First frame only */
-			UiPanelTarget_static(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
 		if (INPUT_LEFT == 1 || INPUT_UP == 1)
 			s_panel_selection -= 1;
 		if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
@@ -237,11 +195,11 @@ static void* sPanelFrame()
 	/* Player pressed enter, is turn for the next screen, next player or go back to the battle? */
 	if (INPUT_X == 1 || INPUT_Y == 1)
 	{
-		s_panel_start = CURRENT_FRAME;
-
 		/* Go to next screen, show next one? */
 		if (s_panel_screen == PANEL_SCREEN_ACTION)
-			s_panel_screen = PANEL_SCREEN_TARGET;
+		{
+			next_frame = sPreparePanel(s_panel_actor, PANEL_SCREEN_TARGET);
+		}
 		else
 		{
 			g_actor[s_panel_actor].panel_done = 1; /* To avoid show the panel multiple times */
@@ -257,10 +215,7 @@ static void* sPanelFrame()
 			}
 			else
 			{
-				/* Back to battle! */
-				UiPanelClean();
-				UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-				next_frame = sSetBattle();
+				next_frame = sPrepareBattle();
 			}
 		}
 	}
@@ -269,31 +224,41 @@ static void* sPanelFrame()
 	return next_frame;
 }
 
+static void* sPanelInit()
+{
+	CmdDrawBackground();
+	ActorsDraw(0);
+
+	if (s_panel_screen == PANEL_SCREEN_ACTION)
+		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[s_panel_actor].persona, &g_actor[ACTOR_SAO],
+		                     &g_actor[ACTOR_KURO]);
+	else if (s_panel_screen == PANEL_SCREEN_TARGET)
+		UiPanelTarget_static(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+
+	CmdDrawRectanglePrecise(34, 3, g_actor[s_panel_actor].x, g_actor[s_panel_actor].y, 8);
+
+	return sPanelFrame();
+}
+
+static void* sPanelResumeFromPause()
+{
+	return sPanelInit();
+}
+
+static void* sPreparePanel(uint8_t actor_index, uint8_t screen)
+{
+	s_panel_screen = screen;
+	s_panel_actor = actor_index;
+	s_panel_selection = 0;
+	return (void*)sPanelInit;
+}
+
 
 /*-----------------------------
 
  Battle
 -----------------------------*/
 static uint16_t s_battle_banner = 0;
-
-static void* sSetBattle()
-{
-	s_battle_banner = 0;
-
-	CmdDrawBackground();
-	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-	/*CmdHalt();*/
-	return (void*)sBattleFrame;
-}
-
-static void* sResumeBattle()
-{
-	CmdDrawBackground();
-	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
-	return sBattleFrame();
-}
 
 static void* sBattleFrame()
 {
@@ -305,12 +270,12 @@ static void* sBattleFrame()
 	if (INPUT_LEFT == 1 && s_battle_no >= 1)
 	{
 		s_battle_no -= 1;
-		return (void*)StateBattle; /* Restarts the entire world */
+		next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 	}
 	else if (INPUT_RIGHT == 1 && s_battle_no < 255)
 	{
 		s_battle_no += 1;
-		return (void*)StateBattle; /* Restarts the entire world */
+		next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 	}
 	/* Heal */
 	if (INPUT_UP)
@@ -322,7 +287,7 @@ static void* sBattleFrame()
 #endif
 
 	if (INPUT_START == 1)
-		return SetStatePause(s_font1, s_font2, s_spr_items, sResumeBattle);
+		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sBattleResumeFromPause);
 
 	/* Game logic */
 	for (i = 0; i < ON_SCREEN_ACTORS; i++)
@@ -336,7 +301,7 @@ static void* sBattleFrame()
 		if (i < ON_SCREEN_HEROES)
 		{
 			if (g_actor[i].state == ACTOR_STATE_CHARGE && g_actor[i].panel_done == 0)
-				next_frame = sSetPanel(i);
+				next_frame = sPreparePanel(i, PANEL_SCREEN_ACTION);
 
 			if (g_actor[i].state != ACTOR_STATE_CHARGE)
 				g_actor[i].panel_done = 0;
@@ -348,7 +313,7 @@ static void* sBattleFrame()
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
 			if (next_frame == (void*)sBattleFrame) /* Indirectly this check gives 'Panel' an high priority */
-				next_frame = sSetChoreography();
+				next_frame = sPrepareChoreography();
 
 			/* If a previous actor already gained the choreo, we set this
 			   one to 'charge', an state previous to 'attack'. Obligating it
@@ -373,7 +338,7 @@ static void* sBattleFrame()
 		{
 			s_battle_banner = 0;
 			s_battle_no += 1;
-			next_frame = (void*)StateBattle; /* Restarts the entire world */
+			next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 		}
 	}
 
@@ -385,10 +350,28 @@ static void* sBattleFrame()
 	return next_frame;
 }
 
+static void* sBattleInit()
+{
+	CmdDrawBackground();
+	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
+	return sBattleFrame();
+}
+
+static void* sBattleResumeFromPause()
+{
+	return sBattleInit();
+}
+
+static void* sPrepareBattle()
+{
+	s_battle_banner = 0;
+	return (void*)sBattleInit;
+}
+
 
 /*-----------------------------
 
- Initialize the entire state
+ State management
 -----------------------------*/
 static uint16_t s_state_start = 0; /* In milliseconds */
 static uint8_t s_state_prev_bkg = 0;
@@ -404,7 +387,7 @@ static void* sWait()
 		return (void*)sWait;
 
 	/* Yay, next state! */
-	return sSetBattle();
+	return sPrepareBattle();
 }
 
 static void* sLoad()
@@ -421,7 +404,7 @@ static void* sLoad()
 	return sWait();
 }
 
-void* StateBattle()
+static void* sInit()
 {
 	uint8_t bkg = 0;
 
@@ -454,4 +437,10 @@ void* StateBattle()
 	/* Bye! */
 	CmdHalt();
 	return (void*)sLoad;
+}
+
+void* StatePrepareBattle(uint8_t battle_no)
+{
+	s_battle_no = battle_no;
+	return (void*)sInit;
 }
