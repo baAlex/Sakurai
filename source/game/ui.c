@@ -47,18 +47,23 @@ rewrite... Im simply trowing myself into the lazy sidewalk.
 #define PORTRAITS_1COL_TEXT_X (PORTRAITS_X + 43) /* TODO */
 #define PORTRAITS_2COL_TEXT_X (PORTRAITS_X + 68) /* TODO */
 
-#define PORTRAITS_1ROW_TEXT_Y (PORTRAITS_Y + 7)  /* TODO */
-#define PORTRAITS_2ROW_TEXT_Y (PORTRAITS_Y + 28) /* TODO */
+#define PORTRAITS_1ROW_TEXT_Y (PORTRAITS_Y + 8)  /* TODO */
+#define PORTRAITS_2ROW_TEXT_Y (PORTRAITS_Y + 29) /* TODO */
 
 static char s_buffer1[4] = {0, 0, 0, 0};
 static char s_buffer2[4] = {0, 0, 0, 0};
 static char s_buffer3[4] = {0, 0, 0, 0};
 static char s_buffer4[4] = {0, 0, 0, 0};
 
+#define WINDOW_NORMAL 0
+#define WINDOW_TITLE 1
 
-static void sDrawWindow(uint8_t width, uint8_t height, uint16_t x, uint16_t y)
+static void sDrawWindow(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t tags)
 {
 	CmdDrawRectangle(width, height, x, y, WINDOW_BACK_COLOR);
+
+	if (tags == WINDOW_TITLE)
+		CmdDrawHLine(width, x, y + 16, WINDOW_OUTLINE_COLOR);
 
 	if (y != 0)
 		CmdDrawHLine(width, x, y, WINDOW_OUTLINE_COLOR);
@@ -150,11 +155,11 @@ void UiDialog(uint8_t font_sprite, uint16_t start_ms, char* character, char** li
 #define BANNER_Y 76
 
 #define BANNER_TEXT_X 13
-#define BANNER_TEXT_Y 92
+#define BANNER_TEXT_Y 94
 
 void UiBanner(uint8_t font_sprite, char* text)
 {
-	sDrawWindow(BANNER_W, BANNER_H, BANNER_X, BANNER_Y);
+	sDrawWindow(BANNER_W, BANNER_H, BANNER_X, BANNER_Y, WINDOW_NORMAL);
 	CmdDrawText(font_sprite, BANNER_TEXT_X, BANNER_TEXT_Y, text);
 }
 
@@ -182,13 +187,13 @@ void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a,
 #define PANEL_3COL_TEXT_X 168
 #define PANEL_4COL_TEXT_X 244
 
-#define PANEL_1ROW_TEXT_Y 9
-#define PANEL_2ROW_TEXT_Y 23
-#define PANEL_3ROW_TEXT_Y 37
+#define PANEL_1ROW_TEXT_Y 11
+#define PANEL_2ROW_TEXT_Y 25
+#define PANEL_3ROW_TEXT_Y 39
 
 #define PANEL_1COL_SELECTION_X 152
 #define PANEL_2COL_SELECTION_X 228
-#define PANEL_SELECTION_Y 7
+#define PANEL_SELECTION_Y 11
 #define PANEL_SELECTION_SPACING 14
 
 #define TIP_X 0
@@ -197,7 +202,7 @@ void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a,
 #define TIP_H 1  /* 16 px */
 
 #define TIP_TEXT_X 13
-#define TIP_TEXT_Y 185
+#define TIP_TEXT_Y 189
 
 static uint8_t s_prev_action_selection = 255;
 
@@ -205,7 +210,7 @@ static uint8_t s_prev_action_selection = 255;
 void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a,
                           struct Actor* hud_b)
 {
-	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
+	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y, WINDOW_NORMAL);
 	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
 	CmdDrawText(font_sprite, 109, PANEL_2ROW_TEXT_Y, persona->name); /* TODO */
@@ -257,7 +262,7 @@ uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct 
 	if (selection != s_prev_action_selection)
 	{
 		s_prev_action_selection = selection;
-		sDrawWindow(TIP_W, TIP_H, TIP_X, TIP_Y);
+		sDrawWindow(TIP_W, TIP_H, TIP_X, TIP_Y, WINDOW_NORMAL);
 
 		if (selection == 0)
 			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Simple attack.");
@@ -294,7 +299,7 @@ static uint8_t s_prev_target_selection = 255;
 
 void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b)
 {
-	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y);
+	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y, WINDOW_NORMAL);
 	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
 	CmdDrawText(font_sprite, 109, PANEL_2ROW_TEXT_Y, "Select a target."); /* TODO */
@@ -368,21 +373,39 @@ void UiPanelClean()
 
  Pause Menu
 -----------------------------*/
+#define PAUSE_W 6 /* 96 px */
+#define PAUSE_H 4 /* 64 px */
+#define PAUSE_X 112
+#define PAUSE_Y 68
+
+#define PAUSE_TITLE_X 119
+#define PAUSE_TITLE_Y 73
+
+#define PAUSE_TEXT_X 128
+#define PAUSE_1ROW_TEXT_Y 89
+#define PAUSE_2ROW_TEXT_Y 103
+#define PAUSE_3ROW_TEXT_Y 117
+
+#define PAUSE_SELECTION_X 112
+#define PAUSE_SELECTION_Y 89
+#define PAUSE_SELECTION_SPACING 14
+
 void UiMenuPause_static(uint8_t font_sprite1, uint8_t font_sprite2)
 {
-	sDrawWindow(6, 4, (160 - (6 << 3)), (100 - (4 << 3)));
-	CmdDrawText(font_sprite1, (160 - (6 << 3)) + 8, (100 - (4 << 3)), "Game paused");
-	CmdDrawText(font_sprite2, (160 - (6 << 3)) + 16, (100 - (4 << 3)) + 15, "Resume");
-	CmdDrawText(font_sprite2, (160 - (6 << 3)) + 16, (100 - (4 << 3)) + (15 << 1), "Restart game");
-	CmdDrawText(font_sprite2, (160 - (6 << 3)) + 16, (100 - (4 << 3)) + (15 << 1) + 15, "Exit to system");
+	sDrawWindow(PAUSE_W, PAUSE_H, PAUSE_X, PAUSE_Y, WINDOW_TITLE);
+
+	CmdDrawText(font_sprite1, PAUSE_TITLE_X, PAUSE_TITLE_Y, "Game paused");
+
+	CmdDrawText(font_sprite2, PAUSE_TEXT_X, PAUSE_1ROW_TEXT_Y, "Resume");
+	CmdDrawText(font_sprite2, PAUSE_TEXT_X, PAUSE_2ROW_TEXT_Y, "Restart game");
+	CmdDrawText(font_sprite2, PAUSE_TEXT_X, PAUSE_3ROW_TEXT_Y, "Exit to system");
 }
 
 uint8_t UiMenuPause_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {
-	CmdDrawRectangle(1, 3, (160 - (6 << 3)), (100 - (4 << 3)) + 13, WINDOW_BACK_COLOR);
-
-	/* The previous rectangle overwrite window outline */
-	CmdDrawVLine(3, (160 - (6 << 3)), (100 - (4 << 3)) + 13, WINDOW_OUTLINE_COLOR);
+	CmdDrawRectangle(1 /* 16 px */, 3, 112, 82, WINDOW_BACK_COLOR); /* TODO, see mockup */
+	CmdDrawVLine(3, 112, 82, WINDOW_OUTLINE_COLOR);
+	CmdDrawHLine(1, 112, PAUSE_Y + 16, WINDOW_OUTLINE_COLOR);
 
 	/* Selection */
 	if (selection == 255)
@@ -390,7 +413,8 @@ uint8_t UiMenuPause_dynamic(uint8_t arrow_sprite, uint8_t selection)
 	else if (selection > 2)
 		selection = 2;
 
-	CmdDrawSprite(arrow_sprite, (160 - (6 << 3)), (100 - (4 << 3)) + 13 + (15 * selection), (CURRENT_FRAME >> 2) % 2);
+	CmdDrawSprite(arrow_sprite, PAUSE_SELECTION_X, PAUSE_SELECTION_Y + (PAUSE_SELECTION_SPACING * selection),
+	              (CURRENT_FRAME >> 2) % 2);
 
 	return selection;
 }
