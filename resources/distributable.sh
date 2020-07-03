@@ -13,13 +13,13 @@ assets_files="./assets/bkg1.raw
               ./assets/bkg2.raw
               ./assets/bkg3.raw
               ./assets/bkg4.raw
-              ./assets/enemy-a.jvn
-              ./assets/enemy-b.jvn
-              ./assets/enemy-c.jvn
-              ./assets/enemy-d.jvn
-              ./assets/enemy-e.jvn
-              ./assets/enemy-f.jvn
-              ./assets/enemy-g.jvn
+              ./assets/ferment.jvn
+              ./assets/windeye.jvn
+              ./assets/kingpin.jvn
+              ./assets/phibia.jvn
+              ./assets/destroyr.jvn
+              ./assets/viridi.jvn
+              ./assets/ni.jvn
               ./assets/font1.jvn
               ./assets/font1a.jvn
               ./assets/font2.jvn

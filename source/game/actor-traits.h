@@ -10,7 +10,7 @@
 #include "actor.h"
 #include "engine.h"
 
-#define ACTIONS_NO 5
+#define ACTIONS_NO 1
 
 #define HEROES_PERSONALITIES_NO 2
 #define ENEMIES_PERSONALITIES_NO 7

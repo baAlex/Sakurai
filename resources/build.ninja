@@ -86,27 +86,27 @@ build ./objects/ui-items.asm: SpriteLinear $
  ./assets-dev/ui-items.002.bmp $
  ./assets-dev/ui-items.003.bmp
 
-build ./objects/enemy-a.asm: SpriteLinear $
- ./assets-dev/enemy-a.001.bmp $
- ./assets-dev/enemy-a.002.bmp
-build ./objects/enemy-b.asm: SpriteLinear $
- ./assets-dev/enemy-b.001.bmp $
- ./assets-dev/enemy-b.002.bmp
-build ./objects/enemy-c.asm: SpriteLinear $
- ./assets-dev/enemy-c.001.bmp $
- ./assets-dev/enemy-c.002.bmp
-build ./objects/enemy-d.asm: SpriteLinear $
- ./assets-dev/enemy-d.001.bmp $
- ./assets-dev/enemy-d.002.bmp
-build ./objects/enemy-e.asm: SpriteLinear $
- ./assets-dev/enemy-e.001.bmp $
- ./assets-dev/enemy-e.002.bmp
-build ./objects/enemy-f.asm: SpriteLinear $
- ./assets-dev/enemy-f.001.bmp $
- ./assets-dev/enemy-f.002.bmp
-build ./objects/enemy-g.asm: SpriteLinear $
- ./assets-dev/enemy-g.001.bmp $
- ./assets-dev/enemy-g.002.bmp
+build ./objects/ferment.asm: SpriteLinear $
+ ./assets-dev/ferment.001.bmp $
+ ./assets-dev/ferment.002.bmp
+build ./objects/windeye.asm: SpriteLinear $
+ ./assets-dev/windeye.001.bmp $
+ ./assets-dev/windeye.002.bmp
+build ./objects/kingpin.asm: SpriteLinear $
+ ./assets-dev/kingpin.001.bmp $
+ ./assets-dev/kingpin.002.bmp
+build ./objects/phibia.asm: SpriteLinear $
+ ./assets-dev/phibia.001.bmp $
+ ./assets-dev/phibia.002.bmp
+build ./objects/destroyr.asm: SpriteLinear $
+ ./assets-dev/destroyr.001.bmp $
+ ./assets-dev/destroyr.002.bmp
+build ./objects/viridi.asm: SpriteLinear $
+ ./assets-dev/viridi.001.bmp $
+ ./assets-dev/viridi.002.bmp
+build ./objects/ni.asm: SpriteLinear $
+ ./assets-dev/ni.001.bmp $
+ ./assets-dev/ni.002.bmp
 
 build ./objects/font1.asm: SpriteFont ./assets-dev/font1.bmp
 build ./objects/font1a.asm: SpriteFont ./assets-dev/font1a.bmp
@@ -125,13 +125,13 @@ build ./assets/kuro.jvn: Assembly ./objects/kuro.asm
 build ./assets/ui-ports.jvn: Assembly ./objects/ui-ports.asm
 build ./assets/ui-items.jvn: Assembly ./objects/ui-items.asm
 
-build ./assets/enemy-a.jvn: Assembly ./objects/enemy-a.asm
-build ./assets/enemy-b.jvn: Assembly ./objects/enemy-b.asm
-build ./assets/enemy-c.jvn: Assembly ./objects/enemy-c.asm
-build ./assets/enemy-d.jvn: Assembly ./objects/enemy-d.asm
-build ./assets/enemy-e.jvn: Assembly ./objects/enemy-e.asm
-build ./assets/enemy-f.jvn: Assembly ./objects/enemy-f.asm
-build ./assets/enemy-g.jvn: Assembly ./objects/enemy-g.asm
+build ./assets/ferment.jvn: Assembly ./objects/ferment.asm
+build ./assets/windeye.jvn: Assembly ./objects/windeye.asm
+build ./assets/kingpin.jvn: Assembly ./objects/kingpin.asm
+build ./assets/phibia.jvn: Assembly ./objects/phibia.asm
+build ./assets/destroyr.jvn: Assembly ./objects/destroyr.asm
+build ./assets/viridi.jvn: Assembly ./objects/viridi.asm
+build ./assets/ni.jvn: Assembly ./objects/ni.asm
 
 build ./assets/font1.jvn: Assembly ./objects/font1.asm
 build ./assets/font1a.jvn: Assembly ./objects/font1a.asm

@@ -32,8 +32,8 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-/*#define DEVELOPER*/
-/*#define AUTO_BATTLE*/
+#define DEVELOPER
+#define AUTO_BATTLE
 
 static uint8_t s_battle_no = 0;
 
@@ -282,6 +282,19 @@ static void* sBattleFrame()
 	{
 		g_actor[ACTOR_KURO].health = 100;
 		g_actor[ACTOR_SAO].health = 100;
+
+		if (g_actor[ACTOR_KURO].state == ACTOR_STATE_DEAD)
+		{
+			g_actor[ACTOR_KURO].state = ACTOR_STATE_IDLE;
+			g_live_heroes += 1;
+		}
+
+		if (g_actor[ACTOR_SAO].state == ACTOR_STATE_DEAD)
+		{
+			g_actor[ACTOR_SAO].state = ACTOR_STATE_IDLE;
+			g_live_heroes += 1;
+		}
+
 		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 	}
 #endif
