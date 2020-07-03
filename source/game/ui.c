@@ -31,7 +31,7 @@ SOFTWARE.
 * TODO: (v0.2-alpha) still there are lots of hardcoded values
 over this file. I replaced most of them, but knowing that in
 a future the addition of an inventory will require a mayor
-rewrite... Im simply trowing myself into the lazy sidewalk.
+rewrite... I'm simply throwing myself into the lazy side walk.
 -----------------------------*/
 
 #include "ui.h"
@@ -109,7 +109,7 @@ static void sDrawPortraits(uint8_t portraits_sprite, uint8_t font_sprite, struct
 
 /*-----------------------------
 
- Dialog
+ Dialogue
 -----------------------------*/
 #define DIALOG_TIME 125 /* In milliseconds */
 #define DIALOG_X 13
@@ -166,7 +166,7 @@ void UiBanner(uint8_t font_sprite, char* text)
 
 /*-----------------------------
 
- Hud
+ HUD
 -----------------------------*/
 void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
 {
@@ -240,7 +240,7 @@ uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct 
 	CmdDrawRectangle(1 /* 16 px */, PANEL_H, PANEL_1COL_SELECTION_X, PANEL_Y, WINDOW_BACK_COLOR);
 	CmdDrawRectangle(1 /* 16 px */, PANEL_H, PANEL_2COL_SELECTION_X, PANEL_Y, WINDOW_BACK_COLOR);
 
-	/* The previous rectangle overwrite window outline */
+	/* The previous rectangle overwrites window outline */
 	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y, WINDOW_OUTLINE_COLOR);
 	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y + (PANEL_H << 4) - 2, WINDOW_OUTLINE_COLOR);
 	CmdDrawHLine(6 /* 96 px */, PANEL_1COL_SELECTION_X, PANEL_Y + (PANEL_H << 4) - 1, WINDOW_SHADOW_COLOR);
@@ -283,7 +283,7 @@ uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct 
 			if (selection == 2)
 				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Immobilizes target, uses 30 MP.");
 			else if (selection == 3)
-				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Desintegrates target, uses 60 MP.");
+				CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Disintegrates target, uses 60 MP.");
 		}
 	}
 
@@ -308,10 +308,10 @@ void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, struct 
 uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {
 	/*
-	TODO, determinate if an actor selection is a valid one should be responsability of
+	TODO, determinate if an actor selection is a valid one should be responsibility of
 	      the actor module. Here we simply should ask something like: 'GetNearValidActor()'
 
-	Currently in v0.2-alpha, im not sure if make this change... unnecessary complexity.
+	Currently in v0.2-alpha, I'm not sure if make this change... unnecessary complexity.
 	*/
 
 	uint8_t i = 0;
@@ -325,7 +325,7 @@ uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 		CmdDrawSprite(arrow_sprite, g_actor[i].x, g_actor[i].y + 40, 2);
 	}
 
-	/* Validate selection, we dont' want attack our allies or dead enemies */
+	/* Validate selection, we don't want attack our allies or dead enemies */
 	if (selection == 0)
 		selection = ON_SCREEN_HEROES;
 

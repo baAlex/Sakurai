@@ -48,10 +48,10 @@ static void* sFrame()
 
 		switch (back)
 		{
-		case 0: IntLoadBackground("assets\\bkg1.raw"); break;
-		case 1: IntLoadBackground("assets\\bkg2.raw"); break;
-		case 2: IntLoadBackground("assets\\bkg3.raw"); break;
-		case 3: IntLoadBackground("assets\\bkg4.raw");
+		case 0: IntLoadBackground("assets/bkg1.raw"); break;
+		case 1: IntLoadBackground("assets/bkg2.raw"); break;
+		case 2: IntLoadBackground("assets/bkg3.raw"); break;
+		case 3: IntLoadBackground("assets/bkg4.raw");
 		}
 
 		s_prev_back = back;
@@ -69,8 +69,8 @@ static void* sFrame()
 void* StateTest2()
 {
 	IntPrintText("# StateTest2\n");
-	s_sprite1 = IntLoadSprite("assets\\kuro.jvn");
-	s_sprite2 = IntLoadSprite("assets\\sayori.jvn");
+	s_sprite1 = IntLoadSprite("assets/kuro.jvn");
+	s_sprite2 = IntLoadSprite("assets/sayori.jvn");
 
 	return sFrame();
 }

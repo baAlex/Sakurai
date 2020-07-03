@@ -51,7 +51,7 @@ void TraitsInitialize()
 	/* Heroes personalities */
 	{
 		g_heroes[PERSONALITY_KURO].name = "Kuro";
-		g_heroes[PERSONALITY_KURO].sprite_filename = "assets\\kuro.jvn";
+		g_heroes[PERSONALITY_KURO].sprite_filename = "assets/kuro.jvn";
 		g_heroes[PERSONALITY_KURO].tags = TAG_NONE | TAG_LEVITATES;
 
 		g_heroes[PERSONALITY_KURO].idle_velocity = 5;
@@ -66,7 +66,7 @@ void TraitsInitialize()
 	}
 	{
 		g_heroes[PERSONALITY_SAO].name = "Sayori";
-		g_heroes[PERSONALITY_SAO].sprite_filename = "assets\\sayori.jvn";
+		g_heroes[PERSONALITY_SAO].sprite_filename = "assets/sayori.jvn";
 		g_heroes[PERSONALITY_SAO].tags = TAG_NONE;
 
 		g_heroes[PERSONALITY_SAO].idle_velocity = 7;
@@ -83,7 +83,7 @@ void TraitsInitialize()
 	/* Enemies personalities */
 	{
 		g_enemies[0].name = "Ferment";
-		g_enemies[0].sprite_filename = "assets\\ferment.jvn";
+		g_enemies[0].sprite_filename = "assets/ferment.jvn";
 		g_enemies[0].tags = TAG_ENEMY;
 
 		g_enemies[0].idle_velocity = 4;
@@ -98,7 +98,7 @@ void TraitsInitialize()
 	}
 	{
 		g_enemies[1].name = "Wind Eye";
-		g_enemies[1].sprite_filename = "assets\\windeye.jvn";
+		g_enemies[1].sprite_filename = "assets/windeye.jvn";
 		g_enemies[1].tags = TAG_ENEMY | TAG_LEVITATES;
 
 		g_enemies[1].idle_velocity = 3;
@@ -114,7 +114,7 @@ void TraitsInitialize()
 
 	{
 		g_enemies[2].name = "Kingpin";
-		g_enemies[2].sprite_filename = "assets\\kingpin.jvn";
+		g_enemies[2].sprite_filename = "assets/kingpin.jvn";
 		g_enemies[2].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[2].idle_velocity = 1;
@@ -130,7 +130,7 @@ void TraitsInitialize()
 
 	{
 		g_enemies[3].name = "Phibia";
-		g_enemies[3].sprite_filename = "assets\\phibia.jvn";
+		g_enemies[3].sprite_filename = "assets/phibia.jvn";
 		g_enemies[3].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[3].idle_velocity = 8;
@@ -146,7 +146,7 @@ void TraitsInitialize()
 
 	{
 		g_enemies[4].name = "Destroyer";
-		g_enemies[4].sprite_filename = "assets\\destroyr.jvn";
+		g_enemies[4].sprite_filename = "assets/destroyr.jvn";
 		g_enemies[4].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[4].idle_velocity = 2;
@@ -162,7 +162,7 @@ void TraitsInitialize()
 
 	{
 		g_enemies[5].name = "Viridi";
-		g_enemies[5].sprite_filename = "assets\\viridi.jvn";
+		g_enemies[5].sprite_filename = "assets/viridi.jvn";
 		g_enemies[5].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[5].idle_velocity = 6;
@@ -178,7 +178,7 @@ void TraitsInitialize()
 
 	{
 		g_enemies[6].name = "Ni";
-		g_enemies[6].sprite_filename = "assets\\ni.jvn";
+		g_enemies[6].sprite_filename = "assets/ni.jvn";
 		g_enemies[6].tags = TAG_ENEMY | TAG_DIFFICULT;
 
 		g_enemies[6].idle_velocity = 5;

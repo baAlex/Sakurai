@@ -51,10 +51,10 @@ static void* sFrame()
 	{
 		switch (Random() % 4)
 		{
-		case 0: IntLoadBackground("assets\\bkg1.raw"); break;
-		case 1: IntLoadBackground("assets\\bkg2.raw"); break;
-		case 2: IntLoadBackground("assets\\bkg3.raw"); break;
-		case 3: IntLoadBackground("assets\\bkg4.raw");
+		case 0: IntLoadBackground("assets/bkg1.raw"); break;
+		case 1: IntLoadBackground("assets/bkg2.raw"); break;
+		case 2: IntLoadBackground("assets/bkg3.raw"); break;
+		case 3: IntLoadBackground("assets/bkg4.raw");
 		}
 
 		CmdDrawBackground();
@@ -83,11 +83,11 @@ void* StateTest3()
 {
 	IntPrintText("# StateTest3\n");
 
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
-	s_font2 = IntLoadSprite("assets\\font2.jvn");
-	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
-	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
-	s_spr_sao = IntLoadSprite("assets\\sayori.jvn");
+	s_font1 = IntLoadSprite("assets/font1.jvn");
+	s_font2 = IntLoadSprite("assets/font2.jvn");
+	s_spr_portraits = IntLoadSprite("assets/ui-ports.jvn");
+	s_spr_items = IntLoadSprite("assets/ui-items.jvn");
+	s_spr_sao = IntLoadSprite("assets/sayori.jvn");
 
 	TraitsInitialize();
 

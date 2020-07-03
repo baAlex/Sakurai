@@ -94,10 +94,10 @@ void* StateScreenshots()
 	IntPrintText("# StateScreenshots\n");
 	IntUnloadAll();
 
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
-	s_font2 = IntLoadSprite("assets\\font2.jvn");
-	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
-	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
+	s_font1 = IntLoadSprite("assets/font1.jvn");
+	s_font2 = IntLoadSprite("assets/font2.jvn");
+	s_spr_portraits = IntLoadSprite("assets/ui-ports.jvn");
+	s_spr_items = IntLoadSprite("assets/ui-items.jvn");
 
 	Seed(300);
 	TraitsInitialize();
@@ -106,12 +106,12 @@ void* StateScreenshots()
 	/* Four for Itch.io */
 	if (s_stage_no == 0)
 	{
-		/* Simple one showing the UI, to make clear that is an RPG */
+		/* Simple one showing the UI, to make it clear that is an RPG */
 		ActorsInitialize(23);
 		ActorsInitializeSprites();
 		sRandomizeActors();
 
-		IntLoadBackground("assets\\bkg4.raw");
+		IntLoadBackground("assets/bkg4.raw");
 		CmdDrawBackground();
 
 		g_actor[ACTOR_SAO].health = 95;
@@ -137,7 +137,7 @@ void* StateScreenshots()
 		ActorsInitializeSprites();
 		sRandomizeActors();
 
-		IntLoadBackground("assets\\bkg3.raw");
+		IntLoadBackground("assets/bkg3.raw");
 		CmdDrawBackground();
 
 		g_actor[ACTOR_SAO].health = 40;
@@ -153,12 +153,12 @@ void* StateScreenshots()
 	}
 	else if (s_stage_no == 2)
 	{
-		/* Another one showing the menu, Kuro healing the party */
+		/* Another one showing the panel, Kuro healing the party */
 		ActorsInitialize(32);
 		ActorsInitializeSprites();
 		sRandomizeActors();
 
-		IntLoadBackground("assets\\bkg2.raw");
+		IntLoadBackground("assets/bkg2.raw");
 		CmdDrawBackground();
 
 		g_actor[ACTOR_SAO].health = 5;
@@ -179,12 +179,12 @@ void* StateScreenshots()
 	}
 	else if (s_stage_no == 3)
 	{
-		/* Finally, a tipical battle */
+		/* Finally, a typical battle */
 		ActorsInitialize(3);
 		ActorsInitializeSprites();
 		sRandomizeActors();
 
-		IntLoadBackground("assets\\bkg1.raw");
+		IntLoadBackground("assets/bkg1.raw");
 		CmdDrawBackground();
 
 		g_actor[ACTOR_SAO].health = 70;
@@ -200,12 +200,12 @@ void* StateScreenshots()
 	/* Two for GitHub */
 	else if (s_stage_no == 4)
 	{
-		/* Showcasing the menu */
+		/* Showcasing the panel */
 		ActorsInitialize(27);
 		ActorsInitializeSprites();
 		sRandomizeActors();
 
-		IntLoadBackground("assets\\bkg3.raw");
+		IntLoadBackground("assets/bkg3.raw");
 		CmdDrawBackground();
 
 		g_actor[ACTOR_SAO].health = 60;
@@ -223,12 +223,12 @@ void* StateScreenshots()
 	}
 	else
 	{
-		/* And an uninteresing battle */
+		/* And an uninteresting battle */
 		ActorsInitialize(4);
 		ActorsInitializeSprites();
 		sRandomizeActors();
 
-		IntLoadBackground("assets\\bkg4.raw");
+		IntLoadBackground("assets/bkg4.raw");
 		CmdDrawBackground();
 
 		g_actor[ACTOR_SAO].health = 80;

@@ -41,8 +41,9 @@ static void* (*s_next_state)() = StateHello;
 
 int main()
 {
-	/* PROTIP: 'state-battle.c' is the file you are looking for */
-	/* This entry point only has the purpose of redirect to the next state... */
+	/* PROTIP: 'state-battle.c' is the file you are looking for, this
+	   entry point only has the purpose of redirect to the actual state.
+	   State already defined by the previous frame. */
 	s_next_state = (void* (*)())s_next_state();
 	return 0;
 }
@@ -50,8 +51,9 @@ int main()
 
 void* StateHello()
 {
-	/* ... 'StateHello' being the first state executed, from here every state should
-	   return what to call the next frame, most states returns themself */
+	/* 'StateHello' is the first state to be executed. From here every
+	   other state should return what to call in the following frame,
+	   most states returns themselves */
 
 	IntPrintText("Tanaka's magical business v0.2-alpha\n");
 	IntPrintText("- Max commands: ");

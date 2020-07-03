@@ -33,7 +33,7 @@ SOFTWARE.
 #include "utilities.h"
 
 #define DEVELOPER
-#define AUTO_BATTLE
+/*#define AUTO_BATTLE*/
 
 static uint8_t s_battle_no = 0;
 
@@ -72,7 +72,6 @@ static void* sChoreographyFrame()
 	if (INPUT_START == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sChoreographyResumeFromPause);
 
-	/* Draw actors and other things, every frame */
 	ActorsDraw(0);
 
 	if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
@@ -120,7 +119,7 @@ static void* sChoreographyInit()
 	}
 
 	/* During a choreography is the only time that actors lose health,
-	   so we keep an eye on the main heroes to update the Hud accordingly */
+	   so we keep an eye on the main heroes to update the HUD accordingly */
 	if (g_actor[ACTOR_KURO].health != g_actor[ACTOR_KURO].prev_health ||
 	    g_actor[ACTOR_SAO].health != g_actor[ACTOR_SAO].prev_health)
 		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
@@ -165,7 +164,7 @@ static void* sPanelFrame()
 	if (INPUT_START == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sPanelResumeFromPause);
 
-	/* Select an action for the current actor... */
+	/* Select an action for the current actor */
 	if (s_panel_screen == PANEL_SCREEN_ACTION)
 	{
 		if (INPUT_UP == 1)
@@ -192,20 +191,21 @@ static void* sPanelFrame()
 		s_panel_selection = UiPanelTarget_dynamic(s_spr_items, s_panel_selection);
 	}
 
-	/* Player pressed enter, is turn for the next screen, next player or go back to the battle? */
+	/* Player pressed enter, is turn for the next screen?, next player or to go back to battle? */
 	if (INPUT_X == 1 || INPUT_Y == 1)
 	{
-		/* Go to next screen, show next one? */
+		/* Go to next screen */
 		if (s_panel_screen == PANEL_SCREEN_ACTION)
 		{
 			next_frame = sPreparePanel(s_panel_actor, PANEL_SCREEN_TARGET);
 		}
+
+		/* Check the next actor, if it need the panel */
 		else
 		{
 			g_actor[s_panel_actor].panel_done = 1; /* To avoid show the panel multiple times */
 
 		again:
-			/* Check the next actor (if it need the panel) */
 			if (s_panel_actor < (ON_SCREEN_HEROES - 1))
 			{
 				s_panel_actor += 1;
@@ -305,7 +305,7 @@ static void* sBattleFrame()
 	/* Game logic */
 	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
-		if (g_actor[i].state == ACTOR_STATE_DEAD) /* You are dead, not big surprise */
+		if (g_actor[i].state == ACTOR_STATE_DEAD) /* «You are dead, not big surprise» */
 			continue;
 
 		ActorLogic(&g_actor[i]);
@@ -322,7 +322,7 @@ static void* sBattleFrame()
 #endif
 
 		/* If after the logic step the actor set itself to 'attack', we
-		   prepare the attack choreography to be executed the next frame */
+		   prepare the attack choreography to be executed next frame */
 		if (g_actor[i].state == ACTOR_STATE_ATTACK)
 		{
 			if (next_frame == (void*)sBattleFrame) /* Indirectly this check gives 'Panel' an high priority */
@@ -339,7 +339,7 @@ static void* sBattleFrame()
 	/* Draw */
 	ActorsDraw(1);
 
-	/* 'Victory!', 'Game over' dialogs */
+	/* 'Victory!', 'Game over' dialogues */
 	if (g_live_enemies == 0)
 	{
 		s_battle_banner += 1;
@@ -392,9 +392,9 @@ static uint8_t s_state_prev_bkg = 0;
 static void* sWait()
 {
 	/* We need to be sure of show the loading screen for at least 2 seconds in
-	   those cpus that did the loading job unrealistically fast (emulated software).
+	   those CPUs that did the loading job unrealistically fast (emulated software).
 
-	   In slower cpus this timer will overflow if the loading time pass the
+	   In slower CPUs this timer will overflow if the loading time pass the
 	   ~6 seconds mark, making a final wait of ~8 seconds. Not really a problem */
 	if (CURRENT_MILLISECONDS < s_state_start + 2000 && CURRENT_MILLISECONDS > s_state_start)
 		return (void*)sWait;
@@ -405,12 +405,12 @@ static void* sWait()
 
 static void* sLoad()
 {
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
-	s_font1a = IntLoadSprite("assets\\font1a.jvn");
-	s_spr_portraits = IntLoadSprite("assets\\ui-ports.jvn");
-	s_spr_fx1 = IntLoadSprite("assets\\fx1.jvn");
-	s_spr_fx2 = IntLoadSprite("assets\\fx2.jvn");
-	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
+	s_font1 = IntLoadSprite("assets/font1.jvn");
+	s_font1a = IntLoadSprite("assets/font1a.jvn");
+	s_spr_portraits = IntLoadSprite("assets/ui-ports.jvn");
+	s_spr_fx1 = IntLoadSprite("assets/fx1.jvn");
+	s_spr_fx2 = IntLoadSprite("assets/fx2.jvn");
+	s_spr_items = IntLoadSprite("assets/ui-items.jvn");
 
 	ActorsInitializeSprites();
 
@@ -427,23 +427,23 @@ static void* sInit()
 	IntUnloadAll();
 
 	/* Reload minimal assets for the 'loading' screen */
-	s_font2 = IntLoadSprite("assets\\font2.jvn");
+	s_font2 = IntLoadSprite("assets/font2.jvn");
 
 	while (bkg == s_state_prev_bkg)
 		bkg = (uint8_t)(Random() % 4);
 
 	switch (bkg)
 	{
-	case 0: IntLoadBackground("assets\\bkg1.raw"); break;
-	case 1: IntLoadBackground("assets\\bkg2.raw"); break;
-	case 2: IntLoadBackground("assets\\bkg3.raw"); break;
-	case 3: IntLoadBackground("assets\\bkg4.raw");
+	case 0: IntLoadBackground("assets/bkg1.raw"); break;
+	case 1: IntLoadBackground("assets/bkg2.raw"); break;
+	case 2: IntLoadBackground("assets/bkg3.raw"); break;
+	case 3: IntLoadBackground("assets/bkg4.raw");
 	}
 
 	s_state_prev_bkg = bkg;
 	CmdDrawBackground();
 
-	/* Draw loading screen */
+	/* Draw screen */
 	ActorsInitialize(s_battle_no);
 	UiBanner(s_font2, (g_live_enemies > 1) ? "Monsters appear!" : "Monster appears!");
 

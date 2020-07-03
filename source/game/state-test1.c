@@ -64,8 +64,8 @@ void* StateTest1()
 {
 	IntPrintText("# StateTest1\n");
 
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
-	s_font2 = IntLoadSprite("assets\\font2.jvn");
+	s_font1 = IntLoadSprite("assets/font1.jvn");
+	s_font2 = IntLoadSprite("assets/font2.jvn");
 
 	return sFrame();
 }

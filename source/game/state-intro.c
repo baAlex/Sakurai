@@ -58,14 +58,13 @@ static char* s_intro09_sao[] = {"Right", NULL};
 
 
 /* Breaking the four wall to make really obvious that this is an alpha alpha alpha version */
-
-/* TODO: use the Clarke Europa thing?: « All this game is yours, except runtime errors. » */
-/* « Attempt no landing there. Enjoy it together. Play it in peace. » */
-
 static char* s_intro10_kuro[] = {"Oh... and I got a message from the developer:",
                                  "«I'm having fun making this game prototype, hope you", "have fun too».", NULL};
 static char* s_intro11_kuro[] = {"Ends with: «Further details following...».", NULL};
 static char* s_intro12_sao[] = {"???", NULL};
+
+/* TODO: use the Clarke Europa thing?: « All this game is yours, except runtime errors. »
+   « Attempt no landing there. Enjoy it together. Play it in peace. » */
 
 
 static void* sTitleFrame();
@@ -105,7 +104,7 @@ static void* sTitleFrame()
 
 /*-----------------------------
 
- Character dialogs
+ Character dialogues
 -----------------------------*/
 static uint8_t s_dialog = 0;
 static uint16_t s_last_updated = 0;
@@ -175,10 +174,10 @@ static void* sInit()
 	IntPrintText("# StateIntro\n");
 	IntUnloadAll();
 
-	IntLoadBackground("assets\\title.raw");
-	s_font1 = IntLoadSprite("assets\\font1.jvn");
-	s_font2 = IntLoadSprite("assets\\font2.jvn");
-	s_spr_items = IntLoadSprite("assets\\ui-items.jvn");
+	IntLoadBackground("assets/title.raw");
+	s_font1 = IntLoadSprite("assets/font1.jvn");
+	s_font2 = IntLoadSprite("assets/font2.jvn");
+	s_spr_items = IntLoadSprite("assets/ui-items.jvn");
 
 	s_dialog = 0;
 	s_last_updated = CURRENT_MILLISECONDS;

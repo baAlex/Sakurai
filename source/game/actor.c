@@ -33,8 +33,6 @@ SOFTWARE.
 #include "utilities.h"
 
 
-/* Most of the gameplay only happens on a tiny portion of the
-screen, the 'arena', below the dimensions and actors positions */
 #define ARENA_Y 56
 #define ARENA_HEIGHT 8 /* 128 px */
 #define ENEMIES_X 144
@@ -44,7 +42,7 @@ screen, the 'arena', below the dimensions and actors positions */
 #define KURO_X 45
 
 
-static uint16_t s_temp[ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO]; /* To keep things on actors iterations */
+static uint16_t s_temp[ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO]; /* To keep things while iterating actors */
 struct Actor s_actor_temp;
 
 
@@ -74,7 +72,7 @@ void ActorsInitialize(uint8_t battle_no)
 	for (i = 0; i < ENEMIES_PERSONALITIES_NO; i++)
 	{
 		s_temp[i] = EnemyChances(i, UFixedMake(battle_no, 0));
-		sum += s_temp[i]; /* To normalizate them */
+		sum += s_temp[i]; /* To normalize them */
 
 		IntPrintNumber(s_temp[i]);
 	}
@@ -228,7 +226,7 @@ void ActorsDraw(uint8_t oscillate)
 	uint8_t width = 0;
 	uint16_t x = 0;
 
-	CmdDrawRectangleBkg(20 /* 320 px */, ARENA_HEIGHT, 0, ARENA_Y); /* Clean area */
+	CmdDrawRectangleBkg(20 /* 320 px */, ARENA_HEIGHT, 0, ARENA_Y); /* Clean arena */
 
 	for (i = 0; i < ON_SCREEN_ACTORS; i++)
 	{
@@ -249,7 +247,7 @@ void ActorsDraw(uint8_t oscillate)
 
 			if (width > 0)
 			{
-				if (g_actor[i].recover_timer == 0) /* Red timer if recovering */
+				if (g_actor[i].recover_timer == 0) /* Darker timer if recovering */
 					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 8);
 				else
 					CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 5);
@@ -262,13 +260,10 @@ void ActorsDraw(uint8_t oscillate)
 			if (g_actor[i].recover_timer == 0)
 			{
 				if (oscillate == 1)
-				{
 					g_actor[i].phase += g_actor[i].action->oscillation_velocity;
-					x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
-					CmdDrawSprite(g_actor[i].persona->sprite, x, g_actor[i].y, 0);
-				}
-				else
-					CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
+
+				x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
+				CmdDrawSprite(g_actor[i].persona->sprite, x, g_actor[i].y, 0);
 			}
 			else
 				CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 1);
@@ -373,10 +368,10 @@ static int sAttack(struct Actor* actor)
 		/* If the target was 'charging', penalize it, this
 		   to lower the game pace in a subtle way */
 
-		/* FIXME: just like the 'attack' limbo. The interceptor
-		   didn't want actors that travel back in time */
+		/* FIXME: just like the 'attack' limbo. Intercepting modules
+		   don't want actors that travel back in time */
 
-		if((actor->target->charge_timer >> 1) == 0)
+		if ((actor->target->charge_timer >> 1) == 0)
 			actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1; /* FIXME!!!!!!!!!!!! */
 		else
 			actor->target->charge_timer = actor->target->charge_timer >> 1;
@@ -418,7 +413,7 @@ void ActorLogic(struct Actor* actor)
 		if (actor->state == ACTOR_STATE_ATTACK)
 			actor->state = ACTOR_STATE_CHARGE;
 
-		/* Wait substracting time */
+		/* Wait subtracting time */
 		if (actor->recover_timer > actor->persona->recover_velocity)
 		{
 			if ((CURRENT_FRAME % 2) == 0)
@@ -440,7 +435,7 @@ void ActorLogic(struct Actor* actor)
 		}
 		else
 		{
-			/* Check if there are something live to charge against */
+			/* Check if there is something live to charge against */
 			if (g_live_enemies != 0 && g_live_heroes != 0)
 				sSetChargeState(actor);
 			else
@@ -453,7 +448,7 @@ void ActorLogic(struct Actor* actor)
 			actor->charge_timer += actor->action->charge_velocity;
 		else
 		{
-			/* Check if there are something live to attack */
+			/* Check if there is something live to attack */
 			if (g_live_enemies != 0 && g_live_heroes != 0)
 				actor->state = ACTOR_STATE_ATTACK;
 			else
@@ -462,7 +457,7 @@ void ActorLogic(struct Actor* actor)
 		break;
 
 	case ACTOR_STATE_ATTACK:
-		/* Attack, if the attack fails means that there are no enemy left */
+		/* Attack, if the attack fails means that there is no enemy left */
 		if (sAttack(actor) == 0)
 			sSetIdleState(actor);
 		else
