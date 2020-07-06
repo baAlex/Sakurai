@@ -120,6 +120,13 @@ void ActionMeditate(struct Action* action, struct Actor* actor)
 }
 
 
+void ActionShock(struct Action* action, struct Actor* actor)
+{
+	actor->target->effects = EFFECT_SLOW_RECOVER;
+	ActionSubtractHP(action, actor); /* Except the effect, is a normal attack */
+}
+
+
 void TraitsInitialize()
 {
 	/* Actions */
@@ -144,7 +151,7 @@ void TraitsInitialize()
 	g_action[ACTION_COMBINED].amount = 60;
 	g_action[ACTION_COMBINED].tags = TAG_ACTION_NONE;
 
-	g_action[ACTION_SHOCK].callback = ActionSubtractHP;
+	g_action[ACTION_SHOCK].callback = ActionShock;
 	g_action[ACTION_SHOCK].oscillation_velocity = 16;
 	g_action[ACTION_SHOCK].charge_velocity = 4;
 	g_action[ACTION_SHOCK].magic_cost = 30;
@@ -237,7 +244,6 @@ void TraitsInitialize()
 		g_enemies[1].action_a = &g_action[ACTION_GENERIC];
 		g_enemies[1].action_b = &g_action[ACTION_GENERIC];
 	}
-
 	{
 		g_enemies[2].name = "Kingpin";
 		g_enemies[2].sprite_filename = "assets/kingpin.jvn";
@@ -254,7 +260,6 @@ void TraitsInitialize()
 		g_enemies[2].action_a = &g_action[ACTION_GENERIC];
 		g_enemies[2].action_b = &g_action[ACTION_GENERIC];
 	}
-
 	{
 		g_enemies[3].name = "Phibia";
 		g_enemies[3].sprite_filename = "assets/phibia.jvn";
@@ -271,7 +276,6 @@ void TraitsInitialize()
 		g_enemies[3].action_a = &g_action[ACTION_GENERIC];
 		g_enemies[3].action_b = &g_action[ACTION_GENERIC];
 	}
-
 	{
 		g_enemies[4].name = "Destroyer";
 		g_enemies[4].sprite_filename = "assets/destroyr.jvn";
@@ -288,7 +292,6 @@ void TraitsInitialize()
 		g_enemies[4].action_a = &g_action[ACTION_GENERIC];
 		g_enemies[4].action_b = &g_action[ACTION_GENERIC];
 	}
-
 	{
 		g_enemies[5].name = "Viridi";
 		g_enemies[5].sprite_filename = "assets/viridi.jvn";
@@ -305,7 +308,6 @@ void TraitsInitialize()
 		g_enemies[5].action_a = &g_action[ACTION_GENERIC];
 		g_enemies[5].action_b = &g_action[ACTION_GENERIC];
 	}
-
 	{
 		g_enemies[6].name = "Ni";
 		g_enemies[6].sprite_filename = "assets/ni.jvn";

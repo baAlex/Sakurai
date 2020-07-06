@@ -19,9 +19,13 @@
 #define ACTOR_STATE_CHARGE 2
 #define ACTOR_STATE_ATTACK 3
 #define ACTOR_STATE_VICTORY 4
+#define ACTOR_STATE_HOLD 5
 
 #define ACTOR_KURO 0
 #define ACTOR_SAO 1
+
+#define EFFECT_NONE 0
+#define EFFECT_SLOW_RECOVER 1
 
 struct Action;
 struct Persona;
@@ -40,10 +44,11 @@ struct Actor
 	uint8_t health;
 	uint8_t magic;
 	uint8_t idle_timer;    /* From 0 to 255 */
-	uint8_t charge_timer;  /* From 0 to 255 */
+	uint8_t charge_timer;  /* From 0 to 255, Reused for HOLD */
 	uint8_t recover_timer; /* From 255 to 0 */
 
 	uint8_t phase;
+	uint8_t effects;
 
 	/* Not used by actor logic: */
 	uint8_t panel_done;
@@ -58,5 +63,7 @@ void ActorsInitializeSprites();
 
 void ActorLogic(struct Actor* actor);
 void ActorsDraw(uint8_t oscillate);
+
+void ActorSetHold(struct Actor* actor);
 
 #endif

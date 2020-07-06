@@ -64,7 +64,7 @@ static void* sBattleResumeFromPause();
 static uint16_t s_choreo_start = 0; /* In frames */
 static struct Actor* s_choreo_attacker = NULL;
 
-static char s_choreo_buffer[4] = {0, 0, 0, 0};
+static char s_choreo_buffer[10];
 static char* s_choreo_hp_str = NULL;
 
 static void* sChoreographyFrame()
@@ -126,10 +126,15 @@ static void* sChoreographyInit()
 	}
 
 	/* How many health our target loss? */
-	if (s_choreo_attacker->action == &g_action[ACTION_GENERIC])
-		s_choreo_hp_str = NumberToString(s_choreo_attacker->persona->generic_damage, s_choreo_buffer);
+	if (s_choreo_attacker->target->state == ACTOR_STATE_HOLD)
+		s_choreo_hp_str = "Cancelled";
 	else
-		s_choreo_hp_str = NumberToString(s_choreo_attacker->action->amount, s_choreo_buffer);
+	{
+		if (s_choreo_attacker->action == &g_action[ACTION_GENERIC])
+			s_choreo_hp_str = NumberToString(s_choreo_attacker->persona->generic_damage, s_choreo_buffer);
+		else
+			s_choreo_hp_str = NumberToString(s_choreo_attacker->action->amount, s_choreo_buffer);
+	}
 
 	return sChoreographyFrame();
 }
@@ -206,7 +211,11 @@ static void* sPanelFrame()
 			else if (s_panel_selection == 1)
 				action = &g_action[ACTION_COMBINED];
 			else if (s_panel_selection == 4)
-				action = &g_action[0]; /* TODO, "Hold position" */
+			{
+				/* TODO, this procedure feels hacky */
+				ActorSetHold(&g_actor[s_panel_actor]);
+				goto next_actor;
+			}
 
 			if (g_actor[s_panel_actor].persona == &g_heroes[PERSONALITY_KURO])
 			{

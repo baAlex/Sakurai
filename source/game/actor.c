@@ -97,6 +97,7 @@ void ActorsInitialize(uint8_t battle_no)
 		g_actor[i].idle_timer = 0;
 		g_actor[i].charge_timer = 0;
 		g_actor[i].recover_timer = 0;
+		g_actor[i].effects = EFFECT_NONE;
 
 		if (battle_no == 0)
 		{
@@ -130,6 +131,7 @@ void ActorsInitialize(uint8_t battle_no)
 
 			g_actor[i].state = ACTOR_STATE_IDLE;
 			g_actor[i].phase = (uint8_t)Random();
+			g_actor[i].effects = EFFECT_NONE;
 
 		again:
 
@@ -279,6 +281,18 @@ void ActorsDraw(uint8_t oscillate)
 			}
 		}
 
+		else if (g_actor[i].state == ACTOR_STATE_HOLD)
+		{
+			CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
+
+			/* Time meter */
+			CmdDrawRectanglePrecise(34, 3, g_actor[i].x, g_actor[i].y, 64);
+			width = (g_actor[i].charge_timer >> 3); /* Max of 32 px */
+
+			if (width > 0)
+				CmdDrawRectanglePrecise(width, 1, g_actor[i].x + 1, g_actor[i].y + 1, 55);
+		}
+
 		else if (g_actor[i].state == ACTOR_STATE_ATTACK || g_actor[i].state == ACTOR_STATE_VICTORY)
 			CmdDrawSprite(g_actor[i].persona->sprite, g_actor[i].x, g_actor[i].y, 0);
 	}
@@ -346,6 +360,13 @@ static void sSetChargeState(struct Actor* actor)
 }
 
 
+void ActorSetHold(struct Actor* actor)
+{
+	actor->charge_timer = 255; /* Reused */
+	actor->state = ACTOR_STATE_HOLD;
+}
+
+
 static int sAttack(struct Actor* actor)
 {
 	uint8_t prev_health = 0;
@@ -359,7 +380,14 @@ static int sAttack(struct Actor* actor)
 
 	/* Apply the action */
 	prev_health = actor->target->health;
-	actor->action->callback(actor->action, actor);
+
+	if (actor->target->state != ACTOR_STATE_HOLD)
+		actor->action->callback(actor->action, actor);
+	else
+	{
+		/* Similar to the penalty below */
+		actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1;
+	}
 
 	if (actor->target->health < prev_health)
 	{
@@ -372,13 +400,12 @@ static int sAttack(struct Actor* actor)
 			/* If the target was 'charging', penalize it, this
 			   to lower the game pace in a subtle way */
 
-			/* FIXME: just like the 'attack' limbo. Intercepting modules
-			   don't want actors that travel back in time */
+			/* Be caution that a value of zero requires set a new state,
+			   something possible to do here, but unnecessary complex. Most
+			   states changes happens on ActorLogic().
 
-			if ((actor->target->charge_timer >> 1) == 0)
-				actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1; /* FIXME */
-			else
-				actor->target->charge_timer = actor->target->charge_timer >> 1;
+			   We avoid trigger a new state with the +1 */
+			actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1;
 		}
 	}
 
@@ -422,12 +449,20 @@ void ActorLogic(struct Actor* actor)
 		if (actor->recover_timer > actor->persona->recover_velocity)
 		{
 			if ((CURRENT_FRAME % 2) == 0)
-				actor->recover_timer -= actor->persona->recover_velocity;
+			{
+				if (actor->effects != EFFECT_SLOW_RECOVER)
+					actor->recover_timer -= actor->persona->recover_velocity;
+				else
+					actor->recover_timer -= 2; /* HARDCODED */
+			}
 
 			return;
 		}
 		else
+		{
 			actor->recover_timer = 0;
+			actor->effects = EFFECT_NONE;
+		}
 	}
 
 	switch (actor->state)
@@ -467,6 +502,21 @@ void ActorLogic(struct Actor* actor)
 			sSetIdleState(actor);
 		else
 			actor->state = ACTOR_STATE_VICTORY;
+		break;
+
+	case ACTOR_STATE_HOLD:
+		if (actor->charge_timer > 3)
+		{
+			if ((CURRENT_FRAME % 2) == 0)
+				actor->charge_timer -= 3; /* HARDCODED */
+		}
+		else
+		{
+			if (g_live_enemies != 0 && g_live_heroes != 0)
+				sSetIdleState(actor);
+			else
+				actor->state = ACTOR_STATE_VICTORY;
+		}
 		break;
 
 	default: break;

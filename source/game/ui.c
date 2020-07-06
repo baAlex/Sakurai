@@ -269,7 +269,7 @@ uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct 
 		else if (selection == 1)
 			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Combined attack, uses 20 MP.");
 		else if (selection == 4)
-			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Hold position, mitigates damage from imminent attack.");
+			CmdDrawText(font_sprite, TIP_TEXT_X, TIP_TEXT_Y, "Hold position, cancels damage from attacks.");
 
 		if (persona == &g_heroes[PERSONALITY_KURO])
 		{
