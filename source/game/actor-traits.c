@@ -131,53 +131,95 @@ void TraitsInitialize()
 {
 	/* Actions */
 	g_action[ACTION_GENERIC].callback = ActionGeneric;
-	g_action[ACTION_GENERIC].oscillation_velocity = 15;
-	g_action[ACTION_GENERIC].charge_velocity = 4;
-	g_action[ACTION_GENERIC].magic_cost = 0;
 	g_action[ACTION_GENERIC].amount = 0; /* Not used */
+	g_action[ACTION_GENERIC].charge_velocity = 4;
+	g_action[ACTION_GENERIC].oscillation_velocity = 15;
+	g_action[ACTION_GENERIC].magic_cost = 0;
 	g_action[ACTION_GENERIC].tags = TAG_ACTION_NONE;
 
-	g_action[ACTION_SIMPLE].callback = ActionSubtractHP;
-	g_action[ACTION_SIMPLE].oscillation_velocity = 20;
-	g_action[ACTION_SIMPLE].charge_velocity = 5;
-	g_action[ACTION_SIMPLE].magic_cost = 0;
-	g_action[ACTION_SIMPLE].amount = 20;
-	g_action[ACTION_SIMPLE].tags = TAG_ACTION_NONE;
+	g_action[ACTION_SIMPLE_KURO].callback = ActionSubtractHP;
+	g_action[ACTION_SIMPLE_KURO].amount = 20;
+	g_action[ACTION_SIMPLE_KURO].charge_velocity = 5;
+	g_action[ACTION_SIMPLE_KURO].oscillation_velocity = 20;
+	g_action[ACTION_SIMPLE_KURO].magic_cost = 0;
+	g_action[ACTION_SIMPLE_KURO].tags = TAG_ACTION_NONE;
+
+	g_action[ACTION_SIMPLE_SAO].callback = ActionSubtractHP;
+	g_action[ACTION_SIMPLE_SAO].amount = 25;
+	g_action[ACTION_SIMPLE_SAO].charge_velocity = 5;
+	g_action[ACTION_SIMPLE_SAO].oscillation_velocity = 21;
+	g_action[ACTION_SIMPLE_SAO].magic_cost = 0;
+	g_action[ACTION_SIMPLE_SAO].tags = TAG_ACTION_NONE;
 
 	g_action[ACTION_COMBINED].callback = ActionSubtractHP;
-	g_action[ACTION_COMBINED].oscillation_velocity = 12;
-	g_action[ACTION_COMBINED].charge_velocity = 3;
-	g_action[ACTION_COMBINED].magic_cost = 20;
 	g_action[ACTION_COMBINED].amount = 60;
+	g_action[ACTION_COMBINED].charge_velocity = 4;
+	g_action[ACTION_COMBINED].oscillation_velocity = 12;
+	g_action[ACTION_COMBINED].magic_cost = 20;
 	g_action[ACTION_COMBINED].tags = TAG_ACTION_NONE;
 
 	g_action[ACTION_SHOCK].callback = ActionShock;
-	g_action[ACTION_SHOCK].oscillation_velocity = 16;
-	g_action[ACTION_SHOCK].charge_velocity = 4;
-	g_action[ACTION_SHOCK].magic_cost = 30;
 	g_action[ACTION_SHOCK].amount = 40;
+	g_action[ACTION_SHOCK].charge_velocity = 4;
+	g_action[ACTION_SHOCK].oscillation_velocity = 16;
+	g_action[ACTION_SHOCK].magic_cost = 30;
 	g_action[ACTION_SHOCK].tags = TAG_ACTION_NONE;
 
 	g_action[ACTION_THUNDER].callback = ActionSubtractHP;
-	g_action[ACTION_THUNDER].oscillation_velocity = 8;
-	g_action[ACTION_THUNDER].charge_velocity = 2;
-	g_action[ACTION_THUNDER].magic_cost = 60;
 	g_action[ACTION_THUNDER].amount = 200;
+	g_action[ACTION_THUNDER].charge_velocity = 2;
+	g_action[ACTION_THUNDER].oscillation_velocity = 8;
+	g_action[ACTION_THUNDER].magic_cost = 60;
 	g_action[ACTION_THUNDER].tags = TAG_ACTION_NONE;
 
 	g_action[ACTION_HEAL].callback = ActionHeal;
-	g_action[ACTION_HEAL].oscillation_velocity = 24;
-	g_action[ACTION_HEAL].charge_velocity = 7;
-	g_action[ACTION_HEAL].magic_cost = 0;
 	g_action[ACTION_HEAL].amount = 50;
+	g_action[ACTION_HEAL].charge_velocity = 7;
+	g_action[ACTION_HEAL].oscillation_velocity = 24;
+	g_action[ACTION_HEAL].magic_cost = 0;
 	g_action[ACTION_HEAL].tags = TAG_ACTION_PARTY;
 
 	g_action[ACTION_MEDITATE].callback = ActionMeditate;
-	g_action[ACTION_MEDITATE].oscillation_velocity = 24;
-	g_action[ACTION_MEDITATE].charge_velocity = 7;
-	g_action[ACTION_MEDITATE].magic_cost = 0;
 	g_action[ACTION_MEDITATE].amount = 50;
+	g_action[ACTION_MEDITATE].charge_velocity = 7;
+	g_action[ACTION_MEDITATE].oscillation_velocity = 24;
+	g_action[ACTION_MEDITATE].magic_cost = 0;
 	g_action[ACTION_MEDITATE].tags = TAG_ACTION_PARTY;
+
+	g_action[ACTION_FAIR_A].callback = ActionSubtractHP;
+	g_action[ACTION_FAIR_A].amount = 20;
+	g_action[ACTION_FAIR_A].charge_velocity = 4;
+	g_action[ACTION_FAIR_A].oscillation_velocity = 20;
+	g_action[ACTION_FAIR_A].magic_cost = 0;
+	g_action[ACTION_FAIR_A].tags = TAG_ACTION_NONE;
+
+	g_action[ACTION_FAIR_B].callback = ActionSubtractHP;
+	g_action[ACTION_FAIR_B].amount = 25;
+	g_action[ACTION_FAIR_B].charge_velocity = 4;
+	g_action[ACTION_FAIR_B].oscillation_velocity = 16;
+	g_action[ACTION_FAIR_B].magic_cost = 0;
+	g_action[ACTION_FAIR_B].tags = TAG_ACTION_NONE;
+
+	g_action[ACTION_PHIBIA].callback = ActionSubtractHP;
+	g_action[ACTION_PHIBIA].amount = 5;
+	g_action[ACTION_PHIBIA].charge_velocity = 6;
+	g_action[ACTION_PHIBIA].oscillation_velocity = 22;
+	g_action[ACTION_PHIBIA].magic_cost = 0;
+	g_action[ACTION_PHIBIA].tags = TAG_ACTION_NONE;
+
+	g_action[ACTION_DESTROYER].callback = ActionSubtractHP;
+	g_action[ACTION_DESTROYER].amount = 30;
+	g_action[ACTION_DESTROYER].charge_velocity = 2;
+	g_action[ACTION_DESTROYER].oscillation_velocity = 10;
+	g_action[ACTION_DESTROYER].magic_cost = 0;
+	g_action[ACTION_DESTROYER].tags = TAG_ACTION_NONE;
+
+	g_action[ACTION_KINGPIN].callback = ActionSubtractHP;
+	g_action[ACTION_KINGPIN].amount = 40;
+	g_action[ACTION_KINGPIN].charge_velocity = 1;
+	g_action[ACTION_KINGPIN].oscillation_velocity = 8;
+	g_action[ACTION_KINGPIN].magic_cost = 0;
+	g_action[ACTION_KINGPIN].tags = TAG_ACTION_NONE;
 
 	/* Heroes personalities */
 	{
@@ -192,8 +234,8 @@ void TraitsInitialize()
 		g_heroes[PERSONALITY_KURO].initial_magic = 0;
 
 		g_heroes[PERSONALITY_KURO].actions_preference = 50;
-		g_heroes[PERSONALITY_KURO].action_a = &g_action[ACTION_SIMPLE];
-		g_heroes[PERSONALITY_KURO].action_b = &g_action[ACTION_SIMPLE];
+		g_heroes[PERSONALITY_KURO].action_a = &g_action[ACTION_SIMPLE_KURO];
+		g_heroes[PERSONALITY_KURO].action_b = &g_action[ACTION_SIMPLE_KURO];
 	}
 	{
 		g_heroes[PERSONALITY_SAO].name = "Sayori";
@@ -207,8 +249,8 @@ void TraitsInitialize()
 		g_heroes[PERSONALITY_SAO].initial_magic = 30;
 
 		g_heroes[PERSONALITY_SAO].actions_preference = 50;
-		g_heroes[PERSONALITY_SAO].action_a = &g_action[ACTION_SIMPLE];
-		g_heroes[PERSONALITY_SAO].action_b = &g_action[ACTION_SIMPLE];
+		g_heroes[PERSONALITY_SAO].action_a = &g_action[ACTION_SIMPLE_SAO];
+		g_heroes[PERSONALITY_SAO].action_b = &g_action[ACTION_SIMPLE_SAO];
 	}
 
 	/* Enemies personalities */
@@ -224,9 +266,9 @@ void TraitsInitialize()
 		g_enemies[0].initial_magic = 0;
 
 		g_enemies[0].generic_damage = 10;
-		g_enemies[0].actions_preference = 50;
-		g_enemies[0].action_a = &g_action[ACTION_GENERIC];
-		g_enemies[0].action_b = &g_action[ACTION_GENERIC];
+		g_enemies[0].actions_preference = 80;
+		g_enemies[0].action_a = &g_action[ACTION_FAIR_A];
+		g_enemies[0].action_b = &g_action[ACTION_FAIR_B];
 	}
 	{
 		g_enemies[1].name = "Wind Eye";
@@ -241,24 +283,24 @@ void TraitsInitialize()
 
 		g_enemies[1].generic_damage = 10;
 		g_enemies[1].actions_preference = 50;
-		g_enemies[1].action_a = &g_action[ACTION_GENERIC];
-		g_enemies[1].action_b = &g_action[ACTION_GENERIC];
+		g_enemies[1].action_a = &g_action[ACTION_FAIR_A];
+		g_enemies[1].action_b = &g_action[ACTION_FAIR_B];
 	}
 	{
 		g_enemies[2].name = "Kingpin";
 		g_enemies[2].sprite_filename = "assets/kingpin.jvn";
 		g_enemies[2].tags = TAG_PERSONA_ENEMY | TAG_PERSONA_DIFFICULT;
 
-		g_enemies[2].idle_velocity = 1;
-		g_enemies[2].recover_velocity = 4;
+		g_enemies[2].idle_velocity = 2;
+		g_enemies[2].recover_velocity = 8;
 
 		g_enemies[2].initial_health = 180;
 		g_enemies[2].initial_magic = 0;
 
 		g_enemies[2].generic_damage = 10;
 		g_enemies[2].actions_preference = 50;
-		g_enemies[2].action_a = &g_action[ACTION_GENERIC];
-		g_enemies[2].action_b = &g_action[ACTION_GENERIC];
+		g_enemies[2].action_a = &g_action[ACTION_KINGPIN];
+		g_enemies[2].action_b = &g_action[ACTION_KINGPIN];
 	}
 	{
 		g_enemies[3].name = "Phibia";
@@ -266,15 +308,15 @@ void TraitsInitialize()
 		g_enemies[3].tags = TAG_PERSONA_ENEMY | TAG_PERSONA_DIFFICULT;
 
 		g_enemies[3].idle_velocity = 8;
-		g_enemies[3].recover_velocity = 11;
+		g_enemies[3].recover_velocity = 10;
 
 		g_enemies[3].initial_health = 60;
 		g_enemies[3].initial_magic = 0;
 
 		g_enemies[3].generic_damage = 10;
 		g_enemies[3].actions_preference = 50;
-		g_enemies[3].action_a = &g_action[ACTION_GENERIC];
-		g_enemies[3].action_b = &g_action[ACTION_GENERIC];
+		g_enemies[3].action_a = &g_action[ACTION_PHIBIA];
+		g_enemies[3].action_b = &g_action[ACTION_PHIBIA];
 	}
 	{
 		g_enemies[4].name = "Destroyer";
@@ -282,22 +324,22 @@ void TraitsInitialize()
 		g_enemies[4].tags = TAG_PERSONA_ENEMY | TAG_PERSONA_DIFFICULT;
 
 		g_enemies[4].idle_velocity = 2;
-		g_enemies[4].recover_velocity = 4;
+		g_enemies[4].recover_velocity = 5;
 
 		g_enemies[4].initial_health = 120;
 		g_enemies[4].initial_magic = 0;
 
 		g_enemies[4].generic_damage = 10;
 		g_enemies[4].actions_preference = 50;
-		g_enemies[4].action_a = &g_action[ACTION_GENERIC];
-		g_enemies[4].action_b = &g_action[ACTION_GENERIC];
+		g_enemies[4].action_a = &g_action[ACTION_DESTROYER];
+		g_enemies[4].action_b = &g_action[ACTION_DESTROYER];
 	}
 	{
 		g_enemies[5].name = "Viridi";
 		g_enemies[5].sprite_filename = "assets/viridi.jvn";
 		g_enemies[5].tags = TAG_PERSONA_ENEMY | TAG_PERSONA_DIFFICULT;
 
-		g_enemies[5].idle_velocity = 6;
+		g_enemies[5].idle_velocity = 5;
 		g_enemies[5].recover_velocity = 8;
 
 		g_enemies[5].initial_health = 80;
@@ -305,8 +347,8 @@ void TraitsInitialize()
 
 		g_enemies[5].generic_damage = 10;
 		g_enemies[5].actions_preference = 50;
-		g_enemies[5].action_a = &g_action[ACTION_GENERIC];
-		g_enemies[5].action_b = &g_action[ACTION_GENERIC];
+		g_enemies[5].action_a = &g_action[ACTION_FAIR_B];
+		g_enemies[5].action_b = &g_action[ACTION_FAIR_B];
 	}
 	{
 		g_enemies[6].name = "Ni";
@@ -319,7 +361,7 @@ void TraitsInitialize()
 		g_enemies[6].initial_health = 100;
 		g_enemies[6].initial_magic = 0;
 
-		g_enemies[6].generic_damage = 10;
+		g_enemies[6].generic_damage = 30;
 		g_enemies[6].actions_preference = 50;
 		g_enemies[6].action_a = &g_action[ACTION_GENERIC];
 		g_enemies[6].action_b = &g_action[ACTION_GENERIC];

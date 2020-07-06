@@ -10,15 +10,21 @@
 #include "actor.h"
 #include "engine.h"
 
-#define ACTIONS_NO 7
+#define ACTIONS_NO 13
 
 #define ACTION_GENERIC 0
-#define ACTION_SIMPLE 1
+#define ACTION_SIMPLE_KURO 1
+#define ACTION_SIMPLE_SAO 12
 #define ACTION_COMBINED 2
 #define ACTION_SHOCK 3
 #define ACTION_THUNDER 4
 #define ACTION_HEAL 5
 #define ACTION_MEDITATE 6
+#define ACTION_FAIR_A 7
+#define ACTION_FAIR_B 8
+#define ACTION_PHIBIA 9
+#define ACTION_DESTROYER 10
+#define ACTION_KINGPIN 11
 
 #define HEROES_PERSONALITIES_NO 2
 #define ENEMIES_PERSONALITIES_NO 7

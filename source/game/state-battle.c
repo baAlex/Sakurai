@@ -206,9 +206,7 @@ static void* sPanelFrame()
 		if (s_panel_screen == PANEL_SCREEN_ACTION)
 		{
 			/* HACK, following values are all hardcoded */
-			if (s_panel_selection == 0)
-				action = &g_action[ACTION_SIMPLE];
-			else if (s_panel_selection == 1)
+			if (s_panel_selection == 1)
 				action = &g_action[ACTION_COMBINED];
 			else if (s_panel_selection == 4)
 			{
@@ -219,14 +217,18 @@ static void* sPanelFrame()
 
 			if (g_actor[s_panel_actor].persona == &g_heroes[PERSONALITY_KURO])
 			{
-				if (s_panel_selection == 2)
+				if (s_panel_selection == 0)
+					action = &g_action[ACTION_SIMPLE_KURO];
+				else if (s_panel_selection == 2)
 					action = &g_action[ACTION_HEAL];
 				else if (s_panel_selection == 3)
 					action = &g_action[ACTION_MEDITATE];
 			}
 			else
 			{
-				if (s_panel_selection == 2)
+				if (s_panel_selection == 0)
+					action = &g_action[ACTION_SIMPLE_SAO];
+				else if (s_panel_selection == 2)
 					action = &g_action[ACTION_SHOCK];
 				else if (s_panel_selection == 3)
 					action = &g_action[ACTION_THUNDER];
