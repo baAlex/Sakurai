@@ -1,16 +1,16 @@
 
 ACTION,                     AMOUNT,     CHARGE, OSCILLATION,    MP COST,    NOTES
-Generic,                    ???,        4,      15,             ,           ,
-Simple Kuro,                20,         5,      20,             ,           ,
-Simple Sao,                 25,         5,      21,             ,           ,
+Generic,                    ???,        4,      15,             ,
+Simple Kuro,                20,         5,      20,             ,
+Simple Sao,                 25,         5,      21,             ,
 Shock (Sao),                40,         4,      16,             30,         Slow recover
-Combined (Kuro/Sao),        60,         4,      12,             20,         ,
-Thunder (Sao),              200,        2,      8,              60,         ,
+Combined (Kuro/Sao),        60,         4,      12,             20,
+Thunder (Sao),              200,        2,      8,              60,
 Heal (Kuro),                50 (add),   7,      24,             ,           The entire party
 Meditate (Kuro),            50 (add),   7,      24,             ,           The entire party
-Fair A (Ferment/Windeye),   20,         4,      20,             ,           ,
-Fair B (Viridi),            25,         4,      16,             ,           ,
-Phibia,                     5,          6,      22,             ,           ,
-Destroyer,                  30,         2,      10,             ,           ,
-Kingpin,                    40,         1,      8,              ,           ,
-Ni,                         30,         gen,    gen,            gen,        ,
+Fair A (Ferment/Windeye),   20,         4,      20,             ,
+Fair B (Viridi),            25,         4,      16,             ,
+Phibia,                     5,          6,      22,             ,
+Destroyer,                  30,         2,      10,             ,
+Kingpin,                    40,         1,      8,              ,
+Ni,                         30,         gen,    gen,            gen,
