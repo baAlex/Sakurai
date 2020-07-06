@@ -74,19 +74,26 @@ static void* sChoreographyFrame()
 
 	ActorsDraw(0);
 
-	if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
+	if (!(s_choreo_attacker->action->tags & TAG_ACTION_PARTY))
 	{
-		if (s_choreo_attacker->persona->tags & TAG_ENEMY)
-			CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
-			              (CURRENT_FRAME - s_choreo_start) - 1);
-		else
-			CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
-			              (CURRENT_FRAME - s_choreo_start) - 1);
-	}
+		if ((CURRENT_FRAME - s_choreo_start) - 1 < 6)
+		{
+			if (s_choreo_attacker->persona->tags & TAG_PERSONA_ENEMY)
+				CmdDrawSprite(s_spr_fx2, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+				              (CURRENT_FRAME - s_choreo_start) - 1);
+			else
+				CmdDrawSprite(s_spr_fx1, s_choreo_attacker->target->x, s_choreo_attacker->target->y,
+				              (CURRENT_FRAME - s_choreo_start) - 1);
+		}
 
-	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
-	CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
-	CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y + 3, s_choreo_hp_str);
+		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 41);
+		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->target->x, s_choreo_attacker->target->y, 61);
+		CmdDrawText(s_font1a, s_choreo_attacker->target->x, s_choreo_attacker->target->y + 3, s_choreo_hp_str);
+	}
+	else /* The action applies to the own party */
+	{
+		CmdDrawRectanglePrecise(34, 3, s_choreo_attacker->x, s_choreo_attacker->y, 36);
+	}
 
 	/* Bye! */
 	CmdHalt();
@@ -118,15 +125,11 @@ static void* sChoreographyInit()
 			g_actor[i].state = ACTOR_STATE_CHARGE;
 	}
 
-	/* During a choreography is the only time that actors lose health,
-	   so we keep an eye on the main heroes to update the HUD accordingly */
-	if (g_actor[ACTOR_KURO].health != g_actor[ACTOR_KURO].prev_health ||
-	    g_actor[ACTOR_SAO].health != g_actor[ACTOR_SAO].prev_health)
-		UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
-
 	/* How many health our target loss? */
-	s_choreo_hp_str =
-	    NumberToString((s_choreo_attacker->target->prev_health - s_choreo_attacker->target->health), s_choreo_buffer);
+	if (s_choreo_attacker->action == &g_action[ACTION_GENERIC])
+		s_choreo_hp_str = NumberToString(s_choreo_attacker->persona->generic_damage, s_choreo_buffer);
+	else
+		s_choreo_hp_str = NumberToString(s_choreo_attacker->action->amount, s_choreo_buffer);
 
 	return sChoreographyFrame();
 }
@@ -160,6 +163,7 @@ static uint8_t s_panel_selection = 0;
 static void* sPanelFrame()
 {
 	void* next_frame = (void*)sPanelFrame;
+	struct Action* action = NULL;
 
 	if (INPUT_START == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sPanelResumeFromPause);
@@ -191,18 +195,57 @@ static void* sPanelFrame()
 		s_panel_selection = UiPanelTarget_dynamic(s_spr_items, s_panel_selection);
 	}
 
-	/* Player pressed enter, is turn for the next screen?, next player or to go back to battle? */
 	if (INPUT_X == 1 || INPUT_Y == 1)
 	{
-		/* Go to next screen */
+		/* Overwrite actor action */
 		if (s_panel_screen == PANEL_SCREEN_ACTION)
 		{
-			next_frame = sPreparePanel(s_panel_actor, PANEL_SCREEN_TARGET);
+			/* HACK, following values are all hardcoded */
+			if (s_panel_selection == 0)
+				action = &g_action[ACTION_SIMPLE];
+			else if (s_panel_selection == 1)
+				action = &g_action[ACTION_COMBINED];
+			else if (s_panel_selection == 4)
+				action = &g_action[0]; /* TODO, "Hold position" */
+
+			if (g_actor[s_panel_actor].persona == &g_heroes[PERSONALITY_KURO])
+			{
+				if (s_panel_selection == 2)
+					action = &g_action[ACTION_HEAL];
+				else if (s_panel_selection == 3)
+					action = &g_action[ACTION_MEDITATE];
+			}
+			else
+			{
+				if (s_panel_selection == 2)
+					action = &g_action[ACTION_SHOCK];
+				else if (s_panel_selection == 3)
+					action = &g_action[ACTION_THUNDER];
+			}
+			/* </HACK> */
+
+			if (action == NULL)
+				action = &g_action[ACTION_GENERIC];
+
+			if (g_actor[s_panel_actor].magic >= action->magic_cost)
+			{
+				g_actor[s_panel_actor].action = action;
+
+				/* This action needs an target screen? */
+				if (!(action->tags & TAG_ACTION_PARTY))
+					next_frame = sPreparePanel(s_panel_actor, PANEL_SCREEN_TARGET);
+				else
+					goto next_actor;
+			}
 		}
 
-		/* Check the next actor, if it need the panel */
+		/* Overwrite actor target */
 		else
 		{
+			g_actor[s_panel_actor].target = &g_actor[s_panel_selection];
+
+		next_actor:
+			/* Check the next actor, if it need the panel */
 			g_actor[s_panel_actor].panel_done = 1; /* To avoid show the panel multiple times */
 
 		again:
@@ -214,9 +257,7 @@ static void* sPanelFrame()
 					goto again;
 			}
 			else
-			{
 				next_frame = sPrepareBattle();
-			}
 		}
 	}
 

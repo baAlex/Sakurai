@@ -1,7 +1,8 @@
 ACTION,                 HEALTH, MAGIC,  CHARGE,     MP COST,    NOTES
-Simple (Kuro, Sao),     -20,    -,      5,          -,          -
-Combined (Kuro, Sao),   -60,    -,      3,          20,         -
+Generic                 -20,    -,      4,          -,          -
+Simple (Kuro-Sao),      -20,    -,      5,          -,          -
+Combined (Kuro-Sao),    -60,    -,      3,          20,         -
 Shock (Sao),            -40,    -,      4,          30,         Slow recover
-Thunder (Sao),          -255,   -,      2,          60,         -
-Heal (Kuro),            +50,    -,      4,          -,          The entire party
-Meditates (Kuro),       -,      +50,    5,          -,          The entire party
+Thunder (Sao),          -200,   -,      2,          60,         -
+Heal (Kuro),            +50,    -,      7,          -,          The entire party
+Meditate (Kuro),        -,      +50,    7,          -,          The entire party

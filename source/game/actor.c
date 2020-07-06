@@ -103,7 +103,6 @@ void ActorsInitialize(uint8_t battle_no)
 			/* Revive heroes for battle zero */
 			g_actor[i].state = ACTOR_STATE_IDLE;
 			g_actor[i].health = g_actor[i].persona->initial_health;
-			g_actor[i].prev_health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
 		}
 		else
@@ -174,7 +173,7 @@ void ActorsInitialize(uint8_t battle_no)
 			e = EnemyPersonaIndex(g_actor[i].persona);
 			s_temp[e] += 1;
 
-			if ((g_actor[i].persona->tags & TAG_DIFFICULT) && s_temp[e] > 2)
+			if ((g_actor[i].persona->tags & TAG_PERSONA_DIFFICULT) && s_temp[e] > 2)
 			{
 				IntPrintText("Replaced difficult enemy ");
 				IntPrintNumber(e);
@@ -185,7 +184,6 @@ void ActorsInitialize(uint8_t battle_no)
 
 			/* Finally set health and magic based on the personality */
 			g_actor[i].health = g_actor[i].persona->initial_health;
-			g_actor[i].prev_health = g_actor[i].persona->initial_health;
 			g_actor[i].magic = g_actor[i].persona->initial_magic;
 		}
 	}
@@ -293,7 +291,7 @@ static struct Actor* sFindTarget(struct Actor* actor)
 	uint8_t step = 0;
 
 	/* Find a hero for this enemy */
-	if (actor->persona->tags & TAG_ENEMY)
+	if (actor->persona->tags & TAG_PERSONA_ENEMY)
 	{
 		i = (uint8_t)Random() % ON_SCREEN_HEROES;
 
@@ -350,6 +348,8 @@ static void sSetChargeState(struct Actor* actor)
 
 static int sAttack(struct Actor* actor)
 {
+	uint8_t prev_health = 0;
+
 	/* If our target is dead, find another */
 	if (actor->target->state == ACTOR_STATE_DEAD)
 	{
@@ -358,23 +358,28 @@ static int sAttack(struct Actor* actor)
 	}
 
 	/* Apply the action */
-	actor->target->recover_timer = 255;
-	actor->target->prev_health = actor->target->health;
-
+	prev_health = actor->target->health;
 	actor->action->callback(actor->action, actor);
 
-	if (actor->target->state == ACTOR_STATE_CHARGE)
+	if (actor->target->health < prev_health)
 	{
-		/* If the target was 'charging', penalize it, this
-		   to lower the game pace in a subtle way */
+		/* Only set the recover time if there is real damage,
+		   some actions don't hurt (but apply other effects) */
+		actor->target->recover_timer = 255;
 
-		/* FIXME: just like the 'attack' limbo. Intercepting modules
-		   don't want actors that travel back in time */
+		if (actor->target->state == ACTOR_STATE_CHARGE)
+		{
+			/* If the target was 'charging', penalize it, this
+			   to lower the game pace in a subtle way */
 
-		if ((actor->target->charge_timer >> 1) == 0)
-			actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1; /* FIXME!!!!!!!!!!!! */
-		else
-			actor->target->charge_timer = actor->target->charge_timer >> 1;
+			/* FIXME: just like the 'attack' limbo. Intercepting modules
+			   don't want actors that travel back in time */
+
+			if ((actor->target->charge_timer >> 1) == 0)
+				actor->target->charge_timer = (actor->target->charge_timer >> 1) + 1; /* FIXME */
+			else
+				actor->target->charge_timer = actor->target->charge_timer >> 1;
+		}
 	}
 
 	if (actor->target->health == 0)
@@ -382,7 +387,7 @@ static int sAttack(struct Actor* actor)
 		/* Well done, we killed it! */
 		actor->target->state = ACTOR_STATE_DEAD;
 
-		if ((actor->target->persona->tags & TAG_ENEMY))
+		if ((actor->target->persona->tags & TAG_PERSONA_ENEMY))
 			g_live_enemies -= 1;
 		else
 			g_live_heroes -= 1;

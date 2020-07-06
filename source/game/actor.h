@@ -44,7 +44,6 @@ struct Actor
 	uint8_t recover_timer; /* From 255 to 0 */
 
 	uint8_t phase;
-	uint8_t prev_health;
 
 	/* Not used by actor logic: */
 	uint8_t panel_done;
