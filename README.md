@@ -2,12 +2,15 @@
 Sakurai
 =======
 
-Turn based role-playing game for real mode DOS.
-Submission for [MS-DOS game jam #2](https://itch.io/jam/dos-game-jam-2).
-
-**Currently in development**.
+Turn based role-playing game for real mode DOS. **Currently in development**.
 
 ![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/media/banner-gameplay.png)
+
+____
+
+What follows in this file is intended for development purposes. If is not the case please check:
+- Distributable readme in: [resources/distributable-readme.txt](https://github.com/baAlex/Sakurai/blob/master/resources/distributable-readme.txt)
+- Game information at: [baalex.itch.io/tanakas-magical-business](https://baalex.itch.io/tanakas-magical-business)
 
 
 Compilation
@@ -24,6 +27,11 @@ git clone https://github.com/baAlex/Sakurai.git
 cd Sakurai
 ninja -f ./resources/build.ninja
 ```
+
+### About the Cmake file
+It happens that BCC don't perform many checks and most of the time invalid code ends compiled whitout any warning. So, the Cmake file is there just to compile the files in a modern enviroment.
+
+No modern platform is supported at the moment.
 
 
 License

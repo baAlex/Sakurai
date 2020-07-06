@@ -99,7 +99,7 @@ void* StateScreenshots()
 	s_spr_portraits = IntLoadSprite("assets/ui-ports.jvn");
 	s_spr_items = IntLoadSprite("assets/ui-items.jvn");
 
-	Seed(300);
+	Seed(307);
 	TraitsInitialize();
 	ActorsInitialize(0);
 
