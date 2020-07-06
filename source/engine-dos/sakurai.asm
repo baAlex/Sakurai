@@ -165,8 +165,8 @@ Main_loop_no_sleep:
 		push ax ; Has the TimeGet() return
 		mov dx, [keyboard_state + 0x2C] ; X
 		push dx
-		;mov dx, [keyboard_state + 0x2D] ; Y
-		;push dx
+		mov dx, [keyboard_state + 0x1C] ; Y
+		push dx
 		;mov dx, [keyboard_state + 0x1E] ; A
 		;push dx
 		;mov dx, [keyboard_state + 0x1F] ; B
@@ -204,8 +204,8 @@ Main_loop_no_sleep:
 		;mov byte [input_b], dl
 		;pop dx
 		;mov byte [input_a], dl
-		;pop dx
-		;mov byte [input_y], dl
+		pop dx
+		mov byte [input_y], dl
 		pop dx
 		mov byte [input_x], dl
 		pop dx
