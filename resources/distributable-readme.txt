@@ -14,7 +14,7 @@ you to criticize it. Isn't easy make one, so I will love hear any
 feedback. <3
 
 Finally "Tanaka's magical business" is an open-source project, don't
-forget to download the source code.
+forget download the source code.
 
 For more information and updates visit:
 	https://baalex.itch.io/tanakas-magical-business
