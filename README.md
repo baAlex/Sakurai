@@ -8,9 +8,9 @@ Turn based role-playing game for real mode DOS. **Currently in development**.
 
 ____
 
-What follows in this file is intended for development purposes. If is not the case please check:
-- Distributable readme in: [resources/distributable-readme.txt](https://github.com/baAlex/Sakurai/blob/master/resources/distributable-readme.txt)
-- Game information at: [baalex.itch.io/tanakas-magical-business](https://baalex.itch.io/tanakas-magical-business)
+This file is intended for development purposes, if isn't your case please check:
+- Game website at: [baalex.itch.io/tanakas-magical-business](https://baalex.itch.io/tanakas-magical-business)
+- Distributable readme in: [/resources/distributable-readme.txt](https://github.com/baAlex/Sakurai/blob/master/resources/distributable-readme.txt)
 
 
 Compilation
@@ -29,9 +29,14 @@ ninja -f ./resources/build.ninja
 ```
 
 ### About the Cmake file
-It happens that BCC don't perform many checks and most of the time invalid code ends compiled whitout any warning. So, the Cmake file is there just to compile the files in a modern enviroment.
+It happens that `bcc` don't perform many checks and most of the time invalid code ends compiled without any warning. The Cmake file is there just to compile the game logic code with a modern toolset. Note that the engine (wrote in assembly) do not support any other platform rather than DOS.
 
-No modern platform is supported at the moment.
+
+Project name
+------------
+«Tanaka's magical business» is the project name, «Sakurai» the codename. There is no legal implication in any of the two, and is not the idea make a distinction between modules or editions. Both names refer to the same thing.
+
+The codename is shorter, thus used in development. The name longer and explicit in a hope of allowing translations without meaning loss. I know that everybody will use the English name and also that there is a trend of video games being named with catchy single words. Well, I went old-school here hoping to see a «Negocios mágicos de Tanaka» some day.
 
 
 License

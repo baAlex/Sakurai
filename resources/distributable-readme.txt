@@ -46,8 +46,6 @@ Credits
 This is a solo-developer project. I'm Alexander Brandt, greetings.
 A sincere thank you for playing, few people try a game in this state.
 
-To Ennio Morricone.
-
 
 Contact
 -------
@@ -63,8 +61,8 @@ Troubleshooting
 ---------------
 ### A. I can't run the game on Windows
 
-Note that modern versions of Windows are not supported. If is the case you
-should use an emulator.
+Modern versions of Windows are not supported. If is the case you should use
+an emulator.
 
 Older versions as 3.0, 95, 98 or ME are know to work well having the caution
 of meet the minimum requirements.
