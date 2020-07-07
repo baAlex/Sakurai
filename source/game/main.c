@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define BATTLE
+/*#define BATTLE*/
 
 
 void* StateHello();
@@ -56,9 +56,9 @@ void* StateHello()
 	   most states returns themselves */
 
 	IntPrintText("Tanaka's magical business v0.2-alpha\n");
-	IntPrintText("- Max commands: ");
+	IntPrintText(" - Max commands: ");
 	IntPrintNumber(MAX_COMMANDS);
-	IntPrintText("- Current milliseconds: ");
+	IntPrintText(" - Current milliseconds: ");
 	IntPrintNumber(CURRENT_MILLISECONDS);
 	IntPrintText("\n");
 

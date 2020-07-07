@@ -32,8 +32,8 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-#define DEVELOPER
-/*#define AUTO_BATTLE*/
+/*#define DEVELOPER
+#define AUTO_BATTLE*/
 
 static uint8_t s_battle_no = 0;
 
