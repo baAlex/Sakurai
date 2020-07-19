@@ -32,14 +32,18 @@ SOFTWARE.
 #include "utilities.h"
 
 
-/*#define BATTLE*/
+#define TEST1
 
 
 void* StateHello();
 static void* (*s_next_state)() = StateHello;
 
 
+#if defined(__BCC__) && defined(__MSDOS__)
 int main()
+#else
+int GameMain()
+#endif
 {
 	/* PROTIP: 'state-battle.c' is the file you are looking for, this
 	   entry point only has the purpose of redirect to the actual state.
@@ -55,7 +59,7 @@ void* StateHello()
 	   other state should return what to call in the following frame,
 	   most states returns themselves */
 
-	IntPrintText("Tanaka's magical business v0.2-alpha\n");
+	IntPrintText("Tanaka's magical business v0.3-alpha\n");
 	IntPrintText(" - Max commands: ");
 	IntPrintNumber(MAX_COMMANDS);
 	IntPrintText(" - Current milliseconds: ");

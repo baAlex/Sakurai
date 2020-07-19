@@ -27,7 +27,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Ubuntu release
-        path: build-release/sakurai
+        path: build-release/
 
     - name: Compile debug build
       run: |
@@ -40,4 +40,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Ubuntu debug
-        path: build-debug/sakurai
+        path: build-debug/

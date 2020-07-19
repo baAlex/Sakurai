@@ -1,6 +1,8 @@
 
 Sakurai
 =======
+[![Ubuntu CI](https://github.com/baAlex/sakurai/workflows/Ubuntu/badge.svg)](https://github.com/baAlex/sakurai/actions?query=workflow%3AUbuntu)
+[![Windows CI](https://github.com/baAlex/sakurai/workflows/Windows/badge.svg)](https://github.com/baAlex/sakurai/actions?query=workflow%3AWindows)
 
 Turn based role-playing game for real mode DOS. **Currently in development**.
 
@@ -29,7 +31,7 @@ ninja -f ./resources/build.ninja
 ```
 
 ### About the Cmake file
-It happens that `bcc` don't perform many checks and most of the time invalid code ends compiled without any warning. The Cmake file is there just to compile the game logic code with a modern toolset. Note that the engine (wrote in assembly) do not support any other platform rather than DOS.
+It happens that `bcc` don't perform many checks and most of the time invalid code ends compiled without any warning. The Cmake file is there just to compile the game logic code with a modern tool-set. Note that the engine (wrote in assembly) do not support any other platform rather than DOS.
 
 
 Project name

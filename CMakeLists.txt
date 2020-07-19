@@ -18,6 +18,7 @@ set(SOURCES
 	"./source/game/actor-traits.c"
 	"./source/game/engine.c"
 	"./source/game/fixed.c"
+	"./source/game/main.c"
 	"./source/game/state-battle.c"
 	"./source/game/state-intro.c"
 	"./source/game/state-pause.c"
@@ -32,8 +33,8 @@ set(SOURCES
 add_executable("sakurai" ${SOURCES})
 
 # LibJapan
-option(JA_BUILD_SHARED OFF)
-option(JA_BUILD_TEST OFF)
+set(JA_BUILD_SHARED OFF)
+set(JA_BUILD_TEST OFF)
 
 add_subdirectory("./source/engine-sdl/libjapan")
 target_link_libraries("sakurai" "japan-static")
@@ -41,25 +42,11 @@ target_link_libraries("sakurai" "japan-static")
 target_include_directories("sakurai" PRIVATE "./source/engine-sdl/libjapan/include")
 
 # LibKansai
-option(KA_BUILD_SHARED OFF)
+set(KA_BUILD_SHARED OFF)
+set(KA_BUILD_SKETCHES OFF)
 
 add_subdirectory("./source/engine-sdl/libkansai")
 target_link_libraries("sakurai" "kansai-static")
 
 target_include_directories("kansai-static" PRIVATE "./source/engine-sdl/libjapan/include")
 target_include_directories("sakurai" PRIVATE "./source/engine-sdl/libkansai/include")
-
-# SDL2
-if (DEFINED VCPKG_TOOLCHAIN)
-	find_package(SDL2)
-	target_link_libraries(sakurai SDL2::SDL2 SDL2::SDL2main)
-else()
-	find_package(SDL2)
-	target_link_libraries(sakurai ${SDL2_LIBRARIES})
-	target_include_directories(sakurai PRIVATE ${SDL2_INCLUDE_DIR})
-endif()
-
-# Math (Linux)
-if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-target_link_libraries("sakurai" "m")
-endif()

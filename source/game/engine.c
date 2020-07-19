@@ -31,12 +31,24 @@ SOFTWARE.
 #include "engine.h"
 
 
+#if defined(__BCC__) && defined(__MSDOS__)
+
 #define INT_FD_ARG1_OFFSET 0x0008
 #define INT_FD_ARG2_OFFSET 0x000A
 #define INT_FD_ARG3_OFFSET 0x000C
 #define INT_FD_ARG4_OFFSET 0x000E
-
 #define COMMANDS_TABLE_OFFSET 0x0020
+
+#else
+
+extern void (*g_interrupt)();
+#define INT_FD_ARG1_OFFSET (g_psp_offset + 0x0008)
+#define INT_FD_ARG2_OFFSET (g_psp_offset + 0x000A)
+#define INT_FD_ARG3_OFFSET (g_psp_offset + 0x000C)
+#define INT_FD_ARG4_OFFSET (g_psp_offset + 0x000E)
+#define COMMANDS_TABLE_OFFSET (g_psp_offset + 0x0020)
+
+#endif
 
 #define CODE_HALT 0x00
 #define CODE_DRAW_BKG 0x01
@@ -82,7 +94,8 @@ struct CmdDrawText
 	uint16_t y;
 };
 
-union Command {
+union Command
+{
 	uint8_t code;
 	struct CmdDrawShape shape;
 	struct CmdDrawSprite sprite;
@@ -95,72 +108,79 @@ static uint8_t s_cmd_counter = 0;
 
 void IntPrintText(char* text)
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x01;
 	*((uint16_t*)INT_FD_ARG2_OFFSET) = (uint16_t)text;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
 #else
-	(void)text;
+	g_interrupt();
 #endif
 }
 
 
 void IntPrintNumber(uint16_t number)
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x02;
 	*((uint16_t*)INT_FD_ARG2_OFFSET) = number;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
 #else
-	(void)number;
+	g_interrupt();
 #endif
 }
 
 
 void IntLoadBackground(char* filename)
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x03;
 	*((uint16_t*)INT_FD_ARG2_OFFSET) = (uint16_t)filename;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
 #else
-	(void)filename;
+	g_interrupt();
 #endif
 }
 
 
 uint8_t IntLoadSprite(char* filename)
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x07;
 	*((uint16_t*)INT_FD_ARG2_OFFSET) = (uint16_t)filename;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
+#else
+	g_interrupt();
+#endif
 
 	return *((uint16_t*)INT_FD_ARG1_OFFSET);
-#else
-	(void)filename;
-	return 0;
-#endif
 }
 
 
 void IntFreeSprite(uint8_t sprite)
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x08;
 	*((uint16_t*)INT_FD_ARG2_OFFSET) = sprite;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
 #else
-	(void)sprite;
+	g_interrupt();
 #endif
 }
 
 
 void IntUnloadAll()
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x05;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
+#else
+	g_interrupt();
 #endif
 }
 
@@ -168,19 +188,24 @@ void IntUnloadAll()
 void IntFlushCommands()
 {
 	s_cmd_counter = 0;
+	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x06;
 
 #if defined(__BCC__) && defined(__MSDOS__)
-	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x06;
 	asm("int 0xFD");
+#else
+	g_interrupt();
 #endif
 }
 
 
 void IntExitRequest()
 {
-#if defined(__BCC__) && defined(__MSDOS__)
 	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x09;
+
+#if defined(__BCC__) && defined(__MSDOS__)
 	asm("int 0xFD");
+#else
+	g_interrupt();
 #endif
 }
 

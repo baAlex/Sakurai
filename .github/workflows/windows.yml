@@ -28,7 +28,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Windows release
-        path: build-release\release\sakurai.exe
+        path: build-release\release\
 
     - name: Compile debug build
       shell: cmd
@@ -43,4 +43,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Windows debug
-        path: build-debug\debug\sakurai.exe
+        path: build-debug\debug\
