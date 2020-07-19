@@ -33,8 +33,8 @@ set(SOURCES
 add_executable("sakurai" ${SOURCES})
 
 # LibJapan
-set(JA_BUILD_SHARED OFF)
-set(JA_BUILD_TEST OFF)
+option(JA_BUILD_SHARED OFF)
+option(JA_BUILD_TEST OFF)
 
 add_subdirectory("./source/engine-sdl/libjapan")
 target_link_libraries("sakurai" "japan-static")
@@ -42,8 +42,8 @@ target_link_libraries("sakurai" "japan-static")
 target_include_directories("sakurai" PRIVATE "./source/engine-sdl/libjapan/include")
 
 # LibKansai
-set(KA_BUILD_SHARED OFF)
-set(KA_BUILD_SKETCHES OFF)
+option(KA_BUILD_SHARED OFF)
+option(KA_BUILD_SKETCHES OFF)
 
 add_subdirectory("./source/engine-sdl/libkansai")
 target_link_libraries("sakurai" "kansai-static")
