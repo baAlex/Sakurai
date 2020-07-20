@@ -3,8 +3,21 @@ cmake_minimum_required(VERSION 3.10)
 project("Sakurai" C)
 
 if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_C_COMPILER_ID MATCHES "GNU"))
-	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -std=c11 -Wall -Wextra -Wconversion -pedantic")
+
+	# 'Wconversion' and 'pedantic' is too much:
+	# - The game code relies on under/overflows as is written to work on a 16 bits chip
+	# - And this isn't a fresh/new port but an engine: I can't modify the rough parts of the
+	# game code without cause issues with the Dos engine, and both needs to live together...
+
+	# I really love those flags :(
+
+	# Anyway, the following '-conversion' flags should cover the cases of implicit 16 bits
+	# pointers (ye'olde near pointers).
+
+	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -std=c11 -Wall -Wextra -Wint-conversion -Wpointer-to-int-cast")
 	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -mtune=generic")
+	# set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -std=c11 -Wall -Wextra -Wconversion -pedantic")
+
 elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /utf-8")
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Od /Zi /D_CRT_SECURE_NO_WARNINGS")
