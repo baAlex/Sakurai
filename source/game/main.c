@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define BATTLE
+#define TEST2
 
 
 void* StateHello();

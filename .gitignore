@@ -23,6 +23,7 @@
 # Developers, developers, developers
 /plot-*.png
 
+/*.sgi
 /.ninja_log
 /.ninja_deps
 
