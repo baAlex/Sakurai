@@ -26,6 +26,7 @@ endif()
 
 set(SOURCES
 	"./source/engine-sdl/sakurai.c"
+	"./source/engine-sdl/game-commands.c"
 	"./source/game/actor.c"
 	"./source/game/actor-layout.c"
 	"./source/game/actor-traits.c"

@@ -132,6 +132,7 @@ void ActorsInitialize(uint8_t battle_no)
 			g_actor[i].state = ACTOR_STATE_IDLE;
 			g_actor[i].phase = (uint8_t)Random();
 			g_actor[i].effects = EFFECT_NONE;
+			g_actor[i].action = NULL;
 
 		again:
 
@@ -259,7 +260,7 @@ void ActorsDraw(uint8_t oscillate)
 			/* Same as before, now with an oscillating sprite */
 			if (g_actor[i].recover_timer == 0)
 			{
-				if (oscillate == 1)
+				if (oscillate == 1 && g_actor[i].action != NULL)
 					g_actor[i].phase += g_actor[i].action->oscillation_velocity;
 
 				x = (uint16_t)((int16_t)g_actor[i].x + ((int16_t)Sin(g_actor[i].phase) >> 5));
