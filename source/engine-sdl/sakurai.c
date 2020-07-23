@@ -36,6 +36,7 @@ SOFTWARE.
 #include <string.h>
 #include <time.h>
 
+#include "japan-image.h"
 #include "japan-matrix.h"
 #include "japan-version.h"
 #include "kansai-context.h"
@@ -183,7 +184,7 @@ static void sInterrupt()
 static void sColorize(const uint8_t* palette, const struct jaImage* indexed, struct jaImage* out)
 {
 	uint8_t* in = indexed->data;
-	uint8_t* end_in = indexed->data + indexed->size;
+	uint8_t* end_in = in + indexed->size;
 	uint8_t* p = out->data;
 
 	for (; in < end_in; in++)
