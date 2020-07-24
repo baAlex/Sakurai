@@ -339,6 +339,14 @@ static void sFunction(struct kaWindow* w, int f, void* raw_data, struct jaStatus
 
 	else if (f == 12)
 	{
+		FILE* fp = fopen("devtest4.raw", "w");
+
+		if(fp != NULL)
+		{
+			fwrite(s_data.palette, PALETTE_SIZE, 1, fp);
+			fclose(fp);
+		}
+
 		jaImageSaveSgi(s_data.buffer_color, "devtest1.sgi", NULL);
 		jaImageSaveSgi(s_data.buffer_indexed, "devtest2.sgi", NULL);
 		jaImageSaveSgi(s_data.buffer_background, "devtest3.sgi", NULL);
