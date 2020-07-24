@@ -332,25 +332,16 @@ static void sFunction(struct kaWindow* w, int f, void* raw_data, struct jaStatus
 {
 	(void)w;
 	(void)raw_data;
+	(void)st;
 
 	if (f == 11)
 		kaSwitchFullscreen(w);
 
 	else if (f == 12)
 	{
-		char tstr[64];
-		char filename[256];
-
-		time_t t;
-		time(&t);
-
-		strftime(tstr, 64, "%Y-%m-%e, %H:%M:%S", localtime(&t));
-		sprintf(filename, "%s - %s (%i).sgi", NAME, tstr, s_data.screenshot_counter);
-
-		s_data.screenshot_counter += 1;
-
-		if (jaImageSaveSgi(s_data.buffer_color, filename, st) != 0)
-			return;
+		jaImageSaveSgi(s_data.buffer_color, "devtest1.sgi", NULL);
+		jaImageSaveSgi(s_data.buffer_indexed, "devtest2.sgi", NULL);
+		jaImageSaveSgi(s_data.buffer_background, "devtest3.sgi", NULL);
 	}
 }
 
