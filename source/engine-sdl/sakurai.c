@@ -153,7 +153,7 @@ static void sInterrupt()
 	case 0x03: // GameLoadBackground
 
 		printf("@GameLoadBackground: '%s'\n", (char*)s_psp.ifd_arg2);
-		FILE* fp = fopen((char*)s_psp.ifd_arg2, "r");
+		FILE* fp = fopen((char*)s_psp.ifd_arg2, "rb");
 
 		if (fp != NULL)
 		{
@@ -270,7 +270,10 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 	}
 
 	// TODO, move to another place!
-	FILE* fp = fopen("assets/palette.raw", "r");
+	FILE* fp = fopen("assets/palette.raw", "rb");
+
+	// PROTIP: With a simple "r" Windows opens in text mode, stopping any reading at '\n',
+	//         here in POSIX text and binary seems to be the same thing.
 
 	if (fp != NULL)
 	{
@@ -339,9 +342,9 @@ static void sFunction(struct kaWindow* w, int f, void* raw_data, struct jaStatus
 
 	else if (f == 12)
 	{
-		FILE* fp = fopen("devtest4.raw", "w");
+		FILE* fp = fopen("devtest4.raw", "wb");
 
-		if(fp != NULL)
+		if (fp != NULL)
 		{
 			fwrite(s_data.palette, PALETTE_SIZE, 1, fp);
 			fclose(fp);
