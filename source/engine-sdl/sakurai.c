@@ -68,12 +68,10 @@ SOFTWARE.
 
 struct EngineData
 {
-	int screenshot_counter;
 	size_t game_last_update;
 
 	uint8_t palette[PALETTE_SIZE];
 
-	float screen_scale;
 	struct kaTexture screen_texture;
 	struct kaProgram screen_program;
 
@@ -140,7 +138,7 @@ extern int GameMain();
 // </!!!>
 
 
-static void sInterrupt()
+static void sGameInterrupt()
 {
 	switch (s_psp.ifd_arg1)
 	{
@@ -181,7 +179,7 @@ static void sInterrupt()
 }
 
 
-static void sColorize(const uint8_t* palette, const struct jaImage* indexed, struct jaImage* out)
+static inline void sColorize(const uint8_t* palette, const struct jaImage* indexed, struct jaImage* out)
 {
 	uint8_t* in = indexed->data;
 	uint8_t* end_in = in + indexed->size;
@@ -198,7 +196,7 @@ static void sColorize(const uint8_t* palette, const struct jaImage* indexed, str
 }
 
 
-static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
+static void sEngineInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 {
 	(void)raw_data;
 	(void)st;
@@ -207,9 +205,9 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 
 	g_psp_offset = (uintptr_t)(&s_psp);
 	g_ifd_args_offset = (uintptr_t)(&(s_psp.ifd_arg1));
-	g_interrupt = sInterrupt;
+	g_interrupt = sGameInterrupt;
 
-	// Create images to act as a buffers
+	// Create images to act as buffers
 	if ((s_data.buffer_indexed = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL)
 	{
 		st->code = JA_STATUS_ERROR;
@@ -232,30 +230,22 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 	memset(s_data.buffer_background->data, 0, s_data.buffer_background->size);
 	memset(s_data.buffer_color->data, 0, s_data.buffer_color->size);
 
-	// A texture as screen, an unfiltered texture
-	// (is better let the shader deal with interpolations, avoids mipmap generation
-	// and allows non power of two dimensions)
-	{
-		if (kaTextureInitImage(w, s_data.buffer_color, KA_FILTER_NONE, &s_data.screen_texture, st) != 0)
-			return;
-
-		// https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences#Non-Power_of_Two_Texture_Support
-		// FIXME, i need to set the warp to 'CLAMP_TO_EDGE'
-	}
+	// A texture as screen, an unfiltered one
+	// PROTIP: CLAMP is to allow a non power of two dimension
+	if (kaTextureInitImage(w, s_data.buffer_color, KA_FILTER_NONE, KA_CLAMP, &s_data.screen_texture, st) != 0)
+		return;
 
 	kaSetTexture(w, 0, &s_data.screen_texture);
 
 	// Finally a program
 	{
-		const char* vertex_code =
-		    "#version 100\n"
-		    "attribute vec3 vertex_position; attribute vec2 vertex_uv;"
-		    "uniform mat4 world; uniform mat4 camera; uniform vec3 camera_position;"
-		    "uniform vec3 local_position; uniform vec3 local_scale;"
-		    "varying vec2 uv;"
+		const char* vertex_code = "#version 100\n"
+		                          "attribute vec3 vertex_position; attribute vec2 vertex_uv;"
+		                          "uniform mat4 world; uniform mat4 local; uniform mat4 camera;"
+		                          "varying vec2 uv;"
 
-		    "void main() { uv = vertex_uv;"
-		    "gl_Position = world * camera * vec4(local_position + (vertex_position * local_scale), 1.0); }";
+		                          "void main() { uv = vertex_uv;"
+		                          "gl_Position = world * local * camera * vec4(vertex_position, 1.0); }";
 
 		const char* fragment_code = "#version 100\n"
 		                            "uniform sampler2D texture0;"
@@ -269,25 +259,24 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 		kaSetProgram(w, &s_data.screen_program);
 	}
 
-	// TODO, move to another place!
-	FILE* fp = fopen("assets/palette.raw", "rb");
-
-	// PROTIP: With a simple "r" Windows opens in text mode, stopping any reading at '\n',
-	//         here in POSIX text and binary seems to be the same thing.
-
-	if (fp != NULL)
+	// TODO, move this to another place!
 	{
-		fread(s_data.palette, PALETTE_SIZE, 1, fp);
+		FILE* fp = fopen("assets/palette.raw", "rb");
 
-		for (size_t i = 0; i < PALETTE_SIZE; i++)
-			s_data.palette[i] = s_data.palette[i] * 4;
+		if (fp != NULL)
+		{
+			fread(s_data.palette, PALETTE_SIZE, 1, fp);
 
-		fclose(fp);
+			for (size_t i = 0; i < PALETTE_SIZE; i++)
+				s_data.palette[i] = s_data.palette[i] * 4;
+
+			fclose(fp);
+		}
 	}
 }
 
 
-static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
+static void sEngineFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
 {
 	(void)e;
 	(void)delta;
@@ -302,36 +291,44 @@ static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw
 		s_psp.ms_counter = (uint16_t)current;
 		GameMain();
 
-		IterateGameCommands(&s_psp.commands_table, COMMANDS_TABLE_LEN, s_data.buffer_background, s_data.buffer_indexed);
+		DrawGameCommands(&s_psp.commands_table, COMMANDS_TABLE_LEN, s_data.buffer_background, s_data.buffer_indexed);
 		sColorize(s_data.palette, s_data.buffer_indexed, s_data.buffer_color);
 		kaTextureUpdate(w, s_data.buffer_color, 0, 0, BUFFER_WIDTH, BUFFER_HEIGHT, &s_data.screen_texture);
 
+		// Done for this frame
 		s_data.game_last_update = kaGetTime(w);
 		s_psp.frame_counter += 1;
 	}
 
 	// Update screen
-	struct jaVector3 scale = {SCREEN_WIDTH * s_data.screen_scale, SCREEN_HEIGHT * s_data.screen_scale, 1.0f};
-	kaDrawSprite(w, (struct jaVector3){0.0f, 0.0f, 0.0f}, scale);
+	kaDrawDefault(w);
 }
 
 
-static void sResize(struct kaWindow* w, int width, int height, void* raw_data, struct jaStatus* st)
+static void sEngineResize(struct kaWindow* w, int width, int height, void* raw_data, struct jaStatus* st)
 {
 	(void)raw_data;
 	(void)st;
 
-	// A value to fit the screen in the window
-	s_data.screen_scale =
+	// Camera matrix according the new window size
+	// middle is the matrix pivot/origin
+	kaSetCameraMatrix(w,
+	                  jaMatrix4Orthographic(-((float)width / 2.0f), ((float)width / 2.0f), -((float)height / 2.0f),
+	                                        ((float)height / 2.0f), 0.0f, 2.0f),
+	                  jaVector3Clean());
+
+	// Calculate a scale respecting the aspect ratio
+	float scale =
 	    ((float)width / (float)height > SCREEN_ASPECT) ? (float)height / SCREEN_HEIGHT : (float)width / SCREEN_WIDTH;
 
-	// Keeping it in the middle
-	kaSetWorld(w, jaMatrix4Orthographic(-((float)width / 2.0f), ((float)width / 2.0f), -((float)height / 2.0f),
-	                                    ((float)height / 2.0f), 0.0f, 2.0f));
+	// Local matrix for the screen
+	struct jaMatrix4 mat =
+	    jaMatrix4ScaleAnsio(jaMatrix4Identity(), (struct jaVector3){SCREEN_WIDTH * scale, SCREEN_HEIGHT * scale, 1.0f});
+	kaSetLocal(w, mat);
 }
 
 
-static void sFunction(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
+static void sFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
 {
 	(void)w;
 	(void)raw_data;
@@ -357,7 +354,7 @@ static void sFunction(struct kaWindow* w, int f, void* raw_data, struct jaStatus
 }
 
 
-static void sClose(struct kaWindow* w, void* raw_data)
+static void sEngineClose(struct kaWindow* w, void* raw_data)
 {
 	(void)raw_data;
 
@@ -380,7 +377,7 @@ int main()
 	if (kaContextStart(NULL, &st) != 0)
 		goto return_failure;
 
-	if (kaWindowCreate(CAPTION, sInit, sFrame, sResize, sFunction, sClose, NULL, &st) != 0)
+	if (kaWindowCreate(CAPTION, sEngineInit, sEngineFrame, sEngineResize, sFunctionKey, sEngineClose, NULL, &st) != 0)
 		goto return_failure;
 
 	while (1)

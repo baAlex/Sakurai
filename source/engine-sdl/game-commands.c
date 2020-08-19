@@ -185,7 +185,7 @@ struct GameCommand
 };
 
 
-void IterateGameCommands(void* raw_cmd, size_t max_commands, const struct jaImage* bkg, struct jaImage* out)
+void DrawGameCommands(void* raw_cmd, size_t max_commands, const struct jaImage* bkg, struct jaImage* out)
 {
 	struct GameCommand* cmd = raw_cmd;
 	struct GameCommand* end = cmd + max_commands;

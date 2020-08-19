@@ -9,6 +9,6 @@
 
 #include "japan-image.h"
 
-void IterateGameCommands(void* cmd, size_t max_commands, const struct jaImage* background, struct jaImage* out);
+void DrawGameCommands(void* cmd, size_t max_commands, const struct jaImage* background, struct jaImage* out);
 
 #endif
