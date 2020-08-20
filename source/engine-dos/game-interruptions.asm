@@ -125,16 +125,16 @@ GameLoadSprite:
 	SetDsDx seg_data, str_spr_load
 	call near PrintLogString ; (ds:dx)
 
-	; Read sprite header in 'sprite_header'
-	mov dx, sprite_header
-	mov cx, 2 ; For SpriteHeader::file_size
+	; Read sprite load-header in 'sprite_load_header'
+	mov dx, sprite_load_header
+	mov cx, SPRITE_LOAD_HEADER_SIZE
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 
 	push ax ; To keep fp
 
 		mov dx, str_size
 		call near PrintLogString ; (ds:dx)
-		mov ax, [sprite_header] ; SpriteHeader::file_size
+		mov ax, [sprite_load_header] ; SpriteLoadHeader::file_size
 		mov cx, ax
 		call near PrintLogNumber ; (ax)
 
@@ -167,14 +167,8 @@ GameLoadSprite:
 
 GameLoadSprite_allocated:
 
-	; Fill the already read header
-	mov [di], cx ; SpriteHeader::file_size
-
 	; Read the rest of the sprite file
 	mov dx, di
-	add dx, 2 ; Already read SpriteHeader::file_size
-	sub cx, 2 ; Already read SpriteHeader::file_size
-
 	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
 	call near FileClose ; (ax)
 

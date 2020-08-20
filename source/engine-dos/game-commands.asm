@@ -394,9 +394,9 @@ GameDrawSprite_pool_b:
 GameDrawSprite_pool_set:
 	mov ds, dx
 
-	; Read SI and CX from sprite header
-	mov si, [bx + 2] ; SpriteHeader::data_offset
-	mov cx, [bx + 4] ; SpriteHeader::frames_number
+	; Read SI and CX from sprite draw-header
+	mov si, [bx]     ; SpriteDrawHeader::data_offset
+	mov cx, [bx + 2] ; SpriteDrawHeader::frames_number
 	add si, bx
 
 	; Load frame number in AX (currently is on the higher EAX bytes)
@@ -407,10 +407,10 @@ GameDrawSprite_pool_set:
 	div cl ; Modulo by frames number
 	shr ax, 8
 
-	; Read frame code-offset (table after sprite header) using AX,
+	; Read frame code-offset (table after sprite draw-header) using AX,
 	; then point BX into the desired frame code
 	shl ax, 1 ; Multiply by the frame offsets entry size (2)
-	add bx, 6 ; Sprite header size (to skip it)
+	add bx, 4 ; Sprite draw-header so far (to skip it)
 	add bx, ax
 	add bx, [bx]
 
@@ -479,8 +479,8 @@ GameDrawText_pool_b:
 GameDrawText_pool_set:
 	mov ds, dx
 
-	; Read SI and CX from sprite header
-	mov si, [bx + 2] ; SpriteHeader::data_offset
+	; Read SI and CX from sprite draw-header
+	mov si, [bx] ; SpriteDrawHeader::data_offset
 	add si, bx
 
 	; !!!!!!
@@ -550,10 +550,10 @@ GameDrawText_draw_character:
 	push di ; Destroyed by spr_a_draw()
 	push si ; Destroyed by spr_a_draw()
 
-	; Read frame code-offset (table after sprite header) using AX,
+	; Read frame code-offset (table after sprite draw-header) using AX,
 	; then point BX into the desired frame code
 	shl ax, 1 ; Multiply by the frame offsets entry size (2)
-	add bx, 6 ; Sprite header size (to skip it)
+	add bx, 4 ; Sprite draw-header so far (to skip it)
 	add bx, ax
 	add bx, [bx]
 

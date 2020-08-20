@@ -30,6 +30,7 @@ COMMANDS_TABLE_SIZE = 224 ; In bytes
 GAME_SIZE = 24000 ; In bytes
 
 SPRITE_SLOT_SIZE = 4
+SPRITE_LOAD_HEADER_SIZE = 8
 SPRITE_INDIRECTION_TABLE_SIZE = 128 ; 32 slots
 
 
@@ -101,7 +102,7 @@ segment seg_data
 	exit_request: dw 0x0000
 
 	; Game
-	sprite_header: times 2 db 0x00 ; SpriteHeader::file_size
+	sprite_load_header: times SPRITE_LOAD_HEADER_SIZE db 0x00
 	sprite_indirection_table: times SPRITE_INDIRECTION_TABLE_SIZE db 0x00
 
 

@@ -250,7 +250,7 @@ def FramesFromIndividualFiles(filename_list)
 		previous_header = header
 	end
 
-	return frame_list
+	return frame_list, header[:width], header[:height]
 end
 
 
@@ -323,7 +323,7 @@ def FramesFromFontSheet(filename_list)
 		# FIXME?, the modulo in the engine side didn't allow 255 frames
 	end
 
-	return frame_list
+	return frame_list, char_width, char_height
 end
 
 
@@ -382,24 +382,27 @@ def OptimizedDataFromFrames(frame_list)
 end
 
 
-def EmitProgram(pingpong, font_sheet, frame_list, data_soup)
+def EmitProgram(pingpong, font_sheet, frame_list, w, h, data_soup)
 
 	# Print header
-	print("; Thanks von Neumann!\n\n")
+	print("\n; Load-header (8 bytes)\n")
 	print("dw (file_end) ; File size\n")
-	print("dw (pixels) ; Offset to data\n")
+	printf("dw 0x%02X       ; Width\n", w)
+	printf("dw 0x%02X       ; Height\n", h)
+	print("dw 0x00       ; Unused\n")
+
+	print("\n; Draw-header:\n")
+	print("dw (pixels - $)  ; Offset to data\n")
 
 	if pingpong == true && frame_list.size > 1 then
-		print("dw #{frame_list.size * 2 - 2 - 1} ; Frames number -ping pong mode-\n")
+		printf("dw 0x%02X          ; Frames number - ping pong -\n", frame_list.size * 2 - 2 - 1)
 	else
-		print("dw #{frame_list.size - 1} ; Frames number\n")
+		printf("dw 0x%02X          ; Frames number\n", frame_list.size - 1)
 	end
-
-	print("\n")
 
 	# Print frame code offsets
 	for i in 0...frame_list.size do
-		print("dw (code_f#{i} - $)\n")
+		print("dw (code_f#{i} - $) ; Frame #{i} offset\n")
 	end
 
 	# Extra frame codes offsets for pingpong playback
@@ -410,6 +413,7 @@ def EmitProgram(pingpong, font_sheet, frame_list, data_soup)
 	end
 
 	# Print code
+	print("\n; Code:\n")
 	frame_list.each_with_index() do |frame, frame_no|
 
 		print("\ncode_f#{frame_no}:\n")
@@ -483,14 +487,14 @@ def main(args)
 	end
 
 	if font_sheet == false then
-		frame_list = FramesFromIndividualFiles(ARGV)
+		frame_list, w, h = FramesFromIndividualFiles(ARGV)
 	else
-		frame_list = FramesFromFontSheet(ARGV)
+		frame_list, w, h = FramesFromFontSheet(ARGV)
 	end
 
 	data_soup = OptimizedDataFromFrames(frame_list)
 
-	EmitProgram(pingpong, font_sheet, frame_list, data_soup)
+	EmitProgram(pingpong, font_sheet, frame_list, w, h, data_soup)
 end
 
 

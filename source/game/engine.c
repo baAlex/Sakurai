@@ -156,7 +156,7 @@ uint8_t IntLoadSprite(char* filename)
 	*((uintptr_t*)g_ifd_args_offset + 1) = (uintptr_t)filename;
 	g_interrupt();
 
-	return (uint8_t)(*((uintptr_t*)g_ifd_args_offset)); // My eyes!
+	return (uint8_t)(*((uintptr_t*)g_ifd_args_offset)); /* My eyes! */
 #endif
 }
 
@@ -298,7 +298,7 @@ void CmdDrawText(uint8_t sprite, uint16_t x, uint16_t y, char* text)
 	c->text.sprite = sprite;
 	c->text.x = x;
 	c->text.y = y;
-	c->text.text = (uint16_t)text; // TODO
+	c->text.text = (uint16_t)text; /* TODO */
 
 	sIncrementCounter();
 }
