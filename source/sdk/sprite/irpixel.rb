@@ -22,49 +22,19 @@
 # SOFTWARE.
 
 
-# [sprite.rb]
+# [sprite/irpixel.rb]
 # - Alexander Brandt 2020
 
-require_relative "shared.rb"
 
-require_relative "sprite/irframe.rb"
-require_relative "sprite/irrow.rb"
-require_relative "sprite/irpixel.rb"
+class IRPixel
 
-require_relative "sprite/soup.rb"
-require_relative "sprite/read.rb"
-require_relative "sprite/write.rb"
+	attr_accessor :x
+	attr_accessor :value
 
-
-def main(args)
-
-	pingpong = false
-	font_sheet = false
-
-	# Process arguments
-	for a in args do
-		if a == "+pingpong" then pingpong = true end
-		if a == "+linear" then   pingpong = false end
-		if a == "+font" then     font_sheet = true end
+	def initialize(x:, value:)
+		@x = x
+		@value = value
 	end
 
-	args.delete("+pingpong")
-	args.delete("+linear")
-	args.delete("+font")
-
-	# Read frames
-	if font_sheet == false then
-		frame_list = ReadFramesFromFiles(list: ARGV)
-	else
-		frame_list = ReadFramesFromFontSheet(filename: ARGV[0])
-	end
-
-	# Create an optimized 'data-soup', an array basically
-	data_soup = DataSoupFromFrames(list: frame_list)
-
-	# Write output
-	WriteAsm(pingpong, font_sheet, frame_list, data_soup)
+	def to_s() "(#{@x}:#{@value})" end
 end
-
-
-(ARGV.length > 0) ? main(ARGV) : raise("No Bmp input specified")

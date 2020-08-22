@@ -22,49 +22,70 @@
 # SOFTWARE.
 
 
-# [sprite.rb]
+# [sprite/irframe.rb]
 # - Alexander Brandt 2020
 
-require_relative "shared.rb"
-
-require_relative "sprite/irframe.rb"
-require_relative "sprite/irrow.rb"
-require_relative "sprite/irpixel.rb"
-
-require_relative "sprite/soup.rb"
-require_relative "sprite/read.rb"
-require_relative "sprite/write.rb"
+require_relative "irrow.rb"
 
 
-def main(args)
+class IRFrame
 
-	pingpong = false
-	font_sheet = false
+	attr_accessor :rows_list
+	attr_accessor :no
 
-	# Process arguments
-	for a in args do
-		if a == "+pingpong" then pingpong = true end
-		if a == "+linear" then   pingpong = false end
-		if a == "+font" then     font_sheet = true end
+
+	def initialize(no:)
+		@rows_list = Array.new()
+		@no = no
 	end
 
-	args.delete("+pingpong")
-	args.delete("+linear")
-	args.delete("+font")
 
-	# Read frames
-	if font_sheet == false then
-		frame_list = ReadFramesFromFiles(list: ARGV)
-	else
-		frame_list = ReadFramesFromFontSheet(filename: ARGV[0])
+	def to_s()
+		s = String.new()
+
+		for row in @rows_list do
+			s += "\t" + row.to_s()
+			s += (row != @rows_list.last) ? ",\n" : "\n"
+		end
+
+		return "[Frame, no = #{@no} |\n" + s + "]"
 	end
 
-	# Create an optimized 'data-soup', an array basically
-	data_soup = DataSoupFromFrames(list: frame_list)
 
-	# Write output
-	WriteAsm(pingpong, font_sheet, frame_list, data_soup)
+	def new_row(y:)
+
+		row = IRRow.new(y: y)
+		at = @rows_list.size + 1
+
+		while (at -= 1) > 0 do
+
+			if @rows_list[at - 1].y < y then
+				break
+			end
+		end
+
+		@rows_list.insert(at, row)
+		return row
+	end
+
+
+	def min_y()
+		if @rows_list[0] != nil then
+			return @rows_list[0].y
+		end
+		return 999
+	end
+
+
+	def max_y()
+		if @rows_list[-1] != nil then
+			return @rows_list[-1].y
+		end
+		return -1
+	end
+
+
+	def purge()
+		@rows_list.delete_if {|row| row.pixels_list.size == 0}
+	end
 end
-
-
-(ARGV.length > 0) ? main(ARGV) : raise("No Bmp input specified")
