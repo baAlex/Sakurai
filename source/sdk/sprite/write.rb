@@ -181,8 +181,8 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 		# Empty frame
 		else
 
-			if frame == frames.last ||
-			   frames[frame_no + 1].rows_list.size > 0 then
+			if frame == frames.last
+			|| frames[frame_no + 1].rows_list.size > 0 then
 				if font_sheet == true then
 					print("\tmov ax, #{max_x + 1}\n") # FIXME?!
 				end

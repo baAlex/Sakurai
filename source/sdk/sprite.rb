@@ -41,7 +41,6 @@ def main(args)
 	pingpong = false
 	font_sheet = false
 
-	# Process arguments
 	for a in args do
 		if a == "+pingpong" then pingpong = true end
 		if a == "+linear" then   pingpong = false end

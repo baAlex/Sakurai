@@ -41,6 +41,7 @@ class IRFrame
 
 
 	def to_s()
+
 		s = String.new()
 
 		for row in @rows_list do
@@ -58,7 +59,6 @@ class IRFrame
 		at = @rows_list.size + 1
 
 		while (at -= 1) > 0 do
-
 			if @rows_list[at - 1].y < y then
 				break
 			end
@@ -70,17 +70,21 @@ class IRFrame
 
 
 	def min_y()
+
 		if @rows_list[0] != nil then
 			return @rows_list[0].y
 		end
+
 		return 999
 	end
 
 
 	def max_y()
+
 		if @rows_list[-1] != nil then
 			return @rows_list[-1].y
 		end
+
 		return -1
 	end
 

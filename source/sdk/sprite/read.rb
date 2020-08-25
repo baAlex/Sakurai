@@ -45,8 +45,8 @@ def ReadFramesFromFiles(list:)
 		end
 
 		if previous_header != nil then
-			if previous_header[:width] != header[:width] ||
-			   previous_header[:height] != header[:height] then
+			if previous_header[:width] != header[:width]
+			|| previous_header[:height] != header[:height] then
 				raise("Animation frames can't have different dimensions")
 			end
 		end
@@ -121,8 +121,8 @@ def ReadFramesFromFontSheet(filename:)
 			offset += (char_height - 1) * header[:width]
 		end
 
-		if frame_list.size == 255 || # !!!
-		   offset > (header[:width] * header[:height]) - (char_width) then
+		if frame_list.size == 255 # !!!
+		|| offset > (header[:width] * header[:height]) - (char_width) then
 			break
 		end
 

@@ -41,6 +41,7 @@ class IRRow
 
 
 	def to_s()
+
 		s = String.new()
 
 		for pixel in @pixels_list do
@@ -53,6 +54,7 @@ class IRRow
 
 
 	def new_pixel(x:, value:)
+
 		if value == 0 then return end
 
 		pixel = IRPixel.new(x: x, value: value)
@@ -71,17 +73,21 @@ class IRRow
 
 
 	def min_x()
+
 		if @pixels_list[0] != nil then
 			return @pixels_list[0].x
 		end
+
 		return 999
 	end
 
 
 	def max_x()
+
 		if @pixels_list[-1] != nil then
 			return @pixels_list[-1].x
 		end
+
 		return -1
 	end
 
