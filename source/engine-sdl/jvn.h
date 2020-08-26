@@ -16,10 +16,11 @@ struct JvnImage
 	size_t width;
 	size_t height;
 	size_t frames;
-	uint8_t data[];
+	size_t flags;
+	uint8_t* data[];
 };
 
-int JvnTest(const char* filename);
+int Jvn2Sgi(const char* filename);
 
 struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, struct jaStatus* st);
 void JvnImageDelete(struct JvnImage* image);

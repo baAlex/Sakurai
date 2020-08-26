@@ -372,8 +372,8 @@ int main(int argc, const char* argv[])
 	struct jaStatus st = {0};
 
 	// Utilities
-	if (argc > 2 && strcmp("jvntest", argv[1]) == 0)
-		return JvnTest(argv[2]);
+	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
+		return Jvn2Sgi(argv[2]);
 
 	// Game as normal
 	printf("%s v%s\n", NAME, VERSION);

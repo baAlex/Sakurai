@@ -33,6 +33,7 @@ SOFTWARE.
 #include <string.h>
 
 #include "japan-endianness.h"
+#include "japan-image.h"
 #include "jvn.h"
 
 
@@ -61,7 +62,7 @@ enum Instruction
 };
 
 
-static enum Instruction sDecode(enum jaEndianness sys_endian, FILE* fp, uint16_t* out_imm, struct jaStatus* st)
+static enum Instruction sDecode(uint16_t* out_imm, enum jaEndianness sys_endian, FILE* fp, struct jaStatus* st)
 {
 	// http://ref.x86asm.net/coder64.html
 	// http://ref.x86asm.net/coder64.html#modrm_byte_16
@@ -157,7 +158,7 @@ return_eof:
 }
 
 
-static int sDraw(FILE* fp, const uint8_t* program_data, uint8_t* out, struct jaStatus* st)
+static int sDraw(uint8_t* out, const uint8_t* program_data, FILE* fp, struct jaStatus* st)
 {
 	enum Instruction ins;
 	uint16_t imm = 0;
@@ -166,7 +167,7 @@ static int sDraw(FILE* fp, const uint8_t* program_data, uint8_t* out, struct jaS
 
 	while (1)
 	{
-		if ((ins = sDecode(jaEndianSystem(), fp, &imm, st)) == I86_UNKNOWN)
+		if ((ins = sDecode(&imm, jaEndianSystem(), fp, st)) == I86_UNKNOWN)
 			return 1;
 
 		if (ins == I86_ADD_DI)
@@ -241,13 +242,22 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 
 	// Allocations
 	{
-		if ((image = calloc(1, sizeof(struct JvnImage) + header.width * header.height * header.frames)) == NULL)
+		// Image
+		if ((image = calloc(1, sizeof(struct JvnImage) + (sizeof(uint8_t*) * header.frames) +
+		                           (header.width * header.height * header.frames))) == NULL)
 			goto return_failure;
 
 		image->width = (size_t)header.width;
 		image->height = (size_t)header.height;
 		image->frames = (size_t)header.frames;
 
+		for (size_t f = 0; f < header.frames; f++)
+		{
+			image->data[f] = (uint8_t*)(image) + sizeof(struct JvnImage) + sizeof(uint8_t*) * header.frames;
+			image->data[f] += image->width * image->height * f;
+		}
+
+		// Temporary screen and buffer for program data (colors)
 		if (jaBufferResizeZero(buffer, (320 * 200) + (header.file_size - header.data_offset)) == NULL)
 			goto return_failure;
 
@@ -287,8 +297,11 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 		// Draw (yay!)
 		memset(buffer->data, 0, (320 * 200));
 
-		if (sDraw(fp, program_data, buffer->data, st) != 0)
+		if (sDraw(buffer->data, program_data, fp, st) != 0)
 			goto return_failure;
+
+		for (size_t r = 0; r < image->height; r++)
+			memcpy(image->data[f] + (image->width * r), buffer->data + (320 * r), image->width);
 	}
 
 	// Bye!
@@ -310,19 +323,37 @@ void JvnImageDelete(struct JvnImage* image)
 }
 
 
-int JvnTest(const char* filename)
+int Jvn2Sgi(const char* filename)
 {
 	struct jaBuffer b = {0};
 	struct jaStatus st = {0};
 
 	struct JvnImage* img = NULL;
+	struct jaImage ja_img = {0};
+	char name[256];
 
+	// Load sprite
 	if ((img = JvnImageLoad(filename, &b, &st)) == NULL)
 	{
 		jaStatusPrint(NULL, st);
 		return EXIT_FAILURE;
 	}
 
+	// Save all frames
+	ja_img.width = img->width;
+	ja_img.height = img->height;
+	ja_img.channels = 1;
+	ja_img.format = JA_IMAGE_U8;
+	ja_img.size = img->width * img->height;
+
+	for (size_t f = 0; f < img->frames; f++)
+	{
+		ja_img.data = img->data[f];
+		sprintf(name, "./%s.%03u.sgi", filename, (unsigned)f);
+		jaImageSaveSgi(&ja_img, name, NULL);
+	}
+
+	// Bye!
 	JvnImageDelete(img);
 	jaBufferClean(&b);
 	return EXIT_SUCCESS;
