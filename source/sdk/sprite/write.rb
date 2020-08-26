@@ -150,8 +150,8 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 
 		print("\ncode_f#{frame_no}:\n")
 
-		if frame_no == 0x20 then
-			print("\tmov ax, 4\n")
+		if font_sheet == true && frame_no == 0x20 then
+			print("\tmov al, 4\n")
 			print("\tretf\n")
 			next
 		end
@@ -173,7 +173,7 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 			end
 
 			if font_sheet == true then
-				print("\tmov ax, #{max_x + 1}\n") # FIXME?!
+				print("\tmov al, #{max_x + 1}\n") # FIXME?!
 			end
 
 			print("\tretf\n")
@@ -181,10 +181,11 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 		# Empty frame
 		else
 
-			if frame == frames.last
-			|| frames[frame_no + 1].rows_list.size > 0 then
+			if frame == frames.last ||
+			   frames[frame_no + 1].rows_list.size > 0 then
+
 				if font_sheet == true then
-					print("\tmov ax, #{max_x + 1}\n") # FIXME?!
+					print("\tmov al, #{max_x + 1}\n") # FIXME?!
 				end
 
 				print("\tretf\n")

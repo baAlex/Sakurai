@@ -543,7 +543,7 @@ GameDrawText_draw_character:
 ; dx:bx - Sprite-data offset
 ; ds:si - Frame-data offset
 ; es:di - Destination
-; ax    - Frame to draw
+; ax    - Frame to draw, Returns text spacing
 ; Returns spacing in ax
 
 	push bx
@@ -558,6 +558,8 @@ GameDrawText_draw_character:
 	add bx, [bx]
 
 	; Draw!
+	xor ax, ax
+
 	cmp dx, seg_pool_b ; What pool?
 	je GameDrawText_draw_b
 
