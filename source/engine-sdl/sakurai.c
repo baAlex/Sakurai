@@ -43,6 +43,7 @@ SOFTWARE.
 #include "kansai-version.h"
 
 #include "game-commands.h"
+#include "jvn.h"
 
 
 #define NAME "Sakurai"
@@ -366,10 +367,15 @@ static void sEngineClose(struct kaWindow* w, void* raw_data)
 }
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	struct jaStatus st = {0};
 
+	// Utilities
+	if (argc > 2 && strcmp("jvntest", argv[1]) == 0)
+		return JvnTest(argv[2]);
+
+	// Game as normal
 	printf("%s v%s\n", NAME, VERSION);
 	printf(" - LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
 	printf(" - LibKansai %i.%i.%i\n", kaVersionMajor(), kaVersionMinor(), kaVersionPatch());
