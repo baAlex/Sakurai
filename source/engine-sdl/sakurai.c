@@ -42,6 +42,7 @@ SOFTWARE.
 #include "kansai-context.h"
 #include "kansai-version.h"
 
+#include "cache.h"
 #include "game-commands.h"
 #include "jvn.h"
 
@@ -374,6 +375,9 @@ int main(int argc, const char* argv[])
 	// Utilities
 	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
 		return Jvn2Sgi(argv[2]);
+
+	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
+		return CacheTest();
 
 	// Game as normal
 	printf("%s v%s\n", NAME, VERSION);

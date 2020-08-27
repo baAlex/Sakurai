@@ -25,9 +25,10 @@ elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 endif()
 
 set(SOURCES
-	"./source/engine-sdl/sakurai.c"
-	"./source/engine-sdl/jvn.c"
+	"./source/engine-sdl/cache.c"
 	"./source/engine-sdl/game-commands.c"
+	"./source/engine-sdl/jvn.c"
+	"./source/engine-sdl/sakurai.c"
 	"./source/game/actor.c"
 	"./source/game/actor-layout.c"
 	"./source/game/actor-traits.c"

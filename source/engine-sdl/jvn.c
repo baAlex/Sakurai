@@ -301,7 +301,7 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 			goto return_failure;
 
 		for (size_t r = 0; r < image->height; r++)
-			memcpy(image->data[f] + (image->width * r), buffer->data + (320 * r), image->width);
+			memcpy(image->data[f] + (image->width * r), (uint8_t*)buffer->data + (320 * r), image->width);
 	}
 
 	// Bye!
