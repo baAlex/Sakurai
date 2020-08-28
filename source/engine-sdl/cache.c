@@ -120,7 +120,7 @@ inline void CacheDelete(struct Cache* cache)
 }
 
 
-inline void CacheCleanAll(struct Cache* cache)
+inline void CacheMarkAll(struct Cache* cache)
 {
 	jaDictionaryIterate(cache->d, sCallbackCleanAll, cache);
 }
@@ -235,6 +235,7 @@ inline void CacheMark(struct CacheItem* item)
 
 inline void CacheUnmark(struct CacheItem* item)
 {
+	(void)item;
 	// TODO
 }
 

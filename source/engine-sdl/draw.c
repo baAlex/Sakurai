@@ -24,16 +24,15 @@ SOFTWARE.
 
 -------------------------------
 
- [game-commands.c]
+ [draw.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#include "game-commands.h"
-#include <stdint.h>
+#include "draw.h"
 #include <string.h>
 
 
-static inline void sGameDrawPixel(uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+inline void DrawPixel(uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -42,7 +41,7 @@ static inline void sGameDrawPixel(uint16_t x, uint16_t y, uint8_t color, struct 
 }
 
 
-static inline void sGameDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+inline void DrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -56,7 +55,7 @@ static inline void sGameDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t
 }
 
 
-static inline void sGameDrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+inline void DrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -70,14 +69,14 @@ static inline void sGameDrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_
 }
 
 
-static inline void sGameDrawBkg(const struct jaImage* bkg, struct jaImage* out)
+inline void DrawBkg(const struct jaImage* bkg, struct jaImage* out)
 {
 	memcpy(out->data, bkg->data, bkg->size);
 }
 
 
-static inline void sGameDrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y,
-                                         const struct jaImage* bkg, struct jaImage* out)
+inline void DrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y, const struct jaImage* bkg,
+                             struct jaImage* out)
 {
 	x -= 1; // TODO, error in the assembly engine (maybe is in DrawSprite)
 
@@ -101,8 +100,7 @@ static inline void sGameDrawRectangleBkg(uint8_t width, uint8_t height, uint16_t
 }
 
 
-static inline void sGameDrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color,
-                                      struct jaImage* out)
+inline void DrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -121,8 +119,8 @@ static inline void sGameDrawRectangle(uint8_t width, uint8_t height, uint16_t x,
 }
 
 
-static inline void sGameDrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color,
-                                             struct jaImage* out)
+inline void DrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color,
+                                 struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -141,7 +139,7 @@ static inline void sGameDrawRectanglePrecise(uint8_t width, uint8_t height, uint
 }
 
 
-static inline void sGameDrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8_t frame, struct jaImage* out)
+inline void DrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8_t frame, struct jaImage* out)
 {
 	(void)sprite;
 	(void)frame;
@@ -151,7 +149,7 @@ static inline void sGameDrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8
 }
 
 
-static inline void sGameDrawText(uint8_t sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
+inline void DrawText(uint8_t sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
 {
 	(void)sprite;
 	(void)text;
@@ -161,70 +159,19 @@ static inline void sGameDrawText(uint8_t sprite, uint16_t x, uint16_t y, const c
 }
 
 
-struct GameCommand
+void DrawColorizeRGBX(const uint8_t* palette, const struct jaImage* indexed, struct jaImage* rgbx_out)
 {
-	uint8_t code;
+	uint8_t* in = indexed->data;
+	uint8_t* end_in = in + indexed->size;
+	uint8_t* out = rgbx_out->data;
+	uint8_t* end_out = out + rgbx_out->size;
 
-	union
+	for (; in < end_in && out < end_out; in++)
 	{
-		struct
-		{
-			uint8_t color;
-			uint8_t width;
-		};
-		struct
-		{
-			uint8_t sprite;
-			uint8_t frame;
-		};
-	};
-
-	uint8_t height;
-	uint16_t x;
-	uint16_t y;
-};
-
-
-void DrawGameCommands(void* raw_cmd, size_t max_commands, const struct jaImage* bkg, struct jaImage* out)
-{
-	struct GameCommand* cmd = raw_cmd;
-	struct GameCommand* end = cmd + max_commands;
-
-	for (; cmd < end; cmd++)
-	{
-		switch (cmd->code)
-		{
-		case 0x00: // CODE_HALT
-			return;
-			break;
-		case 0x01: // CODE_DRAW_BKG
-			sGameDrawBkg(bkg, out);
-			break;
-		case 0x02: // CODE_DRAW_RECTANGLE_BKG
-			sGameDrawRectangleBkg(cmd->width, cmd->height, cmd->x, cmd->y, bkg, out);
-			break;
-		case 0x03: // CODE_DRAW_SPRITE
-			sGameDrawSprite(cmd->sprite, cmd->x, cmd->y, cmd->frame, out);
-			break;
-		case 0x04: // CODE_DRAW_RECTANGLE
-			sGameDrawRectangle(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, out);
-			break;
-		case 0x05: // CODE_DRAW_RECTANGLE_PRECISE
-			sGameDrawRectanglePrecise(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, out);
-			break;
-		case 0x06: // CODE_DRAW_TEXT
-			sGameDrawText(cmd->sprite, cmd->x, cmd->y, "Nope", out);
-			break;
-		case 0x07: // CODE_DRAW_H_LINE
-			sGameDrawHLine(cmd->width, cmd->x, cmd->y, cmd->color, out);
-			break;
-		case 0x08: // CODE_DRAW_V_LINE
-			sGameDrawVLine(cmd->width, cmd->x, cmd->y, cmd->color, out);
-			break;
-		case 0x09: // CODE_DRAW_PIXEL
-			sGameDrawPixel(cmd->x, cmd->y, cmd->color, out);
-			break;
-		default: break;
-		}
+		*(out) = palette[*in * 3];
+		*(out + 1) = palette[*in * 3 + 1];
+		*(out + 2) = palette[*in * 3 + 2];
+		*(out + 3) = 255;
+		out += 4;
 	}
 }

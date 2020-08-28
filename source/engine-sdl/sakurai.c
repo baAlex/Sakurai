@@ -36,6 +36,7 @@ SOFTWARE.
 #include <string.h>
 #include <time.h>
 
+#include "SDL2/SDL.h"
 #include "japan-image.h"
 #include "japan-matrix.h"
 #include "japan-version.h"
@@ -43,14 +44,14 @@ SOFTWARE.
 #include "kansai-version.h"
 
 #include "cache.h"
-#include "game-commands.h"
+#include "draw.h"
+#include "game-glue.h"
 #include "jvn.h"
 
 
 #define NAME "Sakurai"
 #define VERSION "0.3-alpha"
 #define CAPTION "Sakurai v0.3-alpha"
-
 
 #define SCREEN_WIDTH 320.0f // Used in OpenGL output
 #define SCREEN_HEIGHT 240.0f
@@ -60,246 +61,108 @@ SOFTWARE.
 #define BUFFER_HEIGHT 200
 #define BUFFER_LENGHT (320 * 200)
 
-#define PALETTE_LEN 128  // Colors
-#define PALETTE_SIZE 384 // Bytes
-
-#define COMMAND_SIZE 8
-#define COMMANDS_TABLE_LEN 64   // 28 in the Dos engine
-#define COMMANDS_TABLE_SIZE 512 // 224 in the Dos engine
+#define PALETTE_LEN 256  // Colors
+#define PALETTE_SIZE 768 // Bytes
 
 
-struct EngineData
+static char* s_vertex_code = "#version 100\n"
+                             "attribute vec3 vertex_position; attribute vec2 vertex_uv;"
+                             "uniform mat4 world; uniform mat4 local; uniform mat4 camera;"
+                             "varying vec2 uv;"
+
+                             "void main() { uv = vertex_uv;"
+                             "gl_Position = world * local * camera * vec4(vertex_position, 1.0); }";
+
+static char* s_fragment_code = "#version 100\n"
+                               "uniform sampler2D texture0;"
+                               "varying lowp vec2 uv;"
+
+                               "void main() { gl_FragColor = texture2D(texture0, uv); }";
+
+
+struct SakuraiData
 {
-	size_t game_last_update;
+	size_t last_update;
 
 	uint8_t palette[PALETTE_SIZE];
-
-	struct kaTexture screen_texture;
-	struct kaProgram screen_program;
 
 	struct jaImage* buffer_indexed;    // Indexed
 	struct jaImage* buffer_background; // Indexed
 	struct jaImage* buffer_color;      // RGBA
+
+	struct kaTexture screen_texture;
+	struct kaProgram screen_program;
 };
 
 
-// Game PSP, counterpart of the same structure in 'shared.inc'
-// https://en.wikipedia.org/wiki/Program_Segment_Prefix
-struct GamePSP
+static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 {
-	uint16_t empty_word;    // 0x0000
-	uint16_t frame_counter; // 0x0002
-	uint16_t ms_counter;    // 0x0004
-	uint16_t max_commands;  // 0x0006
-	uint16_t unused1;       // 0x0008
-	uint16_t unused2;       // 0x000A
-	uint16_t unused3;       // 0x000C
-	uint16_t unused4;       // 0x000E
+	struct SakuraiData* data = raw_data;
+	FILE* fp = NULL;
 
-	uint8_t input_x;      // 0x0010
-	uint8_t input_y;      // 0x0011
-	uint8_t input_a;      // 0x0012
-	uint8_t input_b;      // 0x0013
-	uint8_t input_up;     // 0x0014
-	uint8_t input_down;   // 0x0015
-	uint8_t input_left;   // 0x0016
-	uint8_t input_right;  // 0x0017
-	uint8_t input_select; // 0x0018
-	uint8_t input_start;  // 0x0019
-	uint8_t unused5;      // 0x001A
-	uint8_t unused6;      // 0x001B
-	uint8_t unused7;      // 0x001C
-	uint8_t unused8;      // 0x001D
-	uint8_t unused9;      // 0x001E
-	uint8_t unused10;     // 0x001F
-
-	uint8_t commands_table[COMMANDS_TABLE_SIZE]; // 0x0020
-
-	// --- Roughly Dos-compatible PSP ends here ---
-
-	// What follow replaces the 'uint16_t' Dos ifd arguments,
-	// as these are intended to pass pointers and in modern
-	// platform we have extra thicc addresses
-	uintptr_t ifd_arg1;
-	uintptr_t ifd_arg2;
-	uintptr_t ifd_arg3;
-	uintptr_t ifd_arg4;
-};
-
-
-// <!!!>
-
-uintptr_t g_psp_offset;
-uintptr_t g_ifd_args_offset;
-void (*g_interrupt)();
-
-static struct GamePSP s_psp;
-static struct EngineData s_data;
-extern int GameMain();
-
-// </!!!>
-
-
-static void sGameInterrupt()
-{
-	switch (s_psp.ifd_arg1)
+	if (GlueStart() != 0)
 	{
-	case 0x01: // GamePrintString
-		printf("%s", (char*)s_psp.ifd_arg2);
-		break;
-	case 0x02: // GamePrintNumber
-		printf("%u\n", (uint16_t)s_psp.ifd_arg2);
-		break;
-	case 0x03: // GameLoadBackground
-
-		printf("@GameLoadBackground: '%s'\n", (char*)s_psp.ifd_arg2);
-		FILE* fp = fopen((char*)s_psp.ifd_arg2, "rb");
-
-		if (fp != NULL)
-		{
-			fread(s_data.buffer_background->data, s_data.buffer_background->size, 1, fp);
-			fclose(fp);
-		}
-
-		break;
-	case 0x05: // GameUnloadEverything
-		printf("@GameUnloadEverything\n");
-		break;
-	case 0x06: // GameFlushCommands
-		printf("@GameFlushCommands\n");
-		break;
-	case 0x07: // GameLoadSprite
-		printf("@GameLoadSprite: '%s'\n", (char*)s_psp.ifd_arg2);
-		break;
-	case 0x08: // GameFreeSprite
-		printf("@GameFreeSprite\n");
-		break;
-	case 0x09: // GameExitRequest
-		printf("@GameExitRequest\n");
-		break;
+		jaStatusSet(st, "SakuraiInit", JA_STATUS_ERROR, "Glue code initialization", NULL);
+		return;
 	}
-}
-
-
-static inline void sColorize(const uint8_t* palette, const struct jaImage* indexed, struct jaImage* out)
-{
-	uint8_t* in = indexed->data;
-	uint8_t* end_in = in + indexed->size;
-	uint8_t* p = out->data;
-
-	for (; in < end_in; in++)
-	{
-		*(p) = palette[*in * 3];
-		*(p + 1) = palette[*in * 3 + 1];
-		*(p + 2) = palette[*in * 3 + 2];
-		*(p + 3) = 255;
-		p += 4;
-	}
-}
-
-
-static void sEngineInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
-{
-	(void)raw_data;
-	(void)st;
-
-	s_psp.max_commands = COMMANDS_TABLE_LEN;
-
-	g_psp_offset = (uintptr_t)(&s_psp);
-	g_ifd_args_offset = (uintptr_t)(&(s_psp.ifd_arg1));
-	g_interrupt = sGameInterrupt;
 
 	// Create images to act as buffers
-	if ((s_data.buffer_indexed = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL)
+	if ((data->buffer_indexed = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL ||
+	    (data->buffer_background = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL ||
+	    (data->buffer_color = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 4)) == NULL)
 	{
-		st->code = JA_STATUS_ERROR;
+		jaStatusSet(st, "SakuraiInit", JA_STATUS_MEMORY_ERROR, "Image buffers", NULL);
 		return;
 	}
 
-	if ((s_data.buffer_background = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL)
+	memset(data->buffer_indexed->data, 0, data->buffer_indexed->size);
+	memset(data->buffer_background->data, 0, data->buffer_background->size);
+	memset(data->buffer_color->data, 0, data->buffer_color->size);
+
+	// A texture as screen
+	if (kaTextureInitImage(w, data->buffer_color, KA_FILTER_NONE, KA_CLAMP, &data->screen_texture, st) != 0)
+		return;
+
+	kaSetTexture(w, 0, &data->screen_texture);
+
+	// A program
+	if (kaProgramInit(w, s_vertex_code, s_fragment_code, &data->screen_program, st) != 0)
+		return;
+
+	kaSetProgram(w, &data->screen_program);
+
+	// And finally, a palette
+	if ((fp = fopen("assets/palette.raw", "rb")) == NULL)
 	{
-		st->code = JA_STATUS_ERROR;
+		jaStatusSet(st, "SakuraiInit", JA_STATUS_FS_ERROR, "Palette", NULL);
 		return;
 	}
 
-	if ((s_data.buffer_color = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 4)) == NULL)
-	{
-		st->code = JA_STATUS_ERROR;
-		return;
-	}
+	fread(data->palette, PALETTE_SIZE, 1, fp);
+	fclose(fp);
 
-	memset(s_data.buffer_indexed->data, 0, s_data.buffer_indexed->size);
-	memset(s_data.buffer_background->data, 0, s_data.buffer_background->size);
-	memset(s_data.buffer_color->data, 0, s_data.buffer_color->size);
-
-	// A texture as screen, an unfiltered one
-	// PROTIP: CLAMP is to allow a non power of two dimension
-	if (kaTextureInitImage(w, s_data.buffer_color, KA_FILTER_NONE, KA_CLAMP, &s_data.screen_texture, st) != 0)
-		return;
-
-	kaSetTexture(w, 0, &s_data.screen_texture);
-
-	// Finally a program
-	{
-		const char* vertex_code = "#version 100\n"
-		                          "attribute vec3 vertex_position; attribute vec2 vertex_uv;"
-		                          "uniform mat4 world; uniform mat4 local; uniform mat4 camera;"
-		                          "varying vec2 uv;"
-
-		                          "void main() { uv = vertex_uv;"
-		                          "gl_Position = world * local * camera * vec4(vertex_position, 1.0); }";
-
-		const char* fragment_code = "#version 100\n"
-		                            "uniform sampler2D texture0;"
-		                            "varying lowp vec2 uv;"
-
-		                            "void main() { gl_FragColor = texture2D(texture0, uv); }";
-
-		if (kaProgramInit(w, vertex_code, fragment_code, &s_data.screen_program, st) != 0)
-			return;
-
-		kaSetProgram(w, &s_data.screen_program);
-	}
-
-	// TODO, move this to another place!
-	{
-		FILE* fp = fopen("assets/palette.raw", "rb");
-
-		if (fp != NULL)
-		{
-			fread(s_data.palette, PALETTE_SIZE, 1, fp);
-
-			for (size_t i = 0; i < PALETTE_SIZE; i++)
-				s_data.palette[i] = s_data.palette[i] * 4;
-
-			fclose(fp);
-		}
-	}
+	for (size_t i = 0; i < PALETTE_SIZE; i++) // Convert from 6 bits
+		data->palette[i] = data->palette[i] << 2;
 }
 
 
-static void sEngineFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
+static void sSakuraiFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
 {
+	struct SakuraiData* data = raw_data;
 	(void)e;
 	(void)delta;
-	(void)raw_data;
 	(void)st;
 
 	size_t current = kaGetTime(w);
 
 	// Call a game frame every 41 ms
-	if (current >= s_data.game_last_update + 41)
+	if (current >= data->last_update + 41)
 	{
-		s_psp.ms_counter = (uint16_t)current;
-		GameMain();
-
-		DrawGameCommands(&s_psp.commands_table, COMMANDS_TABLE_LEN, s_data.buffer_background, s_data.buffer_indexed);
-		sColorize(s_data.palette, s_data.buffer_indexed, s_data.buffer_color);
-		kaTextureUpdate(w, s_data.buffer_color, 0, 0, BUFFER_WIDTH, BUFFER_HEIGHT, &s_data.screen_texture);
+		DrawColorizeRGBX(data->palette, data->buffer_indexed, data->buffer_color);
+		kaTextureUpdate(w, data->buffer_color, 0, 0, BUFFER_WIDTH, BUFFER_HEIGHT, &data->screen_texture);
 
 		// Done for this frame
-		s_data.game_last_update = kaGetTime(w);
-		s_psp.frame_counter += 1;
+		data->last_update = kaGetTime(w);
 	}
 
 	// Update screen
@@ -307,13 +170,12 @@ static void sEngineFrame(struct kaWindow* w, struct kaEvents e, float delta, voi
 }
 
 
-static void sEngineResize(struct kaWindow* w, int width, int height, void* raw_data, struct jaStatus* st)
+static void sSakuraiResize(struct kaWindow* w, int width, int height, void* raw_data, struct jaStatus* st)
 {
 	(void)raw_data;
 	(void)st;
 
-	// Camera matrix according the new window size
-	// middle is the matrix pivot/origin
+	// Camera matrix, just centre the origin in the window middle
 	kaSetCameraMatrix(w,
 	                  jaMatrix4Orthographic(-((float)width / 2.0f), ((float)width / 2.0f), -((float)height / 2.0f),
 	                                        ((float)height / 2.0f), 0.0f, 2.0f),
@@ -323,14 +185,13 @@ static void sEngineResize(struct kaWindow* w, int width, int height, void* raw_d
 	float scale =
 	    ((float)width / (float)height > SCREEN_ASPECT) ? (float)height / SCREEN_HEIGHT : (float)width / SCREEN_WIDTH;
 
-	// Local matrix for the screen
-	struct jaMatrix4 mat =
-	    jaMatrix4ScaleAnsio(jaMatrix4Identity(), (struct jaVector3){SCREEN_WIDTH * scale, SCREEN_HEIGHT * scale, 1.0f});
-	kaSetLocal(w, mat);
+	// Scale the local matrix for the screen
+	kaSetLocal(w, jaMatrix4ScaleAnsio(jaMatrix4Identity(),
+	                                  (struct jaVector3){SCREEN_WIDTH * scale, SCREEN_HEIGHT * scale, 1.0f}));
 }
 
 
-static void sFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
+static void sSakuraiFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
 {
 	(void)w;
 	(void)raw_data;
@@ -338,41 +199,31 @@ static void sFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaSta
 
 	if (f == 11)
 		kaSwitchFullscreen(w);
-
-	else if (f == 12)
-	{
-		FILE* fp = fopen("devtest4.raw", "wb");
-
-		if (fp != NULL)
-		{
-			fwrite(s_data.palette, PALETTE_SIZE, 1, fp);
-			fclose(fp);
-		}
-
-		jaImageSaveSgi(s_data.buffer_color, "devtest1.sgi", NULL);
-		jaImageSaveSgi(s_data.buffer_indexed, "devtest2.sgi", NULL);
-		jaImageSaveSgi(s_data.buffer_background, "devtest3.sgi", NULL);
-	}
 }
 
 
-static void sEngineClose(struct kaWindow* w, void* raw_data)
+static void sSakuraiClose(struct kaWindow* w, void* raw_data)
 {
-	(void)raw_data;
+	struct SakuraiData* data = raw_data;
 
-	kaTextureFree(w, &s_data.screen_texture);
-	kaProgramFree(w, &s_data.screen_program);
-	jaImageDelete(s_data.buffer_indexed);
-	jaImageDelete(s_data.buffer_background);
-	jaImageDelete(s_data.buffer_color);
+	GlueStop();
+
+	jaImageDelete(data->buffer_indexed);
+	jaImageDelete(data->buffer_background);
+	jaImageDelete(data->buffer_color);
+
+	kaTextureFree(w, &data->screen_texture);
+	kaProgramFree(w, &data->screen_program);
 }
 
 
 int main(int argc, const char* argv[])
 {
 	struct jaStatus st = {0};
+	struct SakuraiData* data = NULL;
+	SDL_version sdl_ver;
 
-	// Utilities
+	// Developers, developers, developers
 	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
 		return Jvn2Sgi(argv[2]);
 
@@ -380,14 +231,21 @@ int main(int argc, const char* argv[])
 		return CacheTest();
 
 	// Game as normal
+	SDL_GetVersion(&sdl_ver);
+
 	printf("%s v%s\n", NAME, VERSION);
 	printf(" - LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
 	printf(" - LibKansai %i.%i.%i\n", kaVersionMajor(), kaVersionMinor(), kaVersionPatch());
+	printf(" - SDL2 %i.%i.%i\n", sdl_ver.major, sdl_ver.minor, sdl_ver.patch);
+
+	if ((data = calloc(1, sizeof(struct SakuraiData))) == NULL)
+		goto return_failure;
 
 	if (kaContextStart(NULL, &st) != 0)
 		goto return_failure;
 
-	if (kaWindowCreate(CAPTION, sEngineInit, sEngineFrame, sEngineResize, sFunctionKey, sEngineClose, NULL, &st) != 0)
+	if (kaWindowCreate(CAPTION, sSakuraiInit, sSakuraiFrame, sSakuraiResize, sSakuraiFunctionKey, sSakuraiClose, data,
+	                   &st) != 0)
 		goto return_failure;
 
 	while (1)

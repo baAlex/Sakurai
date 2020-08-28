@@ -26,7 +26,8 @@ endif()
 
 set(SOURCES
 	"./source/engine-sdl/cache.c"
-	"./source/engine-sdl/game-commands.c"
+	"./source/engine-sdl/draw.c"
+	"./source/engine-sdl/game-glue.c"
 	"./source/engine-sdl/jvn.c"
 	"./source/engine-sdl/sakurai.c"
 	"./source/game/actor.c"
