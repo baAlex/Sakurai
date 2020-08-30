@@ -61,8 +61,9 @@ SOFTWARE.
 #define BUFFER_HEIGHT 200
 #define BUFFER_LENGHT (320 * 200)
 
-#define PALETTE_LEN 256  // Colors
-#define PALETTE_SIZE 768 // Bytes
+#define PALETTE_LEN 256             // Colors
+#define PALETTE_SIZE 768            // Bytes
+#define CACHE_SIZE 24 * 1024 * 1024 // Bytes
 
 
 static char* s_vertex_code = "#version 100\n"
@@ -85,6 +86,7 @@ struct SakuraiData
 	size_t last_update;
 
 	uint8_t palette[PALETTE_SIZE];
+	struct Cache* cache;
 
 	struct jaImage* buffer_indexed;    // Indexed
 	struct jaImage* buffer_background; // Indexed
@@ -92,7 +94,51 @@ struct SakuraiData
 
 	struct kaTexture screen_texture;
 	struct kaProgram screen_program;
+
+	struct jaBuffer temp;
 };
+
+
+void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data)
+{
+	struct SakuraiData* data = raw_data;
+	FILE* fp = NULL;
+	struct JvnImage* sprite = NULL;
+	struct CacheItem* item = NULL;
+
+	switch (i.type)
+	{
+	case GAME_PRINT_STRING: printf("%s", i.string); break;
+	case GAME_PRINT_NUMBER: printf("%u\n", i.number); break;
+	case GAME_EXIT_REQUEST: printf("@ExitRequest\n"); break;
+
+	case GAME_UNLOAD_EVERYTHING: CacheMarkAll(data->cache); break;
+
+	case GAME_LOAD_BACKGROUND:
+		if ((fp = fopen(i.filename, "rb")) != NULL) // TODO, report errors!
+		{
+			fread(data->buffer_background->data, BUFFER_LENGHT, 1, fp);
+			fclose(fp);
+		}
+		break;
+
+	case GAME_LOAD_SPRITE:
+		if ((item = CacheFind(data->cache, i.filename)) != NULL)
+		{
+			*ret = (uintptr_t)item->ptr;
+		}
+		else if ((sprite = JvnImageLoad(i.filename, &data->temp, NULL)) != NULL) // TODO, report errors!
+		{
+			item = CacheAdd(data->cache, i.filename, 1, (void*)JvnImageDelete);
+			item->ptr = sprite;
+
+			*ret = (uintptr_t)item->ptr;
+		}
+		break;
+
+	case GAME_FREE_SPRITE: printf("@FreeSprite\n"); break;
+	}
+}
 
 
 static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
@@ -100,7 +146,7 @@ static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st
 	struct SakuraiData* data = raw_data;
 	FILE* fp = NULL;
 
-	if (GlueStart() != 0)
+	if (GlueStart(sGameInterruption, data) != 0)
 	{
 		jaStatusSet(st, "SakuraiInit", JA_STATUS_ERROR, "Glue code initialization", NULL);
 		return;
@@ -131,7 +177,7 @@ static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st
 
 	kaSetProgram(w, &data->screen_program);
 
-	// And finally, a palette
+	// A palette
 	if ((fp = fopen("assets/palette.raw", "rb")) == NULL)
 	{
 		jaStatusSet(st, "SakuraiInit", JA_STATUS_FS_ERROR, "Palette", NULL);
@@ -143,25 +189,33 @@ static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st
 
 	for (size_t i = 0; i < PALETTE_SIZE; i++) // Convert from 6 bits
 		data->palette[i] = data->palette[i] << 2;
+
+	// And a cache
+	if ((data->cache = CacheCreate(CACHE_SIZE)) == NULL)
+	{
+		jaStatusSet(st, "SakuraiInit", JA_STATUS_MEMORY_ERROR, "Cache", NULL);
+		return;
+	}
 }
 
 
 static void sSakuraiFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
 {
 	struct SakuraiData* data = raw_data;
-	(void)e;
 	(void)delta;
 	(void)st;
 
-	size_t current = kaGetTime(w);
+	size_t current_ms = kaGetTime(w);
 
-	// Call a game frame every 41 ms
-	if (current >= data->last_update + 41)
+	if (current_ms >= data->last_update + 41) // 41 ms, hardcoded
 	{
+		// Call a game frame
+		GlueFrame(e, current_ms, data->buffer_background, data->buffer_indexed);
+
+		// Done for this frame
 		DrawColorizeRGBX(data->palette, data->buffer_indexed, data->buffer_color);
 		kaTextureUpdate(w, data->buffer_color, 0, 0, BUFFER_WIDTH, BUFFER_HEIGHT, &data->screen_texture);
 
-		// Done for this frame
 		data->last_update = kaGetTime(w);
 	}
 
@@ -214,6 +268,9 @@ static void sSakuraiClose(struct kaWindow* w, void* raw_data)
 
 	kaTextureFree(w, &data->screen_texture);
 	kaProgramFree(w, &data->screen_program);
+
+	CacheDelete(data->cache);
+	jaBufferClean(&data->temp);
 }
 
 

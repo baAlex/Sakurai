@@ -78,8 +78,6 @@ inline void DrawBkg(const struct jaImage* bkg, struct jaImage* out)
 inline void DrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y, const struct jaImage* bkg,
                              struct jaImage* out)
 {
-	x -= 1; // TODO, error in the assembly engine (maybe is in DrawSprite)
-
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 	uint8_t* src = &((uint8_t*)bkg->data)[x + out->width * y];
 
@@ -139,23 +137,35 @@ inline void DrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint
 }
 
 
-inline void DrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8_t frame, struct jaImage* out)
+inline void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t frame, struct jaImage* out)
 {
-	(void)sprite;
-	(void)frame;
-
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
-	*p = 0;
+	uint8_t color = 0;
+
+	for (size_t r = 0; r < sprite->height; r++)
+	{
+		for (size_t c = 0; c < sprite->width; c++)
+		{
+			if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+			{
+				color = sprite->data[frame % sprite->frames][r * sprite->width + c];
+
+				if (color != 0)
+					*p = color;
+			}
+
+			p += 1;
+		}
+
+		p += out->width - sprite->width;
+	}
 }
 
 
-inline void DrawText(uint8_t sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
+inline void DrawText(struct JvnImage* sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
 {
-	(void)sprite;
-	(void)text;
-
-	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
-	*p = 0;
+	for (size_t i = 0; text[i] != 0x00; i++)
+		DrawSprite(sprite, x + (i * sprite->width), y, text[i], out);
 }
 
 

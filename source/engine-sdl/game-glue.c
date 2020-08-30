@@ -37,7 +37,7 @@ SOFTWARE.
 #define COMMAND_SIZE 8
 #define COMMANDS_TABLE_LEN 64   // 28 in the Dos engine
 #define COMMANDS_TABLE_SIZE 512 // 224 in the Dos engine
-
+#define SPRITE_INDIRECTION_LEN 32
 
 // Game PSP, counterpart of the same structure in 'shared.inc'
 // https://en.wikipedia.org/wiki/Program_Segment_Prefix
@@ -83,65 +83,6 @@ struct GamePSP
 };
 
 
-struct GlueData
-{
-	struct GamePSP psp;
-};
-
-
-// <!!!>
-
-static struct GlueData s_glue;
-
-uintptr_t g_psp_offset;      // Game code requires it, points to 's_glue.psp'
-uintptr_t g_ifd_args_offset; // Game code requires it, points to 's_glue.psp::ifd_arg1'
-
-void (*g_interrupt)(); // Where game calls
-extern int GameMain(); // Where we, the engine, call
-
-// </!!!>
-
-
-static void sGameInterrupt()
-{
-	switch (s_glue.psp.ifd_arg1)
-	{
-	case 0x01: // GamePrintString
-		break;
-	case 0x02: // GamePrintNumber
-		break;
-	case 0x03: // GameLoadBackground
-		break;
-	case 0x05: // GameUnloadEverything
-		break;
-	case 0x06: // GameFlushCommands
-		break;
-	case 0x07: // GameLoadSprite
-		break;
-	case 0x08: // GameFreeSprite
-		break;
-	case 0x09: // GameExitRequest
-		break;
-	}
-}
-
-
-int GlueStart()
-{
-	s_glue.psp.max_commands = COMMANDS_TABLE_LEN;
-
-	g_psp_offset = (uintptr_t)(&s_glue.psp);
-	g_ifd_args_offset = (uintptr_t)(&(s_glue.psp.ifd_arg1));
-	g_interrupt = sGameInterrupt;
-
-	return 0;
-}
-
-
-void GlueStop() {}
-
-
-#if 0
 struct GameCommand
 {
 	uint8_t code;
@@ -166,10 +107,134 @@ struct GameCommand
 };
 
 
-void DrawGameCommands(void* raw_cmd, size_t max_commands, const struct jaImage* bkg, struct jaImage* out)
+struct GlueData
 {
-	struct GameCommand* cmd = raw_cmd;
-	struct GameCommand* end = cmd + max_commands;
+	struct GamePSP psp;
+	bool toggle_left;
+	bool toggle_right;
+
+	void (*callback_func)(struct GameInterruption, uintptr_t*, void*);
+	void* callback_data;
+
+	uintptr_t sprite_indirection[SPRITE_INDIRECTION_LEN];
+};
+
+
+// <!!!>
+
+static struct GlueData s_glue;
+
+uintptr_t g_psp_offset;      // Game code requires it, points to 's_glue.psp'
+uintptr_t g_ifd_args_offset; // Game code requires it, points to 's_glue.psp::ifd_arg1'
+
+void (*g_interrupt)(); // Where game calls
+extern int GameMain(); // Where we, the engine, call
+
+// </!!!>
+
+
+static void sGameInterrupt()
+{
+	struct GameInterruption i = {0};
+	uintptr_t ret = 0;
+
+	switch (s_glue.psp.ifd_arg1)
+	{
+	case 0x01: // GamePrintString
+		i.type = GAME_PRINT_STRING;
+		i.string = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		break;
+
+	case 0x02: // GamePrintNumber
+		i.type = GAME_PRINT_NUMBER;
+		i.number = (unsigned)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		break;
+
+	case 0x03: // GameLoadBackground
+		i.type = GAME_LOAD_BACKGROUND;
+		i.filename = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		break;
+
+	case 0x05: // GameUnloadEverything
+		i.type = GAME_UNLOAD_EVERYTHING;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		break;
+
+	case 0x07: // GameLoadSprite
+		i.type = GAME_LOAD_SPRITE;
+		i.filename = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(i, &ret, s_glue.callback_data);
+
+		for (int t = 0; t < SPRITE_INDIRECTION_LEN; t++) // TODO, ERRORS!
+		{
+			if (s_glue.sprite_indirection[t] == 0 || s_glue.sprite_indirection[t] == ret) // TODO, horrible resolution
+			{
+				s_glue.sprite_indirection[t] = ret;
+				s_glue.psp.ifd_arg1 = t; // Value for the game
+				break;
+			}
+		}
+		break;
+
+	case 0x08: // GameFreeSprite
+		i.type = GAME_FREE_SPRITE;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		s_glue.sprite_indirection[s_glue.psp.ifd_arg2] = 0;
+		break;
+
+	case 0x09: // GameExitRequest
+		i.type = GAME_EXIT_REQUEST;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		break;
+	}
+}
+
+
+int GlueStart(void (*callback_func)(struct GameInterruption, uintptr_t*, void*), void* callback_data)
+{
+	s_glue.psp.max_commands = COMMANDS_TABLE_LEN;
+	s_glue.callback_func = callback_func;
+	s_glue.callback_data = callback_data;
+
+	g_psp_offset = (uintptr_t)(&s_glue.psp);
+	g_ifd_args_offset = (uintptr_t)(&(s_glue.psp.ifd_arg1));
+	g_interrupt = sGameInterrupt;
+	return 0;
+}
+
+
+void GlueStop() {}
+
+
+static inline bool sToggle(bool evn, bool* state)
+{
+	if (evn == false)
+		*state = true;
+	else if (*state == true)
+	{
+		*state = false;
+		return true;
+	}
+
+	return false;
+}
+
+
+void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out)
+{
+	struct GameCommand* cmd = (struct GameCommand*)s_glue.psp.commands_table;
+	struct GameCommand* end = cmd + COMMANDS_TABLE_LEN;
+
+	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX);
+	s_glue.psp.input_left = sToggle(e.pad_l, &s_glue.toggle_left);
+	s_glue.psp.input_right = sToggle(e.pad_r, &s_glue.toggle_right);
+
+	GameMain(); // FIXME, the game always return zero!
+
+	s_glue.psp.frame_counter += 1;
 
 	for (; cmd < end; cmd++)
 	{
@@ -179,34 +244,34 @@ void DrawGameCommands(void* raw_cmd, size_t max_commands, const struct jaImage* 
 			return;
 			break;
 		case 0x01: // CODE_DRAW_BKG
-			DrawBkg(bkg, out);
+			DrawBkg(buffer_background, buffer_out);
 			break;
 		case 0x02: // CODE_DRAW_RECTANGLE_BKG
-			DrawRectangleBkg(cmd->width, cmd->height, cmd->x, cmd->y, bkg, out);
+			DrawRectangleBkg(cmd->width, cmd->height, cmd->x, cmd->y, buffer_background, buffer_out);
 			break;
 		case 0x03: // CODE_DRAW_SPRITE
-			DrawSprite(cmd->sprite, cmd->x, cmd->y, cmd->frame, out);
+			DrawSprite((struct JvnImage*)s_glue.sprite_indirection[cmd->sprite], cmd->x, cmd->y, cmd->frame,
+			           buffer_out);
 			break;
 		case 0x04: // CODE_DRAW_RECTANGLE
-			DrawRectangle(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, out);
+			DrawRectangle(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, buffer_out);
 			break;
 		case 0x05: // CODE_DRAW_RECTANGLE_PRECISE
-			DrawRectanglePrecise(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, out);
+			DrawRectanglePrecise(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, buffer_out);
 			break;
 		case 0x06: // CODE_DRAW_TEXT
-			DrawText(cmd->sprite, cmd->x, cmd->y, "Nope", out);
+			DrawText((struct JvnImage*)s_glue.sprite_indirection[cmd->sprite], cmd->x, cmd->y, "Nope", buffer_out);
 			break;
 		case 0x07: // CODE_DRAW_H_LINE
-			DrawHLine(cmd->width, cmd->x, cmd->y, cmd->color, out);
+			DrawHLine(cmd->width, cmd->x, cmd->y, cmd->color, buffer_out);
 			break;
 		case 0x08: // CODE_DRAW_V_LINE
-			DrawVLine(cmd->width, cmd->x, cmd->y, cmd->color, out);
+			DrawVLine(cmd->width, cmd->x, cmd->y, cmd->color, buffer_out);
 			break;
 		case 0x09: // CODE_DRAW_PIXEL
-			DrawPixel(cmd->x, cmd->y, cmd->color, out);
+			DrawPixel(cmd->x, cmd->y, cmd->color, buffer_out);
 			break;
 		default: break;
 		}
 	}
 }
-#endif
