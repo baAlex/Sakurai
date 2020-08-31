@@ -113,14 +113,14 @@ struct Cache* CacheCreate(size_t max_estimated_size)
 }
 
 
-inline void CacheDelete(struct Cache* cache)
+void CacheDelete(struct Cache* cache)
 {
 	jaDictionaryDelete(cache->d);
 	free(cache);
 }
 
 
-inline void CacheMarkAll(struct Cache* cache)
+void CacheMarkAll(struct Cache* cache)
 {
 	jaDictionaryIterate(cache->d, sCallbackCleanAll, cache);
 }
@@ -213,27 +213,27 @@ struct CacheItem* CacheAdd(struct Cache* cache, const char* key, size_t estimate
 }
 
 
-inline struct CacheItem* CacheFind(const struct Cache* cache, const char* key)
+struct CacheItem* CacheFind(const struct Cache* cache, const char* key)
 {
 	struct jaDictionaryItem* d_item = jaDictionaryGet(cache->d, key);
 	return (d_item == NULL) ? NULL : d_item->data;
 }
 
 
-inline struct CacheItem* CacheFind2(const struct Cache* cache, const char* key, struct jaDictionaryItem** out_item)
+struct CacheItem* CacheFind2(const struct Cache* cache, const char* key, struct jaDictionaryItem** out_item)
 {
 	*out_item = jaDictionaryGet(cache->d, key);
 	return (*out_item == NULL) ? NULL : (*out_item)->data;
 }
 
 
-inline void CacheMark(struct CacheItem* item)
+void CacheMark(struct CacheItem* item)
 {
 	item->marked = true;
 }
 
 
-inline void CacheUnmark(struct CacheItem* item)
+void CacheUnmark(struct CacheItem* item)
 {
 	(void)item;
 	// TODO
