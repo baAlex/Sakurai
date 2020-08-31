@@ -32,7 +32,7 @@ SOFTWARE.
 #include <string.h>
 
 
-inline void DrawPixel(uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+void DrawPixel(uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -41,7 +41,7 @@ inline void DrawPixel(uint16_t x, uint16_t y, uint8_t color, struct jaImage* out
 }
 
 
-inline void DrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+void DrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -55,7 +55,7 @@ inline void DrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color, stru
 }
 
 
-inline void DrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+void DrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -69,14 +69,14 @@ inline void DrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color, str
 }
 
 
-inline void DrawBkg(const struct jaImage* bkg, struct jaImage* out)
+void DrawBkg(const struct jaImage* bkg, struct jaImage* out)
 {
 	memcpy(out->data, bkg->data, bkg->size);
 }
 
 
-inline void DrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y, const struct jaImage* bkg,
-                             struct jaImage* out)
+void DrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y, const struct jaImage* bkg,
+                      struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 	uint8_t* src = &((uint8_t*)bkg->data)[x + out->width * y];
@@ -98,7 +98,7 @@ inline void DrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t
 }
 
 
-inline void DrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
+void DrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -117,8 +117,7 @@ inline void DrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y,
 }
 
 
-inline void DrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color,
-                                 struct jaImage* out)
+void DrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 
@@ -137,7 +136,7 @@ inline void DrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint
 }
 
 
-inline void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t frame, struct jaImage* out)
+void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t frame, struct jaImage* out)
 {
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 	uint8_t color = 0;
@@ -162,10 +161,10 @@ inline void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t 
 }
 
 
-inline void DrawText(struct JvnImage* sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
+void DrawText(struct JvnImage* sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
 {
 	for (size_t i = 0; text[i] != 0x00; i++)
-		DrawSprite(sprite, x + (i * sprite->width), y, text[i], out);
+		DrawSprite(sprite, (uint16_t)(x + (i * sprite->width)), y, text[i], out);
 }
 
 

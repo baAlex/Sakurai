@@ -242,9 +242,9 @@ inline void CacheUnmark(struct CacheItem* item)
 
 int CacheTest()
 {
-	struct CacheItem* i1;
-	struct CacheItem* i2;
-	struct CacheItem* i4;
+	struct CacheItem* i1 = NULL;
+	struct CacheItem* i2 = NULL;
+	struct CacheItem* i4 = NULL;
 
 	struct Cache* c = CacheCreate(4);
 

@@ -274,7 +274,7 @@ static void sSakuraiClose(struct kaWindow* w, void* raw_data)
 }
 
 
-int main(int argc, const char* argv[])
+int main(int argc, char* argv[])
 {
 	struct jaStatus st = {0};
 	struct SakuraiData* data = NULL;
