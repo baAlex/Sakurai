@@ -143,7 +143,7 @@ segment seg_game_data
 	; --- PSP ends here ---
 
 	org 256
-	game_data: file "game.dll"
+	game_data: file "./objects/game.com"
 	times 512 db 0x00 ; FIXME, BUG. Some code is writting/reading in this area :(
 
 GameFrame:

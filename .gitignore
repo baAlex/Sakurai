@@ -2,23 +2,18 @@
 # All platforms
 /assets/
 
-# Linux
-/sakurai-linux
-/sakurai-linux.log
-
-# Windows
-/sakurai-windows.exe
-/sakurai-windows.log
-/SDL2.dll
-
 # Dos
 /sakurai.exe
 /sakurai.log
 /SAKURAI.LOG
-/game.dll
 
-# Distributable
-/tanakas.zip
+# Posix
+/sakurai-posix
+/sakurai-ubuntu
+
+# Windows
+/sakurai-windows.exe
+/SDL2.dll
 
 # Developers, developers, developers
 /plot-*.png

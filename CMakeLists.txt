@@ -16,7 +16,6 @@ if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_C_COMPILER_ID MATCHES "GNU")
 
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -std=c11 -Wall -Wextra -Wint-conversion -Wpointer-to-int-cast")
 	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -mtune=generic")
-	# set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -std=c11 -Wall -Wextra -Wconversion -pedantic")
 
 elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /utf-8")
