@@ -56,10 +56,10 @@ struct GamePSP
 	uint8_t input_y;      // 0x0011
 	uint8_t input_a;      // 0x0012
 	uint8_t input_b;      // 0x0013
-	uint8_t input_up;     // 0x0014
-	uint8_t input_down;   // 0x0015
-	uint8_t input_left;   // 0x0016
-	uint8_t input_right;  // 0x0017
+	uint8_t input_u;      // 0x0014
+	uint8_t input_d;      // 0x0015
+	uint8_t input_l;      // 0x0016
+	uint8_t input_r;      // 0x0017
 	uint8_t input_select; // 0x0018
 	uint8_t input_start;  // 0x0019
 	uint8_t unused5;      // 0x001A
@@ -110,8 +110,8 @@ struct GameCommand
 struct GlueData
 {
 	struct GamePSP psp;
-	bool toggle_left;
-	bool toggle_right;
+	bool toggle_l;
+	bool toggle_r;
 
 	void (*callback_func)(struct GameInterruption, uintptr_t*, void*);
 	void* callback_data;
@@ -154,6 +154,12 @@ static void sGameInterrupt()
 
 	case 0x03: // GameLoadBackground
 		i.type = GAME_LOAD_BACKGROUND;
+		i.filename = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(i, NULL, s_glue.callback_data);
+		break;
+
+	case 0x04: // GameLoadPalette
+		i.type = GAME_LOAD_PALETTE;
 		i.filename = (const char*)s_glue.psp.ifd_arg2;
 		s_glue.callback_func(i, NULL, s_glue.callback_data);
 		break;
@@ -229,8 +235,8 @@ void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_backgr
 	struct GameCommand* end = cmd + COMMANDS_TABLE_LEN;
 
 	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX);
-	s_glue.psp.input_left = sToggle(e.pad_l, &s_glue.toggle_left);
-	s_glue.psp.input_right = sToggle(e.pad_r, &s_glue.toggle_right);
+	s_glue.psp.input_l = sToggle(e.pad_l, &s_glue.toggle_l);
+	s_glue.psp.input_r = sToggle(e.pad_r, &s_glue.toggle_r);
 
 	GameMain(); // FIXME, the game always return zero!
 

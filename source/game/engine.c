@@ -143,6 +143,20 @@ void IntLoadBackground(char* filename)
 }
 
 
+void IntLoadPalette(char* filename)
+{
+#if defined(__BCC__) && defined(__MSDOS__)
+	*((uint16_t*)INT_FD_ARG1_OFFSET) = 0x04;
+	*((uint16_t*)INT_FD_ARG2_OFFSET) = (uint16_t)filename;
+	asm("int 0xFD");
+#else
+	*((uintptr_t*)g_ifd_args_offset + 0) = 0x04;
+	*((uintptr_t*)g_ifd_args_offset + 1) = (uintptr_t)filename;
+	g_interrupt();
+#endif
+}
+
+
 uint8_t IntLoadSprite(char* filename)
 {
 #if defined(__BCC__) && defined(__MSDOS__)

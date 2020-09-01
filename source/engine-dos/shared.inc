@@ -5,14 +5,12 @@
 
 BUFFER_DATA_SIZE = 64000 ; Bytes
 BKG_DATA_SIZE = 64000    ; "
-VGA_DATA_SIZE = 64000    ; "
+PAL_DATA_SIZE = 384      ; " (128 colors)
 
 POOL_A_SIZE = 64000 ; Bytes
 POOL_B_SIZE = 64000 ; "
 
-PALETTE_LEN = 128  ; Colors
-PALETTE_SIZE = 384 ; Bytes
-
+VGA_DATA_SIZE = 64000 ; Bytes
 VGA_SEGMENT = 0xA000
 VGA_OFFSET = 0x0000
 
@@ -26,7 +24,7 @@ KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
 
 COMMAND_SIZE = 8
 COMMANDS_TABLE_LEN = 28
-COMMANDS_TABLE_SIZE = 224 ; In bytes
+COMMANDS_TABLE_SIZE = 224 ; Bytes
 
 SPRITE_SLOT_SIZE = 4
 SPRITE_LOAD_HEADER_SIZE = 8
@@ -93,7 +91,6 @@ segment seg_data
 	keyboard_state: times KEYBOARD_STATE_LEN db 0x00
 
 	; Render
-	render_palette_data: times PALETTE_SIZE db 0x00
 	render_previous_mode: db 0x00
 
 	; IntFD
@@ -175,3 +172,8 @@ segment seg_buffer_data
 ;==============================
 segment seg_bkg_data
 	bkg_data: rb BKG_DATA_SIZE
+
+
+;==============================
+segment seg_pal_data
+	pal_data: rb PAL_DATA_SIZE

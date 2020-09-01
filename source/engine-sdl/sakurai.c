@@ -122,6 +122,17 @@ void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data
 		}
 		break;
 
+	case GAME_LOAD_PALETTE:
+		if ((fp = fopen(i.filename, "rb")) != NULL) // TODO, report errors!
+		{
+			fread(data->palette, PALETTE_SIZE, 1, fp);
+			fclose(fp);
+
+			for (size_t i = 0; i < PALETTE_SIZE; i++) // Convert from 6 bits
+				data->palette[i] = data->palette[i] << 2;
+		}
+		break;
+
 	case GAME_LOAD_SPRITE:
 		if ((item = CacheFind(data->cache, i.filename)) != NULL)
 		{
@@ -144,7 +155,6 @@ void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data
 static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 {
 	struct SakuraiData* data = raw_data;
-	FILE* fp = NULL;
 
 	if (GlueStart(sGameInterruption, data) != 0)
 	{
@@ -176,19 +186,6 @@ static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st
 		return;
 
 	kaSetProgram(w, &data->screen_program);
-
-	// A palette
-	if ((fp = fopen("assets/palette.raw", "rb")) == NULL)
-	{
-		jaStatusSet(st, "SakuraiInit", JA_STATUS_FS_ERROR, "Palette", NULL);
-		return;
-	}
-
-	fread(data->palette, PALETTE_SIZE, 1, fp);
-	fclose(fp);
-
-	for (size_t i = 0; i < PALETTE_SIZE; i++) // Convert from 6 bits
-		data->palette[i] = data->palette[i] << 2;
 
 	// And a cache
 	if ((data->cache = CacheCreate(CACHE_SIZE)) == NULL)

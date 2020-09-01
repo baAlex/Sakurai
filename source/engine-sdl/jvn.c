@@ -64,8 +64,8 @@ enum Instruction
 
 static enum Instruction sDecode(uint16_t* out_imm, enum jaEndianness sys_endian, FILE* fp, struct jaStatus* st)
 {
-	// http://ref.x86asm.net/coder64.html
-	// http://ref.x86asm.net/coder64.html#modrm_byte_16
+	// http://ref.x86asm.net/coder32.html
+	// http://ref.x86asm.net/coder32.html#modrm_byte_16
 	// http://ref.x86asm.net/#column_o
 
 	uint8_t op = 0;

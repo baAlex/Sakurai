@@ -15,6 +15,7 @@ enum GameInterruptionType
 	GAME_PRINT_STRING = 0x01,      // GamePrintString
 	GAME_PRINT_NUMBER = 0x02,      // GamePrintNumber
 	GAME_LOAD_BACKGROUND = 0x03,   // GameLoadBackground
+	GAME_LOAD_PALETTE = 0x04,      // GameLoadPalette
 	GAME_UNLOAD_EVERYTHING = 0x05, // GameUnloadEverything
 	GAME_LOAD_SPRITE = 0x07,       // GameLoadSprite
 	GAME_FREE_SPRITE = 0x08,       // GameFreeSprite
@@ -28,7 +29,7 @@ struct GameInterruption
 	union
 	{
 		const char* string;   // GamePrintString
-		const char* filename; // GameLoadBackground, GameLoadSprite
+		const char* filename; // GameLoadBackground, GameLoadPalette, GameLoadSprite
 		unsigned number;      // GamePrintNumber
 	};
 };

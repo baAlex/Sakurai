@@ -82,14 +82,6 @@ Main:
 	call near PoolInit ; (ds:dx, cx)
 	call near PoolPrint ; (ds:dx)
 
-	; Clean buffer memory
-	mov ax, seg_buffer_data
-	mov es, ax
-	mov di, buffer_data
-	mov cx, BUFFER_DATA_SIZE
-
-	call near MemoryClean
-
 	; Modules initialization
 	call near TimeInit
 	call near KeyboardInit

@@ -66,6 +66,8 @@ void* StateHello()
 	IntPrintNumber(CURRENT_MILLISECONDS);
 	IntPrintText("\n");
 
+	IntLoadPalette("assets/palette.raw");
+
 	#if defined(BATTLE)
 	return StatePrepareBattle(0);
 	#elif defined(SCREENSHOTS)

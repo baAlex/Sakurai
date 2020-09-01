@@ -48,6 +48,8 @@ _IntFDVector:
 	je near GamePrintNumber
 	cmp ax, 0x03
 	je near GameLoadBackground
+	cmp ax, 0x04
+	je near GameLoadPalette
 	cmp ax, 0x05
 	je near GameUnloadEverything
 	cmp ax, 0x06
@@ -103,6 +105,45 @@ GameLoadBackground:
 	; Bye!
 	pop cx
 	call near FileClose ; (ax)
+	jmp near _IntFDVector_bye
+
+
+;==============================
+GameLoadPalette:
+	push cx
+
+	mov dx, [ifd_arg2]
+	call near FileOpen ; (ds:dx)
+
+	SetDsDx seg_pal_data, 0x0000
+	mov cx, PAL_DATA_SIZE
+	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
+	call near FileClose ; (ax)
+
+	; Set palette
+	; http://stanislavs.org/helppc/ports.html
+
+	mov dx, 0x03C8 ; VGA video DAC PEL address
+	mov al, 0x00 ; Color index
+	out dx, al
+
+	mov dx, 0x03C9 ; VGA video DAC
+	xor bx, bx
+
+GameLoadPalette_loop:
+	mov al, [bx]
+	out dx, al
+	mov al, [bx + 1]
+	out dx, al
+	mov al, [bx + 2]
+	out dx, al
+
+	add bx, 3
+	cmp bx, PAL_DATA_SIZE
+	jne near GameLoadPalette_loop
+
+	; Bye!
+	pop cx
 	jmp near _IntFDVector_bye
 
 

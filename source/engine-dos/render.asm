@@ -40,15 +40,6 @@ RenderInit:
 	mov dx, str_render_init
 	call near PrintLogString ; (ds:dx)
 
-	; Load palette
-	mov dx, str_palette_filename
-	call near FileOpen ; (ds:dx)
-
-	mov dx, render_palette_data
-	mov cx, PALETTE_SIZE
-	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
-	call near FileClose ; (ax)
-
 	; Get current video mode (Int 10/AH=0Fh)
 	; http://www.ctyme.com/intr/rb-0108.htm
 	mov ah, 0x0F
@@ -79,33 +70,6 @@ RenderInit:
 	mov cx, VGA_DATA_SIZE
 
 	call near MemoryClean
-
-	; Load palette
-	; http://stanislavs.org/helppc/ports.html
-
-	mov dx, 0x03C8 ; VGA video DAC PEL address
-	mov al, 0x00 ; Color index
-	out dx, al
-
-	mov ah, (PALETTE_LEN-1)
-	mov bx, 0 ; Indexing purposes
-	mov dx, 0x03C9 ; VGA video DAC
-
-RenderInit_palette_loop:
-	mov al, [render_palette_data + bx]
-	out dx, al
-	inc bx
-
-	mov al, [render_palette_data + bx]
-	out dx, al
-	inc bx
-
-	mov al, [render_palette_data + bx]
-	out dx, al
-	inc bx
-
-	dec ah
-	jnz near RenderInit_palette_loop
 
 	; Bye!
 	pop dx
