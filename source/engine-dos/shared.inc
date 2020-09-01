@@ -27,11 +27,12 @@ KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
 COMMAND_SIZE = 8
 COMMANDS_TABLE_LEN = 28
 COMMANDS_TABLE_SIZE = 224 ; In bytes
-GAME_SIZE = 24000 ; In bytes
 
 SPRITE_SLOT_SIZE = 4
 SPRITE_LOAD_HEADER_SIZE = 8
-SPRITE_INDIRECTION_TABLE_SIZE = 128 ; 32 slots
+SPRITE_INDIRECTION_SIZE = 128 ; 32 slots
+
+SELF_MODIFYING_RETURN_SIZE = 2 ; In bytes (space for a "jmp near bx")
 
 
 ;==============================
@@ -89,7 +90,6 @@ segment seg_data
 	; Keyboard
 	keyboard_previous_vector_sector: dw 0x0000
 	keyboard_previous_vector_offset: dw 0x0000
-
 	keyboard_state: times KEYBOARD_STATE_LEN db 0x00
 
 	; Render
@@ -103,7 +103,7 @@ segment seg_data
 
 	; Game
 	sprite_load_header: times SPRITE_LOAD_HEADER_SIZE db 0x00
-	sprite_indirection_table: times SPRITE_INDIRECTION_TABLE_SIZE db 0x00
+	sprite_indirection_table: times SPRITE_INDIRECTION_SIZE db 0x00
 
 
 ;==============================
@@ -124,10 +124,10 @@ segment seg_game_data
 	input_y: db 0x00      ; 0x0011
 	input_a: db 0x00      ; 0x0012
 	input_b: db 0x00      ; 0x0013
-	input_up: db 0x00     ; 0x0014
-	input_down: db 0x00   ; 0x0015
-	input_left: db 0x00   ; 0x0016
-	input_right: db 0x00  ; 0x0017
+	input_u: db 0x00      ; 0x0014
+	input_d: db 0x00      ; 0x0015
+	input_l: db 0x00      ; 0x0016
+	input_r: db 0x00      ; 0x0017
 	input_select: db 0x00 ; 0x0018
 	input_start: db 0x00  ; 0x0019
 	unused1: db 0x00      ; 0x001A
@@ -142,10 +142,12 @@ segment seg_game_data
 
 	; --- PSP ends here ---
 
-	game_data: rb GAME_SIZE
+	org 256
+	game_data: file "game.dll"
+	times 512 db 0x00 ; FIXME, BUG. Some code is writting/reading in this area :(
 
 GameFrame:
-	call near game_data ; Near call near
+	call near 256 ; Near call
 	retf ; Far return (CPU sets CS accordingly)
 
 
@@ -154,7 +156,7 @@ segment seg_pool_a
 	pool_a_data: rb POOL_A_SIZE
 
 spr_a_draw:
-	jmp near bx
+	rb SELF_MODIFYING_RETURN_SIZE
 
 
 ;==============================
@@ -162,7 +164,8 @@ segment seg_pool_b
 	pool_b_data: rb POOL_B_SIZE
 
 spr_b_draw:
-	jmp near bx
+	rb SELF_MODIFYING_RETURN_SIZE
+
 
 ;==============================
 segment seg_buffer_data

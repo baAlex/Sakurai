@@ -31,3 +31,10 @@ macro SetDsDx new_ds, new_dx
 	mov ds, dx
 	mov dx, new_dx
 }
+
+macro SetDsBx new_ds, new_bx
+{
+	mov bx, new_ds
+	mov ds, bx
+	mov bx, new_bx
+}

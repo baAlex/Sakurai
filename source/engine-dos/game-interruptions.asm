@@ -186,7 +186,7 @@ GameLoadSprite_iterate_table:
 
 	; Next step
 	add bx, SPRITE_SLOT_SIZE
-	cmp bx, (sprite_indirection_table + SPRITE_INDIRECTION_TABLE_SIZE)
+	cmp bx, (sprite_indirection_table + SPRITE_INDIRECTION_SIZE)
 	jb GameLoadSprite_iterate_table
 
 	; No free slot
@@ -230,7 +230,7 @@ GameUnloadEverything:
 	mov cx, seg_data
 	mov es, cx
 	mov di, sprite_indirection_table
-	mov cx, SPRITE_INDIRECTION_TABLE_SIZE
+	mov cx, SPRITE_INDIRECTION_SIZE
 	call MemoryClean ; es:di = Destination, cx = Size
 
 	SetDsDx seg_pool_a, pool_a_data

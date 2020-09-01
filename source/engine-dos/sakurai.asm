@@ -38,7 +38,6 @@ heap 0
 
 entry seg_code:Main
 
-
 segment seg_code
 	include "game-commands.asm"
 	include "game-interruptions.asm"
@@ -62,14 +61,15 @@ Main:
 	mov dx, str_hello
 	call near PrintLogString ; (ds:dx)
 
-	; Load game
-	mov dx, str_game_filename
-	call near FileOpen ; (ds:dx, return in ax)
+	; Self modifying code ("jmp near bx")
+	; http://ref.x86asm.net/coder32.html
+	SetDsBx seg_pool_a, spr_a_draw
+	mov byte [bx], 0xFF
+	mov byte [bx + 1], 0xE3
 
-	SetDsDx seg_game_data, game_data
-	mov cx, GAME_SIZE
-	call near FileRead ; (ax = fp, ds:dx = dest, cx = size)
-	call near FileClose ; (ax)
+	SetDsBx seg_pool_b, spr_b_draw
+	mov byte [bx], 0xFF
+	mov byte [bx + 1], 0xE3
 
 	; Memory pool initialization
 	SetDsDx seg_pool_a, pool_a_data
@@ -167,10 +167,10 @@ Main_loop_no_sleep:
 		push dx
 		mov dx, [keyboard_state + 0x1C] ; Y
 		push dx
-		;mov dx, [keyboard_state + 0x1E] ; A
-		;push dx
-		;mov dx, [keyboard_state + 0x1F] ; B
-		;push dx
+		mov dx, [keyboard_state + 0x1E] ; A
+		push dx
+		mov dx, [keyboard_state + 0x1F] ; B
+		push dx
 		mov dx, [keyboard_state + 0x48] ; Up
 		push dx
 		mov dx, [keyboard_state + 0x50] ; Down
@@ -179,8 +179,8 @@ Main_loop_no_sleep:
 		push dx
 		mov dx, [keyboard_state + 0x4D] ; Right
 		push dx
-		;mov dx, [keyboard_state + 0x39] ; Select
-		;push dx
+		mov dx, [keyboard_state + 0x39] ; Select
+		push dx
 		mov dx, [keyboard_state + 0x01] ; Start
 		push dx
 
@@ -190,20 +190,20 @@ Main_loop_no_sleep:
 
 		pop dx
 		mov byte [input_start], dl
-		;pop dx
-		;mov byte [input_select], dl
 		pop dx
-		mov byte [input_right], dl
+		mov byte [input_select], dl
 		pop dx
-		mov byte [input_left], dl
+		mov byte [input_r], dl
 		pop dx
-		mov byte [input_down], dl
+		mov byte [input_l], dl
 		pop dx
-		mov byte [input_up], dl
-		;pop dx
-		;mov byte [input_b], dl
-		;pop dx
-		;mov byte [input_a], dl
+		mov byte [input_d], dl
+		pop dx
+		mov byte [input_u], dl
+		pop dx
+		mov byte [input_b], dl
+		pop dx
+		mov byte [input_a], dl
 		pop dx
 		mov byte [input_y], dl
 		pop dx
