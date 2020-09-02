@@ -141,9 +141,9 @@ void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t frame, 
 	uint8_t* p = &((uint8_t*)out->data)[x + out->width * y];
 	uint8_t color = 0;
 
-	for (size_t r = 0; r < sprite->height; r++)
+	for (uint8_t r = 0; r < sprite->height; r++)
 	{
-		for (size_t c = 0; c < sprite->width; c++)
+		for (uint8_t c = 0; c < sprite->width; c++)
 		{
 			if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
 			{
@@ -163,8 +163,13 @@ void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t frame, 
 
 void DrawText(struct JvnImage* sprite, uint16_t x, uint16_t y, const char* text, struct jaImage* out)
 {
-	for (size_t i = 0; text[i] != 0x00; i++)
-		DrawSprite(sprite, (uint16_t)(x + (i * sprite->width)), y, text[i], out);
+	DrawSprite(sprite, x, y, text[0], out);
+
+	for (size_t i = 1; text[i] != 0x00; i++)
+	{
+		x += sprite->spacing[(uint8_t)text[i - 1]];
+		DrawSprite(sprite, x, y, text[i], out);
+	}
 }
 
 

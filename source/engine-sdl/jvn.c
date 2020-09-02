@@ -158,7 +158,7 @@ return_eof:
 }
 
 
-static int sDraw(uint8_t* out, const uint8_t* program_data, FILE* fp, struct jaStatus* st)
+static int sDraw(uint8_t* out, uint8_t* out_spacing, const uint8_t* program_data, FILE* fp, struct jaStatus* st)
 {
 	enum Instruction ins;
 	uint16_t imm = 0;
@@ -199,6 +199,10 @@ static int sDraw(uint8_t* out, const uint8_t* program_data, FILE* fp, struct jaS
 			out[(di + 3) % (320 * 200)] = program_data[si + 3];
 			di += 4;
 			si += 4;
+		}
+		else if (ins == I86_MOV_AL)
+		{
+			*out_spacing = (uint8_t)imm;
 		}
 		else if (ins == I86_RETF)
 			break;
@@ -244,18 +248,21 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 	{
 		// Image
 		if ((image = calloc(1, sizeof(struct JvnImage) + (sizeof(uint8_t*) * header.frames) +
+		                           (sizeof(uint8_t) * header.frames) +
 		                           (header.width * header.height * header.frames))) == NULL)
 			goto return_failure;
 
-		image->width = (size_t)header.width;
-		image->height = (size_t)header.height;
-		image->frames = (size_t)header.frames;
+		image->width = (uint8_t)header.width;
+		image->height = (uint8_t)header.height;
+		image->frames = (uint8_t)header.frames;
 
-		for (size_t f = 0; f < header.frames; f++)
+		for (uint8_t f = 0; f < header.frames; f++)
 		{
 			image->data[f] = (uint8_t*)(image) + sizeof(struct JvnImage) + sizeof(uint8_t*) * header.frames;
 			image->data[f] += image->width * image->height * f;
 		}
+
+		image->spacing = image->data[header.frames - 1] + image->width * image->height;
 
 		// Temporary screen and buffer for program data (colors)
 		if (jaBufferResizeZero(buffer, (320 * 200) + (header.file_size - header.data_offset)) == NULL)
@@ -297,10 +304,10 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 		// Draw (yay!)
 		memset(buffer->data, 0, (320 * 200));
 
-		if (sDraw(buffer->data, program_data, fp, st) != 0)
+		if (sDraw(buffer->data, &image->spacing[f], program_data, fp, st) != 0)
 			goto return_failure;
 
-		for (size_t r = 0; r < image->height; r++)
+		for (uint8_t r = 0; r < image->height; r++)
 			memcpy(image->data[f] + (image->width * r), (uint8_t*)buffer->data + (320 * r), image->width);
 	}
 
@@ -346,7 +353,7 @@ int Jvn2Sgi(const char* filename)
 	ja_img.format = JA_IMAGE_U8;
 	ja_img.size = img->width * img->height;
 
-	for (size_t f = 0; f < img->frames; f++)
+	for (uint8_t f = 0; f < img->frames; f++)
 	{
 		ja_img.data = img->data[f];
 		sprintf(name, "./%s.%03u.sgi", filename, (unsigned)f);

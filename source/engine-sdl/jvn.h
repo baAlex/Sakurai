@@ -13,10 +13,11 @@
 
 struct JvnImage
 {
-	size_t width;
-	size_t height;
-	size_t frames;
-	size_t flags;
+	uint8_t width;
+	uint8_t height;
+	uint8_t frames;
+	uint8_t flags;
+	uint8_t* spacing;
 	uint8_t* data[];
 };
 

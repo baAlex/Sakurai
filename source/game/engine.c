@@ -39,6 +39,7 @@ SOFTWARE.
 	#define INT_FD_ARG4_OFFSET 0x000E
 #else
 	extern uintptr_t g_ifd_args_offset;
+	extern uintptr_t g_txt_stack_offset;
 	extern void (*g_interrupt)();
 	#define COMMANDS_TABLE_OFFSET (g_psp_offset + 0x0020)
 #endif
@@ -312,7 +313,14 @@ void CmdDrawText(uint8_t sprite, uint16_t x, uint16_t y, char* text)
 	c->text.sprite = sprite;
 	c->text.x = x;
 	c->text.y = y;
-	c->text.text = (uint16_t)text; /* TODO */
+
+#if defined(__BCC__) && defined(__MSDOS__)
+	c->text.text = (uint16_t)text;
+#else
+	char** txt_stack = (char**)g_txt_stack_offset;
+	txt_stack[s_cmd_counter] = text;
+	c->text.text = s_cmd_counter;
+#endif
 
 	sIncrementCounter();
 }

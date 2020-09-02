@@ -80,30 +80,43 @@ struct GamePSP
 	uintptr_t ifd_arg2;
 	uintptr_t ifd_arg3;
 	uintptr_t ifd_arg4;
+
+	char* txt_stack[COMMANDS_TABLE_LEN];
 };
 
 
-struct GameCommand
+union GameCommand
 {
 	uint8_t code;
 
-	union
+	struct
 	{
-		struct
-		{
-			uint8_t color;
-			uint8_t width;
-		};
-		struct
-		{
-			uint8_t sprite;
-			uint8_t frame;
-		};
-	};
+		uint8_t code;
+		uint8_t color;
+		uint8_t width;
+		uint8_t height;
+		uint16_t x;
+		uint16_t y;
+	} shape;
 
-	uint8_t height;
-	uint16_t x;
-	uint16_t y;
+	struct
+	{
+		uint8_t code;
+		uint8_t sprite;
+		uint8_t frame;
+		uint8_t unused;
+		uint16_t x;
+		uint16_t y;
+	} sprite;
+
+	struct
+	{
+		uint8_t code;
+		uint8_t sprite;
+		uint16_t text;
+		uint16_t x;
+		uint16_t y;
+	} text;
 };
 
 
@@ -124,8 +137,9 @@ struct GlueData
 
 static struct GlueData s_glue;
 
-uintptr_t g_psp_offset;      // Game code requires it, points to 's_glue.psp'
-uintptr_t g_ifd_args_offset; // Game code requires it, points to 's_glue.psp::ifd_arg1'
+uintptr_t g_psp_offset;       // Game code requires it, points to 's_glue.psp'
+uintptr_t g_ifd_args_offset;  // Game code requires it, points to 's_glue.psp::ifd_arg1'
+uintptr_t g_txt_stack_offset; // Game code requires it, points to 's_glue.psp::txt_stack'
 
 void (*g_interrupt)(); // Where game calls
 extern int GameMain(); // Where we, the engine, call
@@ -207,6 +221,7 @@ int GlueStart(void (*callback_func)(struct GameInterruption, uintptr_t*, void*),
 
 	g_psp_offset = (uintptr_t)(&s_glue.psp);
 	g_ifd_args_offset = (uintptr_t)(&(s_glue.psp.ifd_arg1));
+	g_txt_stack_offset = (uintptr_t)(&(s_glue.psp.txt_stack));
 	g_interrupt = sGameInterrupt;
 	return 0;
 }
@@ -231,8 +246,8 @@ static inline bool sToggle(bool evn, bool* state)
 
 void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out)
 {
-	struct GameCommand* cmd = (struct GameCommand*)s_glue.psp.commands_table;
-	struct GameCommand* end = cmd + COMMANDS_TABLE_LEN;
+	union GameCommand* cmd = (union GameCommand*)s_glue.psp.commands_table;
+	union GameCommand* end = cmd + COMMANDS_TABLE_LEN;
 
 	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX);
 	s_glue.psp.input_l = sToggle(e.pad_l, &s_glue.toggle_l);
@@ -253,29 +268,33 @@ void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_backgr
 			DrawBkg(buffer_background, buffer_out);
 			break;
 		case 0x02: // CODE_DRAW_RECTANGLE_BKG
-			DrawRectangleBkg(cmd->width, cmd->height, cmd->x, cmd->y, buffer_background, buffer_out);
+			DrawRectangleBkg(cmd->shape.width, cmd->shape.height, cmd->shape.x, cmd->shape.y, buffer_background,
+			                 buffer_out);
 			break;
 		case 0x03: // CODE_DRAW_SPRITE
-			DrawSprite((struct JvnImage*)s_glue.sprite_indirection[cmd->sprite], cmd->x, cmd->y, cmd->frame,
-			           buffer_out);
+			DrawSprite((struct JvnImage*)s_glue.sprite_indirection[cmd->sprite.sprite], cmd->sprite.x, cmd->sprite.y,
+			           cmd->sprite.frame, buffer_out);
 			break;
 		case 0x04: // CODE_DRAW_RECTANGLE
-			DrawRectangle(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, buffer_out);
+			DrawRectangle(cmd->shape.width, cmd->shape.height, cmd->shape.x, cmd->shape.y, cmd->shape.color,
+			              buffer_out);
 			break;
 		case 0x05: // CODE_DRAW_RECTANGLE_PRECISE
-			DrawRectanglePrecise(cmd->width, cmd->height, cmd->x, cmd->y, cmd->color, buffer_out);
+			DrawRectanglePrecise(cmd->shape.width, cmd->shape.height, cmd->shape.x, cmd->shape.y, cmd->shape.color,
+			                     buffer_out);
 			break;
 		case 0x06: // CODE_DRAW_TEXT
-			DrawText((struct JvnImage*)s_glue.sprite_indirection[cmd->sprite], cmd->x, cmd->y, "Nope", buffer_out);
+			DrawText((struct JvnImage*)s_glue.sprite_indirection[cmd->text.sprite], cmd->text.x, cmd->text.y,
+			         s_glue.psp.txt_stack[cmd->text.text], buffer_out);
 			break;
 		case 0x07: // CODE_DRAW_H_LINE
-			DrawHLine(cmd->width, cmd->x, cmd->y, cmd->color, buffer_out);
+			DrawHLine(cmd->shape.width, cmd->shape.x, cmd->shape.y, cmd->shape.color, buffer_out);
 			break;
 		case 0x08: // CODE_DRAW_V_LINE
-			DrawVLine(cmd->width, cmd->x, cmd->y, cmd->color, buffer_out);
+			DrawVLine(cmd->shape.width, cmd->shape.x, cmd->shape.y, cmd->shape.color, buffer_out);
 			break;
 		case 0x09: // CODE_DRAW_PIXEL
-			DrawPixel(cmd->x, cmd->y, cmd->color, buffer_out);
+			DrawPixel(cmd->shape.x, cmd->shape.y, cmd->shape.color, buffer_out);
 			break;
 		default: break;
 		}
