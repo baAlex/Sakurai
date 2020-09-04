@@ -87,8 +87,8 @@ KeyboardInit:
 _KeyboardVector:
 ; https://stackoverflow.com/a/40963633
 ; http://www.ctyme.com/intr/rb-0045.htm#Table6
-; TODO: the previous two references didn't use the
-; following method?, (Why I cited these?)
+; TODO: the previous two references don't use the
+; following method? (Why I cited them?)
 
 ; https://wiki.osdev.org/%228042%22_PS/2_Controller
 ; « Using interrupts is easy. When IRQ1 occurs you just read
@@ -106,38 +106,39 @@ _KeyboardVector:
 	mov ax, seg_data ; The keys state lives here
 	mov ds, ax
 
+	xor bx, bx
+
 	; Retrieve input in AL
 	mov dx, 0x60 ; PROTIP: call at least once after the
 	in al, dx    ; custom vector is set. Or grab a cup of
 	             ; coffee to see how DOS bugs (DOSBox at least)
 
-	; Determine if is an 'release' key, we discard them
-	; https://wiki.osdev.org/PS/2_Keyboard
-	cmp al, 0x80 ; 0x80 is the last 'press' key,
-	             ; anything higher is a 'release'
-	             ; (technically isn't the last, but...)
+	cmp al, 0xD8 ; Codes after 0xD8 are 'multimedia' keys
+	ja near _KeyboardVector_bye ; We ignore them
 
-	ja near _KeyboardVector_bye ; Jump if Above
+	cmp al, 0x58 ; Codes after 0x58 are released keys
+	ja near _KeyboardVector_release
 
-	; A keyboard with more than 84 keys
-	; Eewwww... we don't do that here!
-	cmp al, KEYBOARD_STATE_LEN
-	jae near _KeyboardVector_bye ; Jump if Above
-
-	; Set our state
-	mov bh, 0x00
+	; Press
 	mov bl, al
 	mov byte [keyboard_state + bx], 0x01 ; Press
+	ja near _KeyboardVector_bye
 
+	; Release
+_KeyboardVector_release:
+	sub al, 0x80 ; Convert code to a press state
+
+	mov bl, al
+	mov byte [keyboard_state + bx], 0x00 ; Release
+
+	; Bye!
 _KeyboardVector_bye:
-
 	; Notify PIC to end this interruption? (TODO)
 	; http://stanislavs.org/helppc/8259.html
 	mov dx, 0x20
 	mov al, 0x20
 	out dx, al
 
-	; Bye!
 	pop ds
 	pop dx
 	pop bx

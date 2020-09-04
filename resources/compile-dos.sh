@@ -1,11 +1,11 @@
 #!/bin/bash
 
-game_files="./source/game/actor.c
+game_files="./source/game/main.c
+            ./source/game/actor.c
             ./source/game/actor-layout.c
             ./source/game/actor-traits.c
             ./source/game/engine.c
             ./source/game/fixed.c
-            ./source/game/main.c
             ./source/game/state-battle.c
             ./source/game/state-intro.c
             ./source/game/state-pause.c

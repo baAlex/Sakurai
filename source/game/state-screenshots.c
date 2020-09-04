@@ -43,7 +43,7 @@ static uint8_t s_stage_no = 0;
 
 static void* sFrame()
 {
-	if (INPUT_LEFT == 1)
+	if (INPUT_PAD_L == 1)
 	{
 		if (s_stage_no >= 1)
 		{
@@ -51,7 +51,7 @@ static void* sFrame()
 			return (void*)StateScreenshots;
 		}
 	}
-	else if (INPUT_RIGHT == 1)
+	else if (INPUT_PAD_R == 1)
 	{
 		if (s_stage_no < 255)
 		{

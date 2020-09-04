@@ -36,10 +36,10 @@ typedef unsigned short uint16_t;
 	#define INPUT_Y_OFFSET 0x0011
 	#define INPUT_A_OFFSET 0x0012
 	#define INPUT_B_OFFSET 0x0013
-	#define INPUT_UP_OFFSET 0x0014
-	#define INPUT_DOWN_OFFSET 0x0015
-	#define INPUT_LEFT_OFFSET 0x0016
-	#define INPUT_RIGHT_OFFSET 0x0017
+	#define INPUT_PAD_U_OFFSET 0x0014
+	#define INPUT_PAD_D_OFFSET 0x0015
+	#define INPUT_PAD_L_OFFSET 0x0016
+	#define INPUT_PAD_R_OFFSET 0x0017
 	#define INPUT_SELECT_OFFSET 0x0018
 	#define INPUT_START_OFFSET 0x0019
 #else
@@ -51,10 +51,10 @@ typedef unsigned short uint16_t;
 	#define INPUT_Y_OFFSET (g_psp_offset + 0x0011)
 	#define INPUT_A_OFFSET (g_psp_offset + 0x0012)
 	#define INPUT_B_OFFSET (g_psp_offset + 0x0013)
-	#define INPUT_UP_OFFSET (g_psp_offset + 0x0014)
-	#define INPUT_DOWN_OFFSET (g_psp_offset + 0x0015)
-	#define INPUT_LEFT_OFFSET (g_psp_offset + 0x0016)
-	#define INPUT_RIGHT_OFFSET (g_psp_offset + 0x0017)
+	#define INPUT_PAD_U_OFFSET (g_psp_offset + 0x0014)
+	#define INPUT_PAD_D_OFFSET (g_psp_offset + 0x0015)
+	#define INPUT_PAD_L_OFFSET (g_psp_offset + 0x0016)
+	#define INPUT_PAD_R_OFFSET (g_psp_offset + 0x0017)
 	#define INPUT_SELECT_OFFSET (g_psp_offset + 0x0018)
 	#define INPUT_START_OFFSET (g_psp_offset + 0x0019)
 #endif
@@ -66,10 +66,10 @@ typedef unsigned short uint16_t;
 #define INPUT_Y (*(uint8_t*)INPUT_Y_OFFSET)
 #define INPUT_A (*(uint8_t*)INPUT_A_OFFSET)
 #define INPUT_B (*(uint8_t*)INPUT_B_OFFSET)
-#define INPUT_UP (*(uint8_t*)INPUT_UP_OFFSET)
-#define INPUT_DOWN (*(uint8_t*)INPUT_DOWN_OFFSET)
-#define INPUT_LEFT (*(uint8_t*)INPUT_LEFT_OFFSET)
-#define INPUT_RIGHT (*(uint8_t*)INPUT_RIGHT_OFFSET)
+#define INPUT_PAD_U (*(uint8_t*)INPUT_PAD_U_OFFSET)
+#define INPUT_PAD_D (*(uint8_t*)INPUT_PAD_D_OFFSET)
+#define INPUT_PAD_L (*(uint8_t*)INPUT_PAD_L_OFFSET)
+#define INPUT_PAD_R (*(uint8_t*)INPUT_PAD_R_OFFSET)
 #define INPUT_SELECT (*(uint8_t*)INPUT_SELECT_OFFSET)
 #define INPUT_START (*(uint8_t*)INPUT_START_OFFSET)
 

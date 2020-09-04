@@ -56,10 +56,10 @@ struct GamePSP
 	uint8_t input_y;      // 0x0011
 	uint8_t input_a;      // 0x0012
 	uint8_t input_b;      // 0x0013
-	uint8_t input_u;      // 0x0014
-	uint8_t input_d;      // 0x0015
-	uint8_t input_l;      // 0x0016
-	uint8_t input_r;      // 0x0017
+	uint8_t input_pad_u;  // 0x0014
+	uint8_t input_pad_d;  // 0x0015
+	uint8_t input_pad_l;  // 0x0016
+	uint8_t input_pad_r;  // 0x0017
 	uint8_t input_select; // 0x0018
 	uint8_t input_start;  // 0x0019
 	uint8_t unused5;      // 0x001A
@@ -123,8 +123,6 @@ union GameCommand
 struct GlueData
 {
 	struct GamePSP psp;
-	bool toggle_l;
-	bool toggle_r;
 
 	void (*callback_func)(struct GameInterruption, uintptr_t*, void*);
 	void* callback_data;
@@ -230,28 +228,21 @@ int GlueStart(void (*callback_func)(struct GameInterruption, uintptr_t*, void*),
 void GlueStop() {}
 
 
-static inline bool sToggle(bool evn, bool* state)
-{
-	if (evn == false)
-		*state = true;
-	else if (*state == true)
-	{
-		*state = false;
-		return true;
-	}
-
-	return false;
-}
-
-
-void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out)
+void GlueFrame(struct kaEvents in, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out)
 {
 	union GameCommand* cmd = (union GameCommand*)s_glue.psp.commands_table;
 	union GameCommand* end = cmd + COMMANDS_TABLE_LEN;
 
 	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX);
-	s_glue.psp.input_l = sToggle(e.pad_l, &s_glue.toggle_l);
-	s_glue.psp.input_r = sToggle(e.pad_r, &s_glue.toggle_r);
+
+	s_glue.psp.input_x = (in.x == true) ? 1 : 0;
+	s_glue.psp.input_y = (in.y == true) ? 1 : 0;
+	s_glue.psp.input_pad_l = (in.pad_l == true) ? 1 : 0;
+	s_glue.psp.input_pad_r = (in.pad_r == true) ? 1 : 0;
+	s_glue.psp.input_pad_u = (in.pad_u == true) ? 1 : 0;
+	s_glue.psp.input_pad_d = (in.pad_d == true) ? 1 : 0;
+	s_glue.psp.input_start = (in.start == true) ? 1 : 0;
+	s_glue.psp.input_select = (in.select == true) ? 1 : 0;
 
 	GameMain(); // FIXME, the game always return zero!
 

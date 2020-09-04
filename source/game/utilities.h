@@ -16,6 +16,9 @@ void Clear(void* dest, uint16_t size);
 void Copy(void* org, void* dest, uint16_t size);
 char* NumberToString(uint8_t no, char* out);
 
+uint8_t KeyToggle(uint8_t i, uint8_t* state);
+uint8_t KeyRepeat(uint8_t i, uint8_t* state);
+
 #define MIN(a, b) ((a) < (b)) ? (a) : (b)
 #define MAX(a, b) ((a) > (b)) ? (a) : (b)
 #define CLAMP(x, min_v, max_v) MIN(MAX((x), (min_v)), (max_v))

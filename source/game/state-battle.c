@@ -176,13 +176,13 @@ static void* sPanelFrame()
 	/* Select an action for the current actor */
 	if (s_panel_screen == PANEL_SCREEN_ACTION)
 	{
-		if (INPUT_UP == 1)
+		if (INPUT_PAD_U == 1)
 			s_panel_selection -= 2;
-		if (INPUT_DOWN == 1)
+		if (INPUT_PAD_D == 1)
 			s_panel_selection += 2;
-		if (INPUT_LEFT == 1)
+		if (INPUT_PAD_L == 1)
 			s_panel_selection -= 1;
-		if (INPUT_RIGHT == 1)
+		if (INPUT_PAD_R == 1)
 			s_panel_selection += 1;
 
 		s_panel_selection =
@@ -192,9 +192,9 @@ static void* sPanelFrame()
 	/* Select a target for the current actor */
 	else if (s_panel_screen == PANEL_SCREEN_TARGET)
 	{
-		if (INPUT_LEFT == 1 || INPUT_UP == 1)
+		if (INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
 			s_panel_selection -= 1;
-		if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
+		if (INPUT_PAD_R == 1 || INPUT_PAD_D == 1)
 			s_panel_selection += 1;
 
 		s_panel_selection = UiPanelTarget_dynamic(s_spr_items, s_panel_selection);
@@ -319,18 +319,18 @@ static void* sBattleFrame()
 
 #ifdef DEVELOPER
 	/* Change battle */
-	if (INPUT_LEFT == 1 && s_battle_no >= 1)
+	if (INPUT_PAD_L == 1 && s_battle_no >= 1)
 	{
 		s_battle_no -= 1;
 		next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 	}
-	else if (INPUT_RIGHT == 1 && s_battle_no < 255)
+	else if (INPUT_PAD_R == 1 && s_battle_no < 255)
 	{
 		s_battle_no += 1;
 		next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 	}
 	/* Heal */
-	if (INPUT_UP)
+	if (INPUT_PAD_U)
 	{
 		g_actor[ACTOR_KURO].health = 100;
 		g_actor[ACTOR_SAO].health = 100;

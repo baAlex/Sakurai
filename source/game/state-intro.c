@@ -91,8 +91,8 @@ static void* sTitleFrame()
 	CmdDrawText(s_font2, 100, 140, "Press a key to continue...");
 	CmdHalt();
 
-	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_RIGHT == 1 || INPUT_DOWN == 1 ||
-	    INPUT_LEFT == 1 || INPUT_UP == 1)
+	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_PAD_R == 1 || INPUT_PAD_D == 1 ||
+	    INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
 	{
 		Seed(CURRENT_MILLISECONDS);
 		return StatePrepareBattle(0);
@@ -114,7 +114,7 @@ static void* sDialogsFrame()
 	if (INPUT_START == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sResumeFromPause);
 
-	if (INPUT_LEFT == 1 || INPUT_UP == 1)
+	if (INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
 	{
 		CLEAN_SCREEN();
 		s_last_updated = CURRENT_MILLISECONDS;
@@ -123,7 +123,7 @@ static void* sDialogsFrame()
 			s_dialog -= 1;
 	}
 
-	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_RIGHT == 1 || INPUT_DOWN == 1)
+	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_PAD_R == 1 || INPUT_PAD_D == 1)
 	{
 		CLEAN_SCREEN();
 		s_last_updated = CURRENT_MILLISECONDS;

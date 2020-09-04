@@ -42,9 +42,9 @@ static uint8_t s_selection = 0;
 
 static void* sFrame()
 {
-	if (INPUT_LEFT == 1 || INPUT_UP == 1)
+	if (INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
 		s_selection -= 1;
-	if (INPUT_RIGHT == 1 || INPUT_DOWN == 1)
+	if (INPUT_PAD_R == 1 || INPUT_PAD_D == 1)
 		s_selection += 1;
 
 	s_selection = UiMenuPause_dynamic(s_spr_items, s_selection);

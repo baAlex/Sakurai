@@ -31,10 +31,17 @@ SOFTWARE.
 #include "state.h"
 #include "utilities.h"
 
+uint8_t x_toggle = 0;
+
 static void* sFrame()
 {
 	if ((CURRENT_FRAME % 48) == 0) /* Every 2 seconds */
 		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
+
+	if (KeyToggle(INPUT_X, &x_toggle) != 0)
+		CmdDrawRectangle(2, 2, 32, 32, 8);
+	else
+		CmdDrawRectangle(2, 2, 32, 32, 7);
 
 	CmdHalt();
 	return (void*)sFrame;

@@ -185,13 +185,13 @@ Main_loop_no_sleep:
 		pop dx
 		mov byte [input_select], dl
 		pop dx
-		mov byte [input_r], dl
+		mov byte [input_pad_r], dl
 		pop dx
-		mov byte [input_l], dl
+		mov byte [input_pad_l], dl
 		pop dx
-		mov byte [input_d], dl
+		mov byte [input_pad_d], dl
 		pop dx
-		mov byte [input_u], dl
+		mov byte [input_pad_u], dl
 		pop dx
 		mov byte [input_b], dl
 		pop dx
@@ -209,18 +209,6 @@ Main_loop_no_sleep:
 		popa
 
 		inc word [frame_counter]
-
-		; <HACK>
-			push ds
-			push dx
-
-			mov dx, seg_data
-			mov ds, dx
-			call near KeyboardClean ; (ds implicit) ; HACK!!!!
-
-			pop dx
-			pop ds
-		; </HACK>
 
 		; Iterate commands table, drawing in a buffer
 		mov si, commands_table

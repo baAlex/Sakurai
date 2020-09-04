@@ -19,8 +19,7 @@ EXIT_FAILURE = 0x01
 
 UNIX_NL = 0x0A ; Log messages uses it
 
-KEYBOARD_STATE_LEN = 84 ; Number of keys, modify this value
-                        ; requires changes on the code
+KEYBOARD_STATE_LEN = 0x58 ; Number of keys
 
 COMMAND_SIZE = 8
 COMMANDS_TABLE_LEN = 28
@@ -121,10 +120,10 @@ segment seg_game_data
 	input_y: db 0x00      ; 0x0011
 	input_a: db 0x00      ; 0x0012
 	input_b: db 0x00      ; 0x0013
-	input_u: db 0x00      ; 0x0014
-	input_d: db 0x00      ; 0x0015
-	input_l: db 0x00      ; 0x0016
-	input_r: db 0x00      ; 0x0017
+	input_pad_u: db 0x00  ; 0x0014
+	input_pad_d: db 0x00  ; 0x0015
+	input_pad_l: db 0x00  ; 0x0016
+	input_pad_r: db 0x00  ; 0x0017
 	input_select: db 0x00 ; 0x0018
 	input_start: db 0x00  ; 0x0019
 	unused1: db 0x00      ; 0x001A

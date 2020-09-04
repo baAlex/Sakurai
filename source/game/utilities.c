@@ -127,3 +127,36 @@ char* NumberToString(uint8_t no, char* out)
 
 	return c;
 }
+
+
+uint8_t KeyToggle(uint8_t in, uint8_t* state)
+{
+	if (in == 0)
+		*state = 1;
+	else if (*state == 1)
+	{
+		*state = 0;
+		return 1;
+	}
+
+	return 0;
+}
+
+
+uint8_t KeyRepeat(uint8_t in, uint8_t* state)
+{
+	if (in == 0)
+		*state = 4;
+	else
+	{
+		*state += 1;
+
+		if (*state >= 4)
+		{
+			*state = 0;
+			return 1;
+		}
+	}
+
+	return 0;
+}
