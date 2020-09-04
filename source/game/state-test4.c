@@ -24,64 +24,24 @@ SOFTWARE.
 
 -------------------------------
 
- [main.c]
+ [state-test4.c]
  - Alexander Brandt 2020
 -----------------------------*/
 
 #include "state.h"
 #include "utilities.h"
 
-
-#define TEST4
-
-
-void* StateHello();
-static void* (*s_next_state)() = StateHello;
-
-
-#if defined(__BCC__) && defined(__MSDOS__)
-int main()
-#else
-int GameMain()
-#endif
+static void* sFrame()
 {
-	/* PROTIP: 'state-battle.c' is the file you are looking for, this
-	   entry point only has the purpose of redirect to the actual state.
-	   State already defined by the previous frame. */
-	s_next_state = (void* (*)())s_next_state();
-	return 0;
+	if ((CURRENT_FRAME % 48) == 0) /* Every 2 seconds */
+		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
+
+	CmdHalt();
+	return (void*)sFrame;
 }
 
-
-void* StateHello()
+void* StateTest4()
 {
-	/* 'StateHello' is the first state to be executed. From here every
-	   other state should return what to call in the following frame,
-	   most states returns themselves */
-
-	IntPrintText("Tanaka's magical business v0.3-alpha\n");
-	IntPrintText(" - Max commands: ");
-	IntPrintNumber(MAX_COMMANDS);
-	IntPrintText(" - Current milliseconds: ");
-	IntPrintNumber(CURRENT_MILLISECONDS);
-	IntPrintText("\n");
-
-	IntLoadPalette("assets/palette.raw");
-
-	#if defined(BATTLE)
-	return StatePrepareBattle(0);
-	#elif defined(SCREENSHOTS)
-	return StateScreenshots();
-	#elif defined(TEST4)
-	return StateTest4();
-	#elif defined(TEST3)
-	return StateTest3();
-	#elif defined(TEST2)
-	return StateTest2();
-	#elif defined(TEST1)
-	return StateTest1();
-
-	#else
-	return StatePrepareIntro();
-	#endif
+	IntPrintText("# StateTest4\n");
+	return sFrame();
 }

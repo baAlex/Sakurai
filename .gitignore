@@ -16,6 +16,7 @@
 /SDL2.dll
 
 # Developers, developers, developers
+/dosbox-x.conf
 /plot-*.png
 
 /*.sgi

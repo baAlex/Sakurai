@@ -104,7 +104,7 @@ again:
 		}
 	}
 
-	// ADD/SUB [OP, REG, IMM8] (r/m16/32/64 = imm16/32)
+	// ADD/SUB [OP, REG, IMM16] (r/m16/32/64 = imm16/32)
 	else if (op == 0x81)
 	{
 		uint8_t reg = 0;
