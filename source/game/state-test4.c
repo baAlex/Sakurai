@@ -31,17 +31,30 @@ SOFTWARE.
 #include "state.h"
 #include "utilities.h"
 
-uint8_t x_toggle = 0;
+static uint8_t s_toggle_x = 0;
+static uint8_t s_toggle_y = 0;
+static uint8_t s_toggle_l = 0;
+static uint8_t s_toggle_r = 0;
+static uint8_t s_toggle_u = 0;
+static uint8_t s_toggle_d = 0;
+static uint8_t s_toggle_start = 0;
+static uint8_t s_toggle_select = 0;
 
 static void* sFrame()
 {
 	if ((CURRENT_FRAME % 48) == 0) /* Every 2 seconds */
 		CmdDrawRectangle(20 /* 320 px */, 13 /* 208 px */, 0, 0, 64 + (Random() % 10));
 
-	if (KeyToggle(INPUT_X, &x_toggle) != 0)
-		CmdDrawRectangle(2, 2, 32, 32, 8);
-	else
-		CmdDrawRectangle(2, 2, 32, 32, 7);
+	CmdDrawRectangle(1, 1, (18 * 1) + 9, (18 * 4), 7 + KeyToggle(INPUT_X, &s_toggle_x));
+	CmdDrawRectangle(1, 1, (18 * 2) + 9, (18 * 4), 7 + KeyToggle(INPUT_Y, &s_toggle_y));
+
+	CmdDrawRectangle(1, 1, (18 * 5), (18 * 4), 7 + KeyRepeat(INPUT_PAD_L, &s_toggle_l));
+	CmdDrawRectangle(1, 1, (18 * 6), (18 * 4), 7 + KeyRepeat(INPUT_PAD_D, &s_toggle_d));
+	CmdDrawRectangle(1, 1, (18 * 6), (18 * 3), 7 + KeyRepeat(INPUT_PAD_U, &s_toggle_u));
+	CmdDrawRectangle(1, 1, (18 * 7), (18 * 4), 7 + KeyRepeat(INPUT_PAD_R, &s_toggle_r));
+
+	CmdDrawRectangle(1, 1, (18 * 1), (18 * 2), 7 + KeyToggle(INPUT_START, &s_toggle_start));
+	CmdDrawRectangle(1, 1, (18 * 2), (18 * 2), 7 + KeyToggle(INPUT_SELECT, &s_toggle_select));
 
 	CmdHalt();
 	return (void*)sFrame;

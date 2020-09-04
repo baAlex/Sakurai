@@ -155,26 +155,29 @@ Main_loop_no_sleep:
 		; Provide input to game logic
 		; Aka: Copy things from 'seg_data' to 'seg_game_data'
 		push ax ; Has the TimeGet() return
-		mov dx, [keyboard_state + 0x2C] ; X
-		push dx
-		mov dx, [keyboard_state + 0x1C] ; Y
-		push dx
-		mov dx, [keyboard_state + 0x1E] ; A
-		push dx
-		mov dx, [keyboard_state + 0x1F] ; B
-		push dx
-		mov dx, [keyboard_state + 0x48] ; Up
-		push dx
-		mov dx, [keyboard_state + 0x50] ; Down
-		push dx
-		mov dx, [keyboard_state + 0x4B] ; Left
-		push dx
-		mov dx, [keyboard_state + 0x4D] ; Right
-		push dx
-		mov dx, [keyboard_state + 0x39] ; Select
-		push dx
-		mov dx, [keyboard_state + 0x01] ; Start
-		push dx
+
+		mov dl, byte [keyboard_state + 0x2C] ; X, 0x2C = 'Z'
+		mov dh, byte [keyboard_state + 0x1C] ; X, 0x1C = Enter
+			or dl, dh
+			xor dh, dh
+			push dx
+		mov dl, [keyboard_state + 0x2D] ; Y, 0x2D = 'X'
+		mov dh, [keyboard_state + 0x0E] ; Y, 0x0E = Backspace
+			or dl, dh
+			xor dh, dh
+			push dx
+		mov dx, [keyboard_state + 0x48] ; Up, 0x48 = Arrow
+			push dx
+		mov dx, [keyboard_state + 0x50] ; Down, 0x50 = Arrow
+			push dx
+		mov dx, [keyboard_state + 0x4B] ; Left, 0x4B = Arrow
+			push dx
+		mov dx, [keyboard_state + 0x4D] ; Right, 0x4D = Arrow
+			push dx
+		mov dx, [keyboard_state + 0x39] ; Select, 0x39 = Space
+			push dx
+		mov dx, [keyboard_state + 0x01] ; Start, 0x01 = Escape
+			push dx
 
 		; Welcome to 'seg_game_data'
 		mov dx, seg_game_data
@@ -192,10 +195,6 @@ Main_loop_no_sleep:
 		mov byte [input_pad_d], dl
 		pop dx
 		mov byte [input_pad_u], dl
-		pop dx
-		mov byte [input_b], dl
-		pop dx
-		mov byte [input_a], dl
 		pop dx
 		mov byte [input_y], dl
 		pop dx

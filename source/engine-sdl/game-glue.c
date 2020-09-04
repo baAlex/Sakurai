@@ -54,8 +54,8 @@ struct GamePSP
 
 	uint8_t input_x;      // 0x0010
 	uint8_t input_y;      // 0x0011
-	uint8_t input_a;      // 0x0012
-	uint8_t input_b;      // 0x0013
+	uint8_t unused11;     // 0x0012
+	uint8_t unused12;     // 0x0013
 	uint8_t input_pad_u;  // 0x0014
 	uint8_t input_pad_d;  // 0x0015
 	uint8_t input_pad_l;  // 0x0016
@@ -235,8 +235,8 @@ void GlueFrame(struct kaEvents in, size_t ms, const struct jaImage* buffer_backg
 
 	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX);
 
-	s_glue.psp.input_x = (in.x == true) ? 1 : 0;
-	s_glue.psp.input_y = (in.y == true) ? 1 : 0;
+	s_glue.psp.input_x = (in.x == true) ? 1 : 0 | (in.a == true) ? 1 : 0;
+	s_glue.psp.input_y = (in.y == true) ? 1 : 0 | (in.b == true) ? 1 : 0;
 	s_glue.psp.input_pad_l = (in.pad_l == true) ? 1 : 0;
 	s_glue.psp.input_pad_r = (in.pad_r == true) ? 1 : 0;
 	s_glue.psp.input_pad_u = (in.pad_u == true) ? 1 : 0;

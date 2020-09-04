@@ -32,8 +32,8 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-#define DEVELOPER
-#define AUTO_BATTLE
+/*#define DEVELOPER
+#define AUTO_BATTLE*/
 
 static uint8_t s_battle_no = 0;
 
@@ -45,6 +45,12 @@ static uint8_t s_spr_fx1;
 static uint8_t s_spr_fx2;
 static uint8_t s_spr_items;
 
+static uint8_t s_toggle_x = 0;
+static uint8_t s_toggle_l = 0;
+static uint8_t s_toggle_r = 0;
+static uint8_t s_toggle_u = 0;
+static uint8_t s_toggle_d = 0;
+static uint8_t s_toggle_start = 0;
 
 static void* sPrepareChoreography();
 static void* sPreparePanel(uint8_t actor_index, uint8_t screen);
@@ -69,7 +75,7 @@ static char* s_choreo_hp_str = NULL;
 
 static void* sChoreographyFrame()
 {
-	if (INPUT_START == 1)
+	if (KeyToggle(INPUT_START, &s_toggle_start) == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sChoreographyResumeFromPause);
 
 	ActorsDraw(0);
@@ -141,6 +147,13 @@ static void* sChoreographyInit()
 
 static void* sChoreographyResumeFromPause()
 {
+	s_toggle_x = 0;
+	s_toggle_l = 0;
+	s_toggle_r = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
+
 	return sChoreographyInit();
 }
 
@@ -170,19 +183,19 @@ static void* sPanelFrame()
 	void* next_frame = (void*)sPanelFrame;
 	struct Action* action = NULL;
 
-	if (INPUT_START == 1)
+	if (KeyToggle(INPUT_START, &s_toggle_start) == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sPanelResumeFromPause);
 
 	/* Select an action for the current actor */
 	if (s_panel_screen == PANEL_SCREEN_ACTION)
 	{
-		if (INPUT_PAD_U == 1)
+		if (KeyRepeat(INPUT_PAD_U, &s_toggle_u) == 1)
 			s_panel_selection -= 2;
-		if (INPUT_PAD_D == 1)
+		if (KeyRepeat(INPUT_PAD_D, &s_toggle_d) == 1)
 			s_panel_selection += 2;
-		if (INPUT_PAD_L == 1)
+		if (KeyRepeat(INPUT_PAD_L, &s_toggle_l) == 1)
 			s_panel_selection -= 1;
-		if (INPUT_PAD_R == 1)
+		if (KeyRepeat(INPUT_PAD_R, &s_toggle_r) == 1)
 			s_panel_selection += 1;
 
 		s_panel_selection =
@@ -192,15 +205,15 @@ static void* sPanelFrame()
 	/* Select a target for the current actor */
 	else if (s_panel_screen == PANEL_SCREEN_TARGET)
 	{
-		if (INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
+		if (KeyRepeat(INPUT_PAD_L, &s_toggle_l) == 1 || KeyRepeat(INPUT_PAD_U, &s_toggle_u) == 1)
 			s_panel_selection -= 1;
-		if (INPUT_PAD_R == 1 || INPUT_PAD_D == 1)
+		if (KeyRepeat(INPUT_PAD_R, &s_toggle_r) == 1 || KeyRepeat(INPUT_PAD_D, &s_toggle_d) == 1)
 			s_panel_selection += 1;
 
 		s_panel_selection = UiPanelTarget_dynamic(s_spr_items, s_panel_selection);
 	}
 
-	if (INPUT_X == 1 || INPUT_Y == 1)
+	if (KeyToggle(INPUT_X, &s_toggle_x) == 1)
 	{
 		/* Overwrite actor action */
 		if (s_panel_screen == PANEL_SCREEN_ACTION)
@@ -294,6 +307,13 @@ static void* sPanelInit()
 
 static void* sPanelResumeFromPause()
 {
+	s_toggle_x = 0;
+	s_toggle_l = 0;
+	s_toggle_r = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
+
 	return sPanelInit();
 }
 
@@ -319,18 +339,18 @@ static void* sBattleFrame()
 
 #ifdef DEVELOPER
 	/* Change battle */
-	if (INPUT_PAD_L == 1 && s_battle_no >= 1)
+	if (KeyToggle(INPUT_PAD_L, &s_toggle_l) == 1 && s_battle_no >= 1)
 	{
 		s_battle_no -= 1;
 		next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 	}
-	else if (INPUT_PAD_R == 1 && s_battle_no < 255)
+	else if (KeyToggle(INPUT_PAD_R, &s_toggle_r) == 1 && s_battle_no < 255)
 	{
 		s_battle_no += 1;
 		next_frame = StatePrepareBattle(s_battle_no); /* Restarts the entire world */
 	}
 	/* Heal */
-	if (INPUT_PAD_U)
+	if (KeyToggle(INPUT_PAD_U, &s_toggle_u))
 	{
 		g_actor[ACTOR_KURO].health = 100;
 		g_actor[ACTOR_SAO].health = 100;
@@ -351,7 +371,7 @@ static void* sBattleFrame()
 	}
 #endif
 
-	if (INPUT_START == 1)
+	if (KeyToggle(INPUT_START, &s_toggle_start) == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sBattleResumeFromPause);
 
 	/* Game logic */
@@ -424,6 +444,13 @@ static void* sBattleInit()
 
 static void* sBattleResumeFromPause()
 {
+	s_toggle_x = 0;
+	s_toggle_l = 0;
+	s_toggle_r = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
+
 	return sBattleInit();
 }
 
@@ -474,6 +501,13 @@ static void* sInit()
 	uint8_t bkg = 0;
 
 	s_state_start = CURRENT_MILLISECONDS;
+
+	s_toggle_x = 0;
+	s_toggle_l = 0;
+	s_toggle_r = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
 
 	IntPrintText("# StateBattle\n");
 	IntUnloadAll();

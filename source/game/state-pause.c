@@ -39,21 +39,29 @@ static uint8_t s_spr_items;
 static void* s_resume_to;
 static uint8_t s_selection = 0;
 
+static uint8_t s_toggle_x = 0;
+static uint8_t s_toggle_y = 0;
+static uint8_t s_toggle_u = 0;
+static uint8_t s_toggle_d = 0;
+static uint8_t s_toggle_start = 0;
 
 static void* sFrame()
 {
-	if (INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
+	if (KeyRepeat(INPUT_PAD_U, &s_toggle_u) == 1)
 		s_selection -= 1;
-	if (INPUT_PAD_R == 1 || INPUT_PAD_D == 1)
+	if (KeyRepeat(INPUT_PAD_D, &s_toggle_d) == 1)
 		s_selection += 1;
 
 	s_selection = UiMenuPause_dynamic(s_spr_items, s_selection);
 	CmdHalt();
 
-	if (INPUT_START == 1 && s_resume_to != NULL)
-		return s_resume_to;
+	if (KeyToggle(INPUT_START, &s_toggle_start) == 1 || KeyToggle(INPUT_Y, &s_toggle_y) == 1)
+	{
+		if (s_resume_to != NULL)
+			return s_resume_to;
+	}
 
-	if (INPUT_X == 1 || INPUT_Y == 1)
+	if (KeyToggle(INPUT_X, &s_toggle_x))
 	{
 		if (s_selection == 0 && s_resume_to != NULL)
 			return s_resume_to;
@@ -84,6 +92,12 @@ void* StatePreparePause(uint8_t spr_font1, uint8_t spr_font2, uint8_t spr_items,
 	s_spr_items = spr_items;
 	s_resume_to = (void*)resume_to;
 	s_selection = 0;
+
+	s_toggle_x = 0;
+	s_toggle_y = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
 
 	return (void*)sInit;
 }

@@ -40,10 +40,12 @@ static uint8_t s_spr_items;
 
 static uint8_t s_stage_no = 0;
 
+static uint8_t s_toggle_l = 0;
+static uint8_t s_toggle_r = 0;
 
 static void* sFrame()
 {
-	if (INPUT_PAD_L == 1)
+	if (KeyToggle(INPUT_PAD_L, &s_toggle_l) == 1)
 	{
 		if (s_stage_no >= 1)
 		{
@@ -51,7 +53,7 @@ static void* sFrame()
 			return (void*)StateScreenshots;
 		}
 	}
-	else if (INPUT_PAD_R == 1)
+	else if (KeyToggle(INPUT_PAD_R, &s_toggle_r) == 1)
 	{
 		if (s_stage_no < 255)
 		{
@@ -123,7 +125,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].charge_timer = 170;
 
 		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
-		                      &g_actor[ACTOR_KURO]);
+		                     &g_actor[ACTOR_KURO]);
 		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 0);
 
 		ActorsDraw(1);
@@ -170,7 +172,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_SAO].charge_timer = 64;
 
 		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[ACTOR_KURO].persona, &g_actor[ACTOR_SAO],
-		                      &g_actor[ACTOR_KURO]);
+		                     &g_actor[ACTOR_KURO]);
 		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_KURO].persona, 2);
 
 		ActorsDraw(1);
@@ -214,7 +216,7 @@ void* StateScreenshots()
 		g_actor[ACTOR_KURO].magic = 0;
 
 		UiPanelAction_static(s_spr_portraits, s_font2, g_actor[ACTOR_SAO].persona, &g_actor[ACTOR_SAO],
-		                      &g_actor[ACTOR_KURO]);
+		                     &g_actor[ACTOR_KURO]);
 		UiPanelAction_dynamic(s_spr_items, s_font1, g_actor[ACTOR_SAO].persona, 3);
 
 		ActorsDraw(1);

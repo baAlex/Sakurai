@@ -91,8 +91,8 @@ static void* sTitleFrame()
 	CmdDrawText(s_font2, 100, 140, "Press a key to continue...");
 	CmdHalt();
 
-	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_PAD_R == 1 || INPUT_PAD_D == 1 ||
-	    INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
+	if (INPUT_X != 0 || INPUT_Y != 0 || INPUT_START != 0 || INPUT_SELECT != 0 || INPUT_PAD_R != 0 || INPUT_PAD_D != 0 ||
+	    INPUT_PAD_L != 0 || INPUT_PAD_U != 0)
 	{
 		Seed(CURRENT_MILLISECONDS);
 		return StatePrepareBattle(0);
@@ -109,12 +109,21 @@ static void* sTitleFrame()
 static uint8_t s_dialog = 0;
 static uint16_t s_last_updated = 0;
 
+static uint8_t s_toggle_x = 0;
+static uint8_t s_toggle_y = 0;
+static uint8_t s_toggle_l = 0;
+static uint8_t s_toggle_r = 0;
+static uint8_t s_toggle_u = 0;
+static uint8_t s_toggle_d = 0;
+static uint8_t s_toggle_start = 0;
+
 static void* sDialogsFrame()
 {
-	if (INPUT_START == 1)
+	if (KeyToggle(INPUT_START, &s_toggle_start) == 1)
 		return StatePreparePause(s_font1, s_font2, s_spr_items, (void*)sResumeFromPause);
 
-	if (INPUT_PAD_L == 1 || INPUT_PAD_U == 1)
+	if (KeyToggle(INPUT_Y, &s_toggle_y) == 1 || KeyToggle(INPUT_PAD_L, &s_toggle_l) == 1 ||
+	    KeyToggle(INPUT_PAD_U, &s_toggle_u) == 1)
 	{
 		CLEAN_SCREEN();
 		s_last_updated = CURRENT_MILLISECONDS;
@@ -123,7 +132,8 @@ static void* sDialogsFrame()
 			s_dialog -= 1;
 	}
 
-	if (INPUT_X == 1 || INPUT_Y == 1 || INPUT_START == 1 || INPUT_SELECT == 1 || INPUT_PAD_R == 1 || INPUT_PAD_D == 1)
+	if (KeyToggle(INPUT_X, &s_toggle_x) == 1 || KeyToggle(INPUT_PAD_R, &s_toggle_r) == 1 ||
+	    KeyToggle(INPUT_PAD_D, &s_toggle_d) == 1)
 	{
 		CLEAN_SCREEN();
 		s_last_updated = CURRENT_MILLISECONDS;
@@ -182,6 +192,14 @@ static void* sInit()
 	s_dialog = 0;
 	s_last_updated = CURRENT_MILLISECONDS;
 
+	s_toggle_x = 0;
+	s_toggle_y = 0;
+	s_toggle_l = 0;
+	s_toggle_r = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
+
 	CLEAN_SCREEN();
 	return sDialogsFrame();
 }
@@ -189,6 +207,15 @@ static void* sInit()
 static void* sResumeFromPause()
 {
 	CLEAN_PAUSE();
+
+	s_toggle_x = 0;
+	s_toggle_y = 0;
+	s_toggle_l = 0;
+	s_toggle_r = 0;
+	s_toggle_u = 0;
+	s_toggle_d = 0;
+	s_toggle_start = 0;
+
 	return sDialogsFrame();
 }
 
