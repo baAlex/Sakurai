@@ -34,13 +34,13 @@ KeyboardInit:
 ; http://www.ctyme.com/intr/rb-5956.htm
 
 	push ax
-	push bx
+	push bx ; Return of Get current vector (Int 21/AH=35h)
 	push dx
 	push ds
-	push es
+	push es ; Return of Get current vector (Int 21/AH=35h)
 
-	mov ax, seg_data ; The messages and previous vector lives here
-	mov ds, ax
+	mov dx, seg_data ; The messages and previous vector lives here
+	mov ds, dx
 
 	mov dx, str_keyboard_init
 	call near PrintLogString ; (ds:dx)
@@ -103,8 +103,8 @@ _KeyboardVector:
 	push dx
 	push ds
 
-	mov ax, seg_data ; The keys state lives here
-	mov ds, ax
+	mov dx, seg_data ; The keys state lives here
+	mov ds, dx
 
 	xor bx, bx
 
@@ -152,8 +152,8 @@ KeyboardStop:
 	push dx
 	push ds
 
-	mov ax, seg_data ; To retrieve previous vector
-	mov ds, ax
+	mov dx, seg_data ; To retrieve previous vector
+	mov ds, dx
 
 	mov dx, str_keyboard_stop
 	call near PrintLogString ; (ds:dx)

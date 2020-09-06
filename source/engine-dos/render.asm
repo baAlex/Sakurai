@@ -29,13 +29,13 @@
 ;==============================
 RenderInit:
 	push ax
-	push bx
+	push bx ; Return of Get current video mode (Int 10/AH=0Fh)
 	push cx
 	push ds
 	push dx
 
-	mov ax, seg_data ; Messages, previous mode and palette...
-	mov ds, ax
+	mov dx, seg_data ; Messages, previous mode and palette...
+	mov ds, dx
 
 	mov dx, str_render_init
 	call near PrintLogString ; (ds:dx)
@@ -64,8 +64,8 @@ RenderInit:
 	jnz near RenderInit_failure
 
 	; Clean Vga memory
-	mov ax, VGA_SEGMENT
-	mov es, ax
+	mov dx, VGA_SEGMENT
+	mov es, dx
 	mov di, VGA_OFFSET
 	mov cx, VGA_DATA_SIZE
 

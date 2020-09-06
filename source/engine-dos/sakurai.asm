@@ -88,35 +88,6 @@ Main:
 	call near RenderInit
 	call near IntFDInit
 
-	; Measure how much took a copy of an entry
-	; segment into the VGA memory (ps: a lot)
-	mov dx, seg_data
-	mov ds, dx
-
-	call near TimeGet ; (ax = return, ds implicit)
-	mov bx, ax ; Start time
-
-		mov dx, seg_buffer_data
-		mov ds, dx
-		mov si, bkg_data
-
-		mov dx, VGA_SEGMENT
-		mov es, dx
-		mov di, VGA_OFFSET
-
-		mov cx, BKG_DATA_SIZE
-		call near MemoryCopy ; (ds:si = source, es:di = destination, cx)
-
-	mov ax, seg_data ; TimeGet() requires it
-	mov ds, ax
-	call near TimeGet ; (ax = return, ds implicit)
-
-	mov dx, str_copy_speed
-	call near PrintLogString ; (ds:dx)
-
-	sub ax, bx
-	call near PrintLogNumber ; (ax)
-
 	; Main loop
 	mov dx, seg_data ; From here no call should change this (TODO)
 	mov ds, dx
@@ -129,10 +100,11 @@ Main:
 Main_loop:
 
 		; After the previous frame we sleep
-		cmp ax, 41 ; We did it before the 41 ms?
+		mov bl, 41
+
+		cmp al, bl ; We did it before the 41 ms?
 		jae near Main_loop_time ; No, we don't
 
-		mov bl, 41
 		sub bl, al
 		mov al, bl
 

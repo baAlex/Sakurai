@@ -241,7 +241,6 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 	header.file_size = jaEndianToU16(header.file_size, JA_ENDIAN_LITTLE, JA_ENDIAN_SYSTEM);
 	header.data_offset = jaEndianToU16(header.data_offset, JA_ENDIAN_LITTLE, JA_ENDIAN_SYSTEM);
 
-	header.frames += 1;
 	header.data_offset += 8; // To make it absolute from the Load-Header
 
 	// Allocations

@@ -55,7 +55,6 @@ segment seg_data
 	str_keyboard_init: db "Initializing keyboard module...", UNIX_NL, 0x00
 	str_render_init: db "Initializing render module...", UNIX_NL, 0x00
 
-	str_copy_speed: db "Copy speed is (ms): ", 0x00
 	str_main_loop: db UNIX_NL, "Entering main loop...", UNIX_NL, UNIX_NL, 0x00
 
 	str_render_stop: db "Stopping render module...", UNIX_NL, 0x00

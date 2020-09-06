@@ -403,7 +403,6 @@ GameDrawSprite_pool_set:
 	shr eax, 16
 	xor ah, ah
 
-	inc cl
 	div cl ; Modulo by frames number
 	shr ax, 8
 
@@ -497,13 +496,12 @@ GameDrawText_pool_set:
 	xor ax, ax ; Before the loop
 
 GameDrawText_loop:
-	shl ebx, 16 ; Im out of registers :(
+	xchg bx, cx ; Im out of registers :(
 
 		; Read character in AL
-		mov bx, cx
 		mov byte al, [fs:bx]
 
-	shr ebx, 16
+	xchg bx, cx
 
 	; Is NULL?
 	cmp al, 0x00
@@ -558,7 +556,7 @@ GameDrawText_draw_character:
 	add bx, [bx]
 
 	; Draw!
-	xor ax, ax
+	xor ah, ah
 
 	cmp dx, seg_pool_b ; What pool?
 	je GameDrawText_draw_b
