@@ -28,38 +28,43 @@
 require_relative "shared.rb"
 
 
-def ProcessPalette(filename)
+def Palette(filename_output, filename_input)
 
-	file = File.open(filename, "rb")
-	header = ReadBmpHeader(file)
+	output = File.open(filename_output, "wb")
+	input = File.open(filename_input, "rb")
+	header = ReadBmpHeader(input)
 
 	if header[:bpp] != 8 then
 		raise("True color images not supported")
 	end
 
-	file.seek(14 + header[:info_size], :SET)
+	input.seek(14 + header[:info_size], :SET)
 	i = 0
 
 	while i < header[:colors] do
-		argb = UnpackU32LE(file.read(4))
+		argb = UnpackU32LE(input.read(4))
 		r = (((argb & 0x00FF0000) >> 16) * 63) / 255
 		g = (((argb & 0x0000FF00) >> 8)  * 63) / 255
 		b = (((argb & 0x000000FF))       * 63) / 255
 
-		$stdout.write([r].pack("c"))
-		$stdout.write([g].pack("c"))
-		$stdout.write([b].pack("c"))
+		output.write([r].pack("c"))
+		output.write([g].pack("c"))
+		output.write([b].pack("c"))
 		i += 1
 	end
 
 	while i < 256 do
-		$stdout.write([0x00].pack("c"))
-		$stdout.write([0x00].pack("c"))
-		$stdout.write([0x00].pack("c"))
+		output.write([0x00].pack("c"))
+		output.write([0x00].pack("c"))
+		output.write([0x00].pack("c"))
 		i += 1
 	end
 
-	file.close()
+	input.close()
+	output.close()
 end
 
-(ARGV.length > 0) ? ProcessPalette(ARGV[0]) : raise("No Bmp input specified")
+
+if __FILE__ == $PROGRAM_NAME
+(ARGV.length > 1) ? Palette(ARGV[0], ARGV[1]) : raise("Usage blah... blah... blah...")
+end

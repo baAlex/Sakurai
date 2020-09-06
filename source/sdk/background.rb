@@ -28,22 +28,27 @@
 require_relative "shared.rb"
 
 
-def ProcessBackground(filename)
+def Background(filename_output, filename_input)
 
-	file = File.open(filename, "rb")
-	header = ReadBmpHeader(file)
+	output = File.open(filename_output, "wb")
+	input = File.open(filename_input, "rb")
+	header = ReadBmpHeader(input)
 
 	if header[:bpp] != 8 then
 		raise("True color images not supported")
 	end
 
-	data = ReadBmpIndexedData(header, file)
+	data = ReadBmpIndexedData(header, input)
+	input.close()
 
 	for pixel in 0...(header[:height] * header[:width]) do
-		$stdout.write([data[pixel]].pack("c"))
+		output.write([data[pixel]].pack("c"))
 	end
 
-	file.close()
+	output.close()
 end
 
-(ARGV.length > 0) ? ProcessBackground(ARGV[0]) : raise("No Bmp input specified")
+
+if __FILE__ == $PROGRAM_NAME
+(ARGV.length > 1) ? Background(ARGV[0], ARGV[1]) : raise("Usage blah... blah... blah...")
+end

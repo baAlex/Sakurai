@@ -36,34 +36,39 @@ require_relative "sprite/read.rb"
 require_relative "sprite/write.rb"
 
 
-def main(args)
+TYPE_LINEAR = "linear"
+TYPE_PINGPONG = "pingpong"
+TYPE_FONT = "font"
+
+def Sprite(type, filename_output, inputs)
+
+	output = File.open(filename_output, "wb")
 
 	pingpong = false
 	font_sheet = false
 
-	for a in args do
-		if a == "+pingpong" then pingpong = true end
-		if a == "+linear" then   pingpong = false end
-		if a == "+font" then     font_sheet = true end
-	end
-
-	args.delete("+pingpong")
-	args.delete("+linear")
-	args.delete("+font")
+	if type == TYPE_LINEAR   then pingpong = false end
+	if type == TYPE_PINGPONG then pingpong = true end
+	if type == TYPE_FONT     then font_sheet = true end
 
 	# Read frames
 	if font_sheet == false then
-		frame_list = ReadFramesFromFiles(list: ARGV)
+		frame_list = ReadFramesFromFiles(list: inputs)
 	else
-		frame_list = ReadFramesFromFontSheet(filename: ARGV[0])
+		frame_list = ReadFramesFromFontSheet(filename: inputs[0])
 	end
 
 	# Create an optimized 'data-soup', an array basically
 	data_soup = DataSoupFromFrames(list: frame_list)
 
 	# Write output
-	WriteAsm(pingpong, font_sheet, frame_list, data_soup)
+	asm = WriteAsm(pingpong, font_sheet, frame_list, data_soup)
+	output.print("#{asm}")
+
+	output.close()
 end
 
 
-(ARGV.length > 0) ? main(ARGV) : raise("No Bmp input specified")
+if __FILE__ == $PROGRAM_NAME
+(ARGV.length > 2) ? Sprite(ARGV[0], ARGV[1], ARGV[2..]) : raise("Usage blah... blah... blah...")
+end

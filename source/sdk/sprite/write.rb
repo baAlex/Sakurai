@@ -30,18 +30,18 @@ require_relative "irframe.rb"
 
 class IRRow
 
-	def emit_instructions(soup, prev_row, previous_data_offset)
+	def emit_instructions(soup, prev_row, previous_data_offset, output)
 
-		def write_mov(accumulator)
+		def write_mov(accumulator, output)
 			while accumulator > 0 do
 				if accumulator >= 4 then
-					print("\tmovsd\n")
+					output << "\tmovsd\n"
 					accumulator -= 4
 				elsif accumulator >=2 then
-					print("\tmovsw\n")
+					output << "\tmovsw\n"
 					accumulator -= 2
 				else
-					print("\tmovsb\n")
+					output << "\tmovsb\n"
 					accumulator -= 1
 				end
 			end
@@ -49,22 +49,22 @@ class IRRow
 
 		# Destination X, Y adjustment (DI)
 		if prev_row != nil then
-			print("\tadd di, #{320 * (@y - prev_row.y) - prev_row.max_x + @pixels_list[0].x - 1}")
+			output << "\tadd di, #{320 * (@y - prev_row.y) - prev_row.max_x + @pixels_list[0].x - 1}"
 		else
-			print("\tadd di, #{320 * @y + @pixels_list[0].x}")
+			output << "\tadd di, #{320 * @y + @pixels_list[0].x}"
 		end
 
-		print(" ; Row #{@y}, x = #{@pixels_list[0].x}\n")
+		output << " ; Row #{@y}, x = #{@pixels_list[0].x}\n"
 
 		# Source data offset adjustment (SI)
 		data_offset = values_at(array: soup)
 
 		if data_offset > previous_data_offset then
-			print("\tadd si, #{data_offset - previous_data_offset}")
-			print(" ; #{data_offset}\n")
+			output << "\tadd si, #{data_offset - previous_data_offset}"
+			output << " ; #{data_offset}\n"
 		elsif data_offset < previous_data_offset then
-			print("\tsub si, #{previous_data_offset - data_offset}")
-			print(" ; #{data_offset}\n")
+			output << "\tsub si, #{previous_data_offset - data_offset}"
+			output << " ; #{data_offset}\n"
 		end
 
 		# Iterate pixels_list an emit MOV instructions
@@ -75,18 +75,18 @@ class IRRow
 
 			# Transparent pixel between (x adjustment)
 			if p.x != (last_x + 1) then
-				write_mov(accumulator)
+				write_mov(accumulator, output)
 				data_offset += accumulator
 				accumulator = 0
 
-				print("\tadd di, #{p.x - (last_x + 1)}\n")
+				output << "\tadd di, #{p.x - (last_x + 1)}\n"
 			end
 
 			# Opaque pixels_list
 			accumulator += 1
 
 			if accumulator == 4 || p == @pixels_list.last() then
-				write_mov(accumulator)
+				write_mov(accumulator, output)
 				data_offset += accumulator
 				accumulator = 0
 			end
@@ -102,6 +102,8 @@ end
 
 def WriteAsm(pingpong, font_sheet, frames, data_soup)
 
+	output = ""
+
 	# Discover dimensions in a inefficient way :)
 	sprite_width = 0
 	sprite_height = 0
@@ -115,44 +117,44 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 	end
 
 	# Output local-header
-	printf("\n; Load-header (8 bytes)\n")
-	printf("dw (file_end) ; File size\n")
-	printf("dw 0x%02X       ; Width (%i)\n", sprite_width + 1, sprite_width + 1)
-	printf("dw 0x%02X       ; Height (%i)\n", sprite_height + 1, sprite_height + 1)
-	printf("dw 0x00       ; Unused\n")
+	output << "\n; Load-header (8 bytes)\n"
+	output << "dw (file_end) ; File size\n"
+	output << "dw 0x%02X ; Width (%i)\n" % [sprite_width + 1, sprite_width + 1]
+	output << "dw 0x%02X ; Height (%i)\n" % [sprite_height + 1, sprite_height + 1]
+	output << "dw 0x00 ; Unused\n"
 
 	# Output draw-header
-	printf("\n; Draw-header:\n")
-	printf("dw (pixels - $) ; Offset to data\n")
+	output << "\n; Draw-header:\n"
+	output << "dw (pixels - $) ; Offset to data\n"
 
 	if pingpong == true && frames.size > 1 then
-		printf("dw 0x%02X         ; Frames number  (%i)\n", frames.size * 2 - 2 - 1, frames.size * 2 - 2 - 1)
+		output << "dw 0x%02X ; Frames number  (%i)\n" % [frames.size * 2 - 2, frames.size * 2 - 2]
 	else
-		printf("dw 0x%02X         ; Frames number (%i)\n", frames.size - 1, frames.size - 1)
+		output << "dw 0x%02X ; Frames number (%i)\n" % [frames.size, frames.size]
 	end
 
 	# Output frame code offsets
-	printf("\n; Code offsets:\n")
+	output << "\n; Code offsets:\n"
 
 	for i in 0...frames.size do
-		printf("dw (code_f#{i} - $)\n")
+		output << "dw (code_f#{i} - $)\n"
 	end
 
 	if pingpong == true && frames.size > 1 then
 		for i in 0...(frames.size - 2) do
-			printf("dw (code_f#{frames.size - i - 2} - $)\n")
+			output << "dw (code_f#{frames.size - i - 2} - $)\n"
 		end
 	end
 
 	# Output code
-	print("\n; Code:\n")
+	output << "\n; Code:"
 	frames.each_with_index() do |frame, frame_no|
 
-		print("\ncode_f#{frame_no}:\n")
+		output << "\ncode_f#{frame_no}:\n"
 
 		if font_sheet == true && frame_no == 0x20 then
-			print("\tmov al, 4\n")
-			print("\tretf\n")
+			output << "\tmov al, 4\n"
+			output << "\tretf\n"
 			next
 		end
 
@@ -168,15 +170,15 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 					max_x = row.max_x
 				end
 
-				data_offset = row.emit_instructions(data_soup, prev_row, data_offset)
+				data_offset = row.emit_instructions(data_soup, prev_row, data_offset, output)
 				prev_row = row
 			end
 
 			if font_sheet == true then
-				print("\tmov al, #{max_x + 1}\n") # FIXME?!
+				output << "\tmov al, #{max_x + 1}\n" # FIXME?!
 			end
 
-			print("\tretf\n")
+			output << "\tretf\n"
 
 		# Empty frame
 		else
@@ -185,31 +187,32 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 			   frames[frame_no + 1].rows_list.size > 0 then
 
 				if font_sheet == true then
-					print("\tmov al, #{max_x + 1}\n") # FIXME?!
+					output << "\tmov al, #{max_x + 1}\n" # FIXME?!
 				end
 
-				print("\tretf\n")
+				output << "\tretf\n"
 			end
 		end
 	end
 
 	# Output data
-	printf("\npixels:\n")
+	output << "\npixels:\n"
 
 	for i in 0...data_soup.size do
 
 		if (i % 16) == 0 then
-			print("db ")
+			output << "db "
 		end
 
-		printf("#{data_soup[i]}")
+		output << "#{data_soup[i]}"
 
 		if i != data_soup.size - 1 then
-			printf("%s", ((i % 16) != 15) ? ", " : "\n")
+			output << "%s" % [((i % 16) != 15) ? ", " : "\n"]
 		else
-			printf("\n")
+			output << "\n"
 		end
 	end
 
-	printf("\nfile_end:\n")
+	output << "\nfile_end:\n"
+	return output
 end
