@@ -47,9 +47,10 @@ void DrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color, struct jaIm
 
 	for (size_t i = 0; i < (size_t)(width << 4); i++)
 	{
-		if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
-			*p = color;
+		if (p >= ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+			return;
 
+		*p = color;
 		p += 1;
 	}
 }
@@ -61,9 +62,10 @@ void DrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color, struct jaI
 
 	for (size_t i = 0; i < (size_t)(height << 4); i++)
 	{
-		if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
-			*p = color;
+		if (p >= ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+			return;
 
+		*p = color;
 		p += out->width;
 	}
 }
@@ -85,9 +87,10 @@ void DrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y, con
 	{
 		for (size_t col = 0; col < (size_t)(width << 4); col++)
 		{
-			if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
-				*p = *src;
+			if (p >= ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+				return;
 
+			*p = *src;
 			p += 1;
 			src += 1;
 		}
@@ -106,9 +109,10 @@ void DrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_
 	{
 		for (size_t col = 0; col < (size_t)(width << 4); col++)
 		{
-			if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
-				*p = color;
+			if (p >= ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+				return;
 
+			*p = color;
 			p += 1;
 		}
 
@@ -125,9 +129,10 @@ void DrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y,
 	{
 		for (size_t col = 0; col < (size_t)width; col++)
 		{
-			if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
-				*p = color;
+			if (p >= ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+				return;
 
+			*p = color;
 			p += 1;
 		}
 
@@ -145,13 +150,13 @@ void DrawSprite(struct JvnImage* sprite, uint16_t x, uint16_t y, uint8_t frame, 
 	{
 		for (uint8_t c = 0; c < sprite->width; c++)
 		{
-			if (p < ((uint8_t*)out->data) + out->size) // Draw inside image bounds
-			{
-				color = sprite->data[frame % sprite->frames][r * sprite->width + c];
+			if (p >= ((uint8_t*)out->data) + out->size) // Draw inside image bounds
+				return;
 
-				if (color != 0)
-					*p = color;
-			}
+			color = sprite->data[frame % sprite->frames][r * sprite->width + c];
+
+			if (color != 0)
+				*p = color;
 
 			p += 1;
 		}

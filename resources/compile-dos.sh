@@ -103,7 +103,7 @@ ruby ./source/sdk/sprite.rb "font" "./objects/font2.asm"  "./assets-dev/font2.bm
 ###
 
 fasm "./objects/fx1.asm" "./assets/fx1.jvn"
-fasm "./objects/fx1.asm" "./assets/fx1.jvn"
+fasm "./objects/fx2.asm" "./assets/fx2.jvn"
 fasm "./objects/sprite1.asm" "./assets/sprite1.jvn"
 fasm "./objects/sprite2.asm" "./assets/sprite2.jvn"
 fasm "./objects/sayori.asm" "./assets/sayori.jvn"

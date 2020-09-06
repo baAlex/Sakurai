@@ -18,7 +18,6 @@ enum GameInterruptionType
 	GAME_LOAD_PALETTE = 0x04,      // GameLoadPalette
 	GAME_UNLOAD_EVERYTHING = 0x05, // GameUnloadEverything
 	GAME_LOAD_SPRITE = 0x07,       // GameLoadSprite
-	GAME_FREE_SPRITE = 0x08,       // GameFreeSprite
 	GAME_EXIT_REQUEST = 0x09       // GameExitRequest
 };
 
@@ -34,7 +33,7 @@ struct GameInterruption
 	};
 };
 
-int GlueStart(void (*interruption_callback)(struct GameInterruption, uintptr_t*, void*), void* callback_data);
+void GlueStart(void (*interruption_callback)(struct GameInterruption, uintptr_t*, void*), void* callback_data);
 void GlueStop();
 
 void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out);

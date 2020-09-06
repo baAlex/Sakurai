@@ -56,8 +56,6 @@ _IntFDVector:
 	je near GameFlushCommands
 	cmp ax, 0x07
 	je near GameLoadSprite
-	cmp ax, 0x08
-	je near GameFreeSprite
 	cmp ax, 0x09
 	je near GameExitRequest
 
@@ -255,11 +253,6 @@ GameLoadSprite_failure:
 	; Blow everything
 	mov al, EXIT_FAILURE
 	call near Exit ; (al)
-
-
-;==============================
-GameFreeSprite:
-	jmp near _IntFDVector_bye
 
 
 ;==============================

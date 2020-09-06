@@ -51,13 +51,13 @@ SOFTWARE.
 
 #define NAME "Sakurai"
 #define VERSION "0.3-alpha"
-#define CAPTION "Sakurai v0.3-alpha"
+#define CAPTION "Tanaka's magical business | v0.3-alpha"
 
 #define SCREEN_WIDTH 320.0f // Used in OpenGL output
 #define SCREEN_HEIGHT 240.0f
 #define SCREEN_ASPECT (320.0f / 240.0f)
 
-#define BUFFER_WIDTH 320 // Used in software raster
+#define BUFFER_WIDTH 320 // Used in software render
 #define BUFFER_HEIGHT 200
 #define BUFFER_LENGHT (320 * 200)
 
@@ -146,21 +146,15 @@ void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data
 			*ret = (uintptr_t)item->ptr;
 		}
 		break;
-
-	case GAME_FREE_SPRITE: printf("@FreeSprite\n"); break;
 	}
 }
 
 
-static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
+static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 {
 	struct SakuraiData* data = raw_data;
 
-	if (GlueStart(sGameInterruption, data) != 0)
-	{
-		jaStatusSet(st, "SakuraiInit", JA_STATUS_ERROR, "Glue code initialization", NULL);
-		return;
-	}
+	GlueStart(sGameInterruption, data);
 
 	// Create images to act as buffers
 	if ((data->buffer_indexed = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL ||
@@ -196,7 +190,7 @@ static void sSakuraiInit(struct kaWindow* w, void* raw_data, struct jaStatus* st
 }
 
 
-static void sSakuraiFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
+static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw_data, struct jaStatus* st)
 {
 	struct SakuraiData* data = raw_data;
 	(void)delta;
@@ -221,7 +215,7 @@ static void sSakuraiFrame(struct kaWindow* w, struct kaEvents e, float delta, vo
 }
 
 
-static void sSakuraiResize(struct kaWindow* w, int width, int height, void* raw_data, struct jaStatus* st)
+static void sResize(struct kaWindow* w, int width, int height, void* raw_data, struct jaStatus* st)
 {
 	(void)raw_data;
 	(void)st;
@@ -242,7 +236,7 @@ static void sSakuraiResize(struct kaWindow* w, int width, int height, void* raw_
 }
 
 
-static void sSakuraiFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
+static void sFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
 {
 	(void)w;
 	(void)raw_data;
@@ -253,7 +247,7 @@ static void sSakuraiFunctionKey(struct kaWindow* w, int f, void* raw_data, struc
 }
 
 
-static void sSakuraiClose(struct kaWindow* w, void* raw_data)
+static void sClose(struct kaWindow* w, void* raw_data)
 {
 	struct SakuraiData* data = raw_data;
 
@@ -278,11 +272,13 @@ int main(int argc, char* argv[])
 	SDL_version sdl_ver;
 
 	// Developers, developers, developers
+#if 0
 	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
 		return Jvn2Sgi(argv[2]);
 
 	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
 		return CacheTest();
+#endif
 
 	// Game as normal
 	SDL_GetVersion(&sdl_ver);
@@ -295,11 +291,10 @@ int main(int argc, char* argv[])
 	if ((data = calloc(1, sizeof(struct SakuraiData))) == NULL)
 		goto return_failure;
 
-	if (kaContextStart(NULL, &st) != 0)
+	if (kaContextStart(&st) != 0)
 		goto return_failure;
 
-	if (kaWindowCreate(CAPTION, sSakuraiInit, sSakuraiFrame, sSakuraiResize, sSakuraiFunctionKey, sSakuraiClose, data,
-	                   &st) != 0)
+	if (kaWindowCreate(CAPTION, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
 		goto return_failure;
 
 	while (1)
