@@ -39,6 +39,7 @@ SOFTWARE.
 #define COMMANDS_TABLE_SIZE 512 // 224 in the Dos engine
 #define SPRITE_INDIRECTION_LEN 32
 
+
 // Game PSP, counterpart of the same structure in 'shared.inc'
 // https://en.wikipedia.org/wiki/Program_Segment_Prefix
 struct GamePSP
@@ -124,8 +125,9 @@ struct GlueData
 {
 	struct GamePSP psp;
 
-	void (*callback_func)(struct GameInterruption, uintptr_t*, void*);
+	uintptr_t (*callback_func)(struct GameInterruption, void*, struct jaStatus*);
 	void* callback_data;
+	struct jaStatus callback_st;
 
 	uintptr_t sprite_indirection[SPRITE_INDIRECTION_LEN];
 };
@@ -147,50 +149,60 @@ extern int GameMain(); // Where we, the engine, call
 
 static void sGameInterrupt()
 {
-	struct GameInterruption in = {0};
+	struct GameInterruption game_int = {0};
 	uintptr_t engine_ret = 0;
 
+	// Don't handle new interruptions if the last one wasn't successful
+	if (s_glue.callback_st.code != JA_STATUS_SUCCESS)
+		return;
+
+	// Make a lovely abstraction for the engine
+	// (aka: convert the raw psp values into a 'struct GameInterruption')
 	switch (s_glue.psp.ifd_arg1)
 	{
 	case 0x01: // GamePrintString
-		in.type = GAME_PRINT_STRING;
-		in.string = (const char*)s_glue.psp.ifd_arg2;
-		s_glue.callback_func(in, NULL, s_glue.callback_data);
+		game_int.type = GAME_PRINT_STRING;
+		game_int.string = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
 		break;
 
 	case 0x02: // GamePrintNumber
-		in.type = GAME_PRINT_NUMBER;
-		in.number = (unsigned)s_glue.psp.ifd_arg2;
-		s_glue.callback_func(in, NULL, s_glue.callback_data);
+		game_int.type = GAME_PRINT_NUMBER;
+		game_int.number = (unsigned)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
 		break;
 
 	case 0x03: // GameLoadBackground
-		in.type = GAME_LOAD_BACKGROUND;
-		in.filename = (const char*)s_glue.psp.ifd_arg2;
-		s_glue.callback_func(in, NULL, s_glue.callback_data);
+		game_int.type = GAME_LOAD_BACKGROUND;
+		game_int.filename = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
 		break;
 
 	case 0x04: // GameLoadPalette
-		in.type = GAME_LOAD_PALETTE;
-		in.filename = (const char*)s_glue.psp.ifd_arg2;
-		s_glue.callback_func(in, NULL, s_glue.callback_data);
+		game_int.type = GAME_LOAD_PALETTE;
+		game_int.filename = (const char*)s_glue.psp.ifd_arg2;
+		s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
 		break;
 
 	case 0x05: // GameUnloadEverything
-		in.type = GAME_UNLOAD_EVERYTHING;
-		s_glue.callback_func(in, NULL, s_glue.callback_data);
+		game_int.type = GAME_UNLOAD_EVERYTHING;
+		s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
 
 		for (int t = 0; t < SPRITE_INDIRECTION_LEN; t++)
 		{
+			// We assume that the engine unloaded everything on his side
 			s_glue.sprite_indirection[t] = 0;
 		}
 
 		break;
 
 	case 0x07: // GameLoadSprite
-		in.type = GAME_LOAD_SPRITE;
-		in.filename = (const char*)s_glue.psp.ifd_arg2;
-		s_glue.callback_func(in, &engine_ret, s_glue.callback_data);
+		game_int.type = GAME_LOAD_SPRITE;
+		game_int.filename = (const char*)s_glue.psp.ifd_arg2;
+		engine_ret = s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
+
+		if (s_glue.callback_st.code != JA_STATUS_SUCCESS) // Engine had problems loading the sprite
+			return;
 
 		for (int t = 0; t < SPRITE_INDIRECTION_LEN; t++)
 		{
@@ -205,14 +217,14 @@ static void sGameInterrupt()
 		break;
 
 	case 0x09: // GameExitRequest
-		in.type = GAME_EXIT_REQUEST;
-		s_glue.callback_func(in, NULL, s_glue.callback_data);
+		game_int.type = GAME_EXIT_REQUEST;
+		s_glue.callback_func(game_int, s_glue.callback_data, &s_glue.callback_st);
 		break;
 	}
 }
 
 
-void GlueStart(void (*callback_func)(struct GameInterruption, uintptr_t*, void*), void* callback_data)
+void GlueStart(uintptr_t (*callback_func)(struct GameInterruption, void*, struct jaStatus*), void* callback_data)
 {
 	s_glue.psp.max_commands = COMMANDS_TABLE_LEN;
 	s_glue.callback_func = callback_func;
@@ -228,32 +240,39 @@ void GlueStart(void (*callback_func)(struct GameInterruption, uintptr_t*, void*)
 void GlueStop() {}
 
 
-void GlueFrame(struct kaEvents in, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out)
+int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out,
+              struct jaStatus* st)
 {
 	union GameCommand* cmd = (union GameCommand*)s_glue.psp.commands_table;
 	union GameCommand* end = cmd + COMMANDS_TABLE_LEN;
 
-	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX);
+	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX); // Imitating Dos behaviour
 
-	s_glue.psp.input_x = (in.x == true) ? 1 : 0 | (in.a == true) ? 1 : 0;
-	s_glue.psp.input_y = (in.y == true) ? 1 : 0 | (in.b == true) ? 1 : 0;
-	s_glue.psp.input_pad_l = (in.pad_l == true) ? 1 : 0;
-	s_glue.psp.input_pad_r = (in.pad_r == true) ? 1 : 0;
-	s_glue.psp.input_pad_u = (in.pad_u == true) ? 1 : 0;
-	s_glue.psp.input_pad_d = (in.pad_d == true) ? 1 : 0;
-	s_glue.psp.input_start = (in.start == true) ? 1 : 0;
-	s_glue.psp.input_select = (in.select == true) ? 1 : 0;
+	s_glue.psp.input_x = (ev.x == true) ? 1 : 0 | (ev.a == true) ? 1 : 0;
+	s_glue.psp.input_y = (ev.y == true) ? 1 : 0 | (ev.b == true) ? 1 : 0;
+	s_glue.psp.input_pad_l = (ev.pad_l == true) ? 1 : 0;
+	s_glue.psp.input_pad_r = (ev.pad_r == true) ? 1 : 0;
+	s_glue.psp.input_pad_u = (ev.pad_u == true) ? 1 : 0;
+	s_glue.psp.input_pad_d = (ev.pad_d == true) ? 1 : 0;
+	s_glue.psp.input_start = (ev.start == true) ? 1 : 0;
+	s_glue.psp.input_select = (ev.select == true) ? 1 : 0;
 
-	GameMain(); // FIXME, the game always return zero!
-
+	GameMain();
 	s_glue.psp.frame_counter += 1;
 
+	// Interruptions had an happy ending?
+	if (s_glue.callback_st.code != JA_STATUS_SUCCESS)
+	{
+		jaStatusCopy(&s_glue.callback_st, st);
+		return 1;
+	}
+
+	// Iterate game commands
 	for (; cmd < end; cmd++)
 	{
 		switch (cmd->code)
 		{
 		case 0x00: // CODE_HALT
-			return;
 			break;
 		case 0x01: // CODE_DRAW_BKG
 			DrawBkg(buffer_background, buffer_out);
@@ -290,4 +309,6 @@ void GlueFrame(struct kaEvents in, size_t ms, const struct jaImage* buffer_backg
 		default: break;
 		}
 	}
+
+	return 0;
 }

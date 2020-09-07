@@ -17,28 +17,36 @@ This file is intended for development purposes, if isn't your case please check:
 
 Compilation
 -----------
-The compilation requires `fasm`, `bcc`, `ruby` and `ninja`.
-On Ubuntu you can install these with:
+
+### Modern platforms
+Install `sdl2` and `cmake`:
+ - In Ubuntu with: `sudo apt install libsdl2-dev`
+ - Using `vcpkg` the same in Windows: `vcpkg install sdl2:x64-windows`
+ - Other platforms should work in a similar fashion.
+
+Finally clone and compile the repository with:
 ```
-sudo apt install fasm bcc ruby ninja-build
+git clone https://github.com/baAlex/Sakurai.git sakurai
+cd sakurai
+git submodule init
+git submodule update
+
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build . --config Debug
 ```
 
-To clone and compile the repository with:
+For a release build the same procedure as above except for:
 ```
-git clone https://github.com/baAlex/Sakurai.git
-cd Sakurai
-ninja -f ./resources/build.ninja
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release
 ```
 
-### About the Cmake file
-It happens that `bcc` don't perform many checks and most of the time invalid code ends compiled without any warning. The Cmake file is there just to compile the game logic code with a modern tool-set. Note that the engine (wrote in assembly) do not support any other platform rather than DOS.
+### Assets and DOS
+Sadly there is no elegant way of compile the assets and the DOS executable as both require a compilation involving different stages and programs. For the assets alone I recommend download them from [baalex.itch.io/tanakas-magical-business](https://baalex.itch.io/tanakas-magical-business).
 
-
-Project name
-------------
-«Tanaka's magical business» is the project name, «Sakurai» the codename. There is no legal implication in any of the two, and is not the idea make a distinction between modules or editions. Both names refer to the same thing.
-
-The codename is shorter, thus used in development. The name longer and explicit in a hope of allowing translations without meaning loss. I know that everybody will use the English name and also that there is a trend of video games being named with catchy single words. Well, I went old-school here hoping to see a «Negocios mágicos de Tanaka» some day.
+In any case, the requirements are `fasm`, `bcc` and `ruby`. The whole process is contained in the file `./resources/compile-dos.sh` (functional only in Posix systems).
 
 
 License

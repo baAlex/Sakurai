@@ -99,23 +99,28 @@ struct SakuraiData
 };
 
 
-void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data)
+uintptr_t sGameInterruption(struct GameInterruption game_int, void* raw_data, struct jaStatus* st)
 {
 	struct SakuraiData* data = raw_data;
+
 	FILE* fp = NULL;
 	struct JvnImage* sprite = NULL;
 	struct CacheItem* item = NULL;
 
-	switch (i.type)
+	jaStatusSet(st, "GameInterruption", JA_STATUS_SUCCESS, NULL);
+
+	switch (game_int.type)
 	{
-	case GAME_PRINT_STRING: printf("%s", i.string); break;
-	case GAME_PRINT_NUMBER: printf("%u\n", i.number); break;
+	case GAME_PRINT_STRING: printf("%s", game_int.string); break;
+	case GAME_PRINT_NUMBER: printf("%u\n", game_int.number); break;
 	case GAME_EXIT_REQUEST: printf("@ExitRequest\n"); break;
 
 	case GAME_UNLOAD_EVERYTHING: CacheMarkAll(data->cache); break;
 
 	case GAME_LOAD_BACKGROUND:
-		if ((fp = fopen(i.filename, "rb")) != NULL) // TODO, report errors!
+		if ((fp = fopen(game_int.filename, "rb")) == NULL)
+			jaStatusSet(st, "GameInterruption", JA_STATUS_FS_ERROR, "'%s'", game_int.filename);
+		else
 		{
 			fread(data->buffer_background->data, BUFFER_LENGHT, 1, fp);
 			fclose(fp);
@@ -123,7 +128,9 @@ void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data
 		break;
 
 	case GAME_LOAD_PALETTE:
-		if ((fp = fopen(i.filename, "rb")) != NULL) // TODO, report errors!
+		if ((fp = fopen(game_int.filename, "rb")) == NULL)
+			jaStatusSet(st, "GameInterruption", JA_STATUS_FS_ERROR, "'%s'", game_int.filename);
+		else
 		{
 			fread(data->palette, PALETTE_SIZE, 1, fp);
 			fclose(fp);
@@ -134,19 +141,24 @@ void sGameInterruption(struct GameInterruption i, uintptr_t* ret, void* raw_data
 		break;
 
 	case GAME_LOAD_SPRITE:
-		if ((item = CacheFind(data->cache, i.filename)) != NULL)
+		if ((item = CacheFind(data->cache, game_int.filename)) != NULL)
+			return (uintptr_t)item->ptr;
+		else
 		{
-			*ret = (uintptr_t)item->ptr;
-		}
-		else if ((sprite = JvnImageLoad(i.filename, &data->temp, NULL)) != NULL) // TODO, report errors!
-		{
-			item = CacheAdd(data->cache, i.filename, 1, (void*)JvnImageDelete);
-			item->ptr = sprite;
+			if ((sprite = JvnImageLoad(game_int.filename, &data->temp, NULL)) == NULL)
+				jaStatusSet(st, "GameInterruption", JA_STATUS_FS_ERROR, "'%s'", game_int.filename);
+			else
+			{
+				item = CacheAdd(data->cache, game_int.filename, 1, (void*)JvnImageDelete);
+				item->ptr = sprite;
 
-			*ret = (uintptr_t)item->ptr;
+				return (uintptr_t)item->ptr;
+			}
 		}
 		break;
 	}
+
+	return 0;
 }
 
 
@@ -161,7 +173,7 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 	    (data->buffer_background = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL ||
 	    (data->buffer_color = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 4)) == NULL)
 	{
-		jaStatusSet(st, "SakuraiInit", JA_STATUS_MEMORY_ERROR, "Image buffers", NULL);
+		jaStatusSet(st, "Init", JA_STATUS_MEMORY_ERROR, "Image buffers", NULL);
 		return;
 	}
 
@@ -184,7 +196,7 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 	// And a cache
 	if ((data->cache = CacheCreate(CACHE_SIZE)) == NULL)
 	{
-		jaStatusSet(st, "SakuraiInit", JA_STATUS_MEMORY_ERROR, "Cache", NULL);
+		jaStatusSet(st, "Init", JA_STATUS_MEMORY_ERROR, "Cache", NULL);
 		return;
 	}
 }
@@ -201,7 +213,8 @@ static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw
 	if (current_ms >= data->last_update + 41) // 41 ms, hardcoded
 	{
 		// Call a game frame
-		GlueFrame(e, current_ms, data->buffer_background, data->buffer_indexed);
+		if (GlueFrame(e, current_ms, data->buffer_background, data->buffer_indexed, st) != 0)
+			return;
 
 		// Done for this frame
 		DrawColorizeRGBX(data->palette, data->buffer_indexed, data->buffer_color);
@@ -272,13 +285,11 @@ int main(int argc, char* argv[])
 	SDL_version sdl_ver;
 
 	// Developers, developers, developers
-#if 0
 	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
 		return Jvn2Sgi(argv[2]);
 
 	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
 		return CacheTest();
-#endif
 
 	// Game as normal
 	SDL_GetVersion(&sdl_ver);

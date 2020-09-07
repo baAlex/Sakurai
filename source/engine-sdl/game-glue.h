@@ -8,6 +8,7 @@
 #define GAME_GLUE_H
 
 #include "japan-image.h"
+#include "japan-status.h"
 #include "kansai-context.h"
 
 enum GameInterruptionType
@@ -33,9 +34,10 @@ struct GameInterruption
 	};
 };
 
-void GlueStart(void (*interruption_callback)(struct GameInterruption, uintptr_t*, void*), void* callback_data);
+void GlueStart(uintptr_t (*interruption_callback)(struct GameInterruption, void*, struct jaStatus*),
+               void* callback_data);
 void GlueStop();
-
-void GlueFrame(struct kaEvents e, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out);
+int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out,
+              struct jaStatus* st);
 
 #endif
