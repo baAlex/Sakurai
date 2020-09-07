@@ -273,6 +273,7 @@ int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_backgr
 		switch (cmd->code)
 		{
 		case 0x00: // CODE_HALT
+			return 0;
 			break;
 		case 0x01: // CODE_DRAW_BKG
 			DrawBkg(buffer_background, buffer_out);

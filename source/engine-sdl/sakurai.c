@@ -208,12 +208,12 @@ static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw
 	(void)delta;
 	(void)st;
 
-	size_t current_ms = kaGetTime(w);
+	unsigned start_ms = kaGetTime(w);
 
-	if (current_ms >= data->last_update + 41) // 41 ms, hardcoded
+	if (start_ms >= data->last_update + 41) // 41 ms, hardcoded
 	{
 		// Call a game frame
-		if (GlueFrame(e, current_ms, data->buffer_background, data->buffer_indexed, st) != 0)
+		if (GlueFrame(e, start_ms, data->buffer_background, data->buffer_indexed, st) != 0)
 			return;
 
 		// Done for this frame
@@ -225,6 +225,12 @@ static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw
 
 	// Update screen
 	kaDrawDefault(w);
+
+	// Sleep
+	unsigned current_ms = kaGetTime(w);
+
+	if ((current_ms - start_ms) < 16)
+		kaSleep(41 - (current_ms - start_ms));
 }
 
 
@@ -278,6 +284,10 @@ static void sClose(struct kaWindow* w, void* raw_data)
 }
 
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 int main(int argc, char* argv[])
 {
 	struct jaStatus st = {0};
@@ -290,6 +300,13 @@ int main(int argc, char* argv[])
 
 	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
 		return CacheTest();
+
+#ifdef _WIN32
+	bool keep_console = false;
+
+	if (argc > 1 && strcmp("console", argv[1]) == 0)
+		keep_console = true;
+#endif
 
 	// Game as normal
 	SDL_GetVersion(&sdl_ver);
@@ -308,6 +325,18 @@ int main(int argc, char* argv[])
 	if (kaWindowCreate(CAPTION, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
 		goto return_failure;
 
+#ifdef _WIN32
+	// Close Windows console?
+	if (keep_console == false)
+	{
+		printf("%s\n", CAPTION);
+		printf("Loading...\n");
+		kaSleep(2000); // Wait 2 seconds as consoles can be scary
+		FreeConsole();
+	}
+#endif
+
+	// Main loop
 	while (1)
 	{
 		if (kaContextUpdate(&st) != 0)
