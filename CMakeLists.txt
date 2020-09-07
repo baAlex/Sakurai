@@ -7,7 +7,7 @@ if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_C_COMPILER_ID MATCHES "GNU")
 	# 'Wconversion' and 'pedantic' is too much:
 	# - The game code relies on under/overflows as is written to work on a 16 bits chip
 	# - And this isn't a fresh/new port but an engine: I can't modify the rough parts of the
-	# game code without cause issues with the Dos engine, and both needs to live together...
+	# game code without cause issues with the DOS engine, and both needs to live together...
 
 	# I really love those flags :(
 

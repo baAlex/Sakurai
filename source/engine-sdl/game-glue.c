@@ -35,8 +35,8 @@ SOFTWARE.
 #include "game-glue.h"
 
 #define COMMAND_SIZE 8
-#define COMMANDS_TABLE_LEN 64   // 28 in the Dos engine
-#define COMMANDS_TABLE_SIZE 512 // 224 in the Dos engine
+#define COMMANDS_TABLE_LEN 64   // 28 in the DOS engine
+#define COMMANDS_TABLE_SIZE 512 // 224 in the DOS engine
 #define SPRITE_INDIRECTION_LEN 32
 
 
@@ -72,9 +72,9 @@ struct GamePSP
 
 	uint8_t commands_table[COMMANDS_TABLE_SIZE]; // 0x0020
 
-	// --- Roughly Dos-compatible PSP ends here ---
+	// --- Roughly DOS-compatible PSP ends here ---
 
-	// What follow replaces the 'uint16_t' Dos ifd arguments,
+	// What follow replaces the 'uint16_t' DOS ifd arguments,
 	// as these are intended to pass pointers and in modern
 	// platform we have extra thicc addresses
 	uintptr_t ifd_arg1;
@@ -246,7 +246,7 @@ int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_backgr
 	union GameCommand* cmd = (union GameCommand*)s_glue.psp.commands_table;
 	union GameCommand* end = cmd + COMMANDS_TABLE_LEN;
 
-	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX); // Imitating Dos behaviour
+	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX); // Imitating DOS behaviour
 
 	s_glue.psp.input_x = (ev.x == true) ? 1 : 0 | (ev.a == true) ? 1 : 0;
 	s_glue.psp.input_y = (ev.y == true) ? 1 : 0 | (ev.b == true) ? 1 : 0;

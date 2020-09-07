@@ -44,7 +44,7 @@ cmake --build . --config Release
 ```
 
 ### Assets and DOS
-Sadly there is no elegant way of compile the assets and the DOS executable as both require a compilation involving different stages and programs. For the assets alone I recommend download them from [baalex.itch.io/tanakas-magical-business](https://baalex.itch.io/tanakas-magical-business).
+Sadly there is no elegant way of compile the assets or the DOS executable as both require a compilation involving different stages and programs. For the assets alone I recommend download them from [baalex.itch.io/tanakas-magical-business](https://baalex.itch.io/tanakas-magical-business).
 
 In any case, the requirements are `fasm`, `bcc` and `ruby`. The whole process is contained in the file `./resources/compile-dos.sh` (functional only in Posix systems).
 
