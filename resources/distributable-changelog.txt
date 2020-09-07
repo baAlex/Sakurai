@@ -1,0 +1,54 @@
+
+Changelog
+=========
+
+Version 0.3-alpha (2020/09/07)
+------------------------------
+
+### Gameplay:
+- Native support for Windows and Ubuntu.
+- Improved keyboard input in DOS, repetition rate no longer depends on the OS.
+
+### Under the hood:
+- A brand new engine to support the new platforms.
+- Removed unused code in the DOS engine (a test at initialization, an interruption, a hack to handle the keyboard).
+- Unified executable in DOS.
+- Major updates on the SDK, hopefully more legible.
+- Palettes load at runtime.
+- And of course tiny fixes over the code :).
+
+
+Version 0.2-alpha (2020/07/07)
+------------------------------
+
+### Gameplay:
+- New backgrounds in a proper pixel art style. The previous ones were images lazily scaled down.
+- Same treatment for the game title, and now using a new typography ([Archivo](https://www.omnibus-type.com/fonts/archivo/)).
+- New pause menu. Now the game don't quit abruptly.
+- Damage during an attack is show in screen.
+- Added a missing frame in Kuro.
+- Balanced actions and actors (enemies/heroes) stats. If curious you can see them [here for actors](https://github.com/baAlex/Sakurai/blob/master/resources/stats.csv), and [here for actions](https://github.com/baAlex/Sakurai/blob/master/resources/actions.csv) without having to inspect the code.
+- Enemies number was previously calculated in a linear fashion (first encounter: one enemy, fourth encounter: two enemies, eighth one: three...). Now it follows an zigzag pattern, adding a period to breath between action.
+- Measures against difficult enemies appearing more that twice.
+- Adjusts on the HUD and panels appearance.
+- "Hold" action in an actor now shows in purple on the time meter.
+- Messages dialogues using milliseconds rather than frames to count the display time. Resulting in the same behaviour on faster and slower CPUs.
+- Fixed English typos.
+
+### Under the hood:
+- In the code a new way of handle actors, personalities and actions. Three new concepts in this release (and horribly mixed between files in the previous one).
+- Simplified game draw commands, previous release included tons of repeated lines scattered over multiple files, making it illegible.
+- Enemies number and possibilities to appear in a encounter are now calculated at runtime. Before, the game relied on a precomputed table that didn't scaled well and added complexity to the compilation procedure. A single command now compiles the entire game logic.
+	- This required add a new module to handle fixed maths.
+- Amount of RAM destined to sprites grown to 128K (a fantastic addition considering that i386s uses a segmented memory with blocks of 64K).
+	- A new memory pool is handled by the engine, all this transparent to the game logic.
+- C game-logic code now passes strict compilations checks (in modern compilers).
+- New commands to draw vertical and horizontal lines.
+- Fixed potential soft-locks in actors states.
+- Fixed a dangerous bug in the engine commands table.
+- Lot of tiny optimization here and there.
+
+
+Version 0.1-alpha (2020/05/08)
+------------------------------
+- First release!

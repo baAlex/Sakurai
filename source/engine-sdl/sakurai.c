@@ -84,6 +84,7 @@ static char* s_fragment_code = "#version 100\n"
 struct SakuraiData
 {
 	size_t last_update;
+	bool exit_requested;
 
 	uint8_t palette[PALETTE_SIZE];
 	struct Cache* cache;
@@ -113,7 +114,7 @@ uintptr_t sGameInterruption(struct GameInterruption game_int, void* raw_data, st
 	{
 	case GAME_PRINT_STRING: printf("%s", game_int.string); break;
 	case GAME_PRINT_NUMBER: printf("%u\n", game_int.number); break;
-	case GAME_EXIT_REQUEST: printf("@ExitRequest\n"); break;
+	case GAME_EXIT_REQUEST: data->exit_requested = true; break;
 
 	case GAME_UNLOAD_EVERYTHING: CacheMarkAll(data->cache); break;
 
@@ -225,6 +226,10 @@ static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw
 
 	// Update screen
 	kaDrawDefault(w);
+
+	// A good bye?
+	if (data->exit_requested == true)
+		kaWindowDelete(w);
 }
 
 

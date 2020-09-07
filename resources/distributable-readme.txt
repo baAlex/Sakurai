@@ -2,11 +2,12 @@
 Tanaka's magical business
 =========================
 
-[Version 0.2-alpha | 2020/07/07]
+[Version 0.3-alpha | 2020/09/07]
 
 A turn based role-playing game. Currently in development, an attempt
 on evoke the experience of JRPGs from the 90's. Originally a
-submission for the 'MS-DOS game jam #2' held in May 2020.
+submission for the 'MS-DOS game jam #2' held in May 2020. Runs on
+MS-DOS, Windows and Ubuntu.
 
 This is also an work-in-progress project, prepare yourself to found
 lots of incomplete features. Still, the battle system is there for
@@ -24,28 +25,36 @@ Have fun!.
 
 Controls
 --------
-- Move cursor:      Arrow keys
-- Select option:    X or Enter
-- Pause menu:       Escape
+- Move cursor:          Arrow keys
+- Select option:        Z or Enter
+- Pause menu:           Escape
+- Switch fullscreen:    F11 (Only in Windows and Ubuntu)
 
 
 System requirements
 -------------------
-At minimum the game requires:
+In a MS-DOS machine at minimum the game requires:
 
 - CPU: i386DX at 33 MHz or compatible
 - RAM: 512 KiB of free conventional memory
 - VGA compatible video card
-- 2 MiB of available hard disk space
+- 5 MiB of available hard disk space
 - MS-DOS 3.20 or compatible
 
-Or try an emulator like Dosbox or RetroArch!.
+In Windows/Ubuntu is recommended:
+
+- CPU: x86-64/AMD64 or compatible
+- RAM: 32 MiB of free memory
+- Video card with OpenGL 2.0 support
+- 5 MiB of available hard disk space
+- Windows 10 or Ubuntu 16.04 (or superior)
 
 
 Credits
 -------
 This is a solo-developer project. I'm Alexander Brandt, greetings.
-A sincere thank you for playing, few people try a game in this state.
+And a sincere thank you for playing!, few people try a game in this
+state.
 
 
 Contact
@@ -60,18 +69,20 @@ For more information or ways of contact, visit my blog:
 
 Troubleshooting
 ---------------
-### A. I can't run the game on Windows
+### A. The game quits abruptly / I found an error / A bug
 
-Modern versions of Windows are not supported. If is the case you
-should use an emulator.
+An apology for such unstable game, as an alpha release the idea is
+to use as many eyes as possible to find bugs and fix them quickly.
+Please report it at:
 
-Older versions as 3.0, 95, 98 or ME are know to work well having the
-caution of meet the minimum requirements.
+- The game website: https://baalex.itch.io/tanakas-magical-business
+- Github: https://github.com/baAlex/Sakurai/issues
+- Or in the contacts above if you prefer
 
 
 ### B. When the game ends?
 
-There is no end, still, the game start repeating after the 32nd
+There is no end, still, the game starts repeating after the 32nd
 encounter. Congratulations if you went that far!.
 
 
