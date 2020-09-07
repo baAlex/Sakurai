@@ -150,7 +150,7 @@ again:
 		return I86_RETF;
 
 	// At this point any return is an error
-	jaStatusSet(st, "JvnImageLoad", JA_STATUS_ERROR, "unknown instruction, offset 0x%04lX", ftell(fp));
+	jaStatusSet(st, "JvnImageLoad", JA_STATUS_UNEXPECTED_DATA, "unknown instruction, offset 0x%04lX", ftell(fp));
 	return I86_UNKNOWN;
 return_eof:
 	jaStatusSet(st, "JvnImageLoad", JA_STATUS_UNEXPECTED_EOF, "near code offset 0x%04lX", ftell(fp));

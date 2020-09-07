@@ -63,7 +63,7 @@ SOFTWARE.
 
 #define PALETTE_LEN 256             // Colors
 #define PALETTE_SIZE 768            // Bytes
-#define CACHE_SIZE 24 * 1024 * 1024 // Bytes
+#define CACHE_SIZE 32 * 1024 * 1024 // Bytes
 
 
 static char* s_vertex_code = "#version 100\n"
@@ -145,8 +145,8 @@ uintptr_t sGameInterruption(struct GameInterruption game_int, void* raw_data, st
 			return (uintptr_t)item->ptr;
 		else
 		{
-			if ((sprite = JvnImageLoad(game_int.filename, &data->temp, NULL)) == NULL)
-				jaStatusSet(st, "GameInterruption", JA_STATUS_FS_ERROR, "'%s'", game_int.filename);
+			if ((sprite = JvnImageLoad(game_int.filename, &data->temp, st)) == NULL)
+				break;
 			else
 			{
 				item = CacheAdd(data->cache, game_int.filename, 1, (void*)JvnImageDelete);
@@ -173,7 +173,7 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 	    (data->buffer_background = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 1)) == NULL ||
 	    (data->buffer_color = jaImageCreate(JA_IMAGE_U8, BUFFER_WIDTH, BUFFER_HEIGHT, 4)) == NULL)
 	{
-		jaStatusSet(st, "Init", JA_STATUS_MEMORY_ERROR, "Image buffers", NULL);
+		jaStatusSet(st, "Init", JA_STATUS_MEMORY_ERROR, "image buffers", NULL);
 		return;
 	}
 
@@ -196,7 +196,7 @@ static void sInit(struct kaWindow* w, void* raw_data, struct jaStatus* st)
 	// And a cache
 	if ((data->cache = CacheCreate(CACHE_SIZE)) == NULL)
 	{
-		jaStatusSet(st, "Init", JA_STATUS_MEMORY_ERROR, "Cache", NULL);
+		jaStatusSet(st, "Init", JA_STATUS_MEMORY_ERROR, "cache", NULL);
 		return;
 	}
 }
@@ -225,12 +225,6 @@ static void sFrame(struct kaWindow* w, struct kaEvents e, float delta, void* raw
 
 	// Update screen
 	kaDrawDefault(w);
-
-	// Sleep
-	unsigned current_ms = kaGetTime(w);
-
-	if ((current_ms - start_ms) < 16)
-		kaSleep(41 - (current_ms - start_ms));
 }
 
 
@@ -284,7 +278,8 @@ static void sClose(struct kaWindow* w, void* raw_data)
 }
 
 
-#ifdef _WIN32
+//#ifdef _WIN32
+#if 0
 #include <windows.h>
 #endif
 
@@ -301,7 +296,8 @@ int main(int argc, char* argv[])
 	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
 		return CacheTest();
 
-#ifdef _WIN32
+//#ifdef _WIN32
+#if 0
 	bool keep_console = false;
 
 	if (argc > 1 && strcmp("console", argv[1]) == 0)
@@ -325,7 +321,8 @@ int main(int argc, char* argv[])
 	if (kaWindowCreate(CAPTION, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
 		goto return_failure;
 
-#ifdef _WIN32
+//#ifdef _WIN32
+#if 0
 	// Close Windows console?
 	if (keep_console == false)
 	{
