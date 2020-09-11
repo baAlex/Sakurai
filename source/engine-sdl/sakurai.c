@@ -36,7 +36,6 @@ SOFTWARE.
 #include <string.h>
 #include <time.h>
 
-#include "SDL2/SDL.h"
 #include "japan-image.h"
 #include "japan-matrix.h"
 #include "japan-version.h"
@@ -283,16 +282,10 @@ static void sClose(struct kaWindow* w, void* raw_data)
 }
 
 
-//#ifdef _WIN32
-#if 0
-#include <windows.h>
-#endif
-
 int main(int argc, char* argv[])
 {
 	struct jaStatus st = {0};
 	struct SakuraiData* data = NULL;
-	SDL_version sdl_ver;
 
 	// Developers, developers, developers
 	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
@@ -301,21 +294,10 @@ int main(int argc, char* argv[])
 	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
 		return CacheTest();
 
-//#ifdef _WIN32
-#if 0
-	bool keep_console = false;
-
-	if (argc > 1 && strcmp("console", argv[1]) == 0)
-		keep_console = true;
-#endif
-
 	// Game as normal
-	SDL_GetVersion(&sdl_ver);
-
 	printf("%s v%s\n", NAME, VERSION);
 	printf(" - LibJapan %i.%i.%i\n", jaVersionMajor(), jaVersionMinor(), jaVersionPatch());
 	printf(" - LibKansai %i.%i.%i\n", kaVersionMajor(), kaVersionMinor(), kaVersionPatch());
-	printf(" - SDL2 %i.%i.%i\n", sdl_ver.major, sdl_ver.minor, sdl_ver.patch);
 
 	if ((data = calloc(1, sizeof(struct SakuraiData))) == NULL)
 		goto return_failure;
@@ -325,18 +307,6 @@ int main(int argc, char* argv[])
 
 	if (kaWindowCreate(CAPTION, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
 		goto return_failure;
-
-//#ifdef _WIN32
-#if 0
-	// Close Windows console?
-	if (keep_console == false)
-	{
-		printf("%s\n", CAPTION);
-		printf("Loading...\n");
-		kaSleep(2000); // Wait 2 seconds as consoles can be scary
-		FreeConsole();
-	}
-#endif
 
 	// Main loop
 	while (1)
