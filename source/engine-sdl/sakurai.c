@@ -50,8 +50,8 @@ SOFTWARE.
 
 
 #define NAME "Sakurai"
-#define VERSION "0.3-alpha"
-#define CAPTION "Tanaka's magical business | v0.3-alpha"
+#define VERSION "0.4-alpha"
+#define CAPTION "Tanaka's magical business | v0.4-alpha"
 
 #define SCREEN_WIDTH 320.0f // Used in OpenGL output
 #define SCREEN_HEIGHT 240.0f

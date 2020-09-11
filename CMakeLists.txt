@@ -1,30 +1,12 @@
-cmake_minimum_required(VERSION 3.10)
 
+cmake_minimum_required(VERSION 3.10)
 project("Sakurai" C)
 
-if ((CMAKE_C_COMPILER_ID MATCHES "Clang") OR (CMAKE_C_COMPILER_ID MATCHES "GNU"))
+if (MSVC)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif ()
 
-	# 'Wconversion' and 'pedantic' is too much:
-	# - The game code relies on under/overflows as is written to work on a 16 bits chip
-	# - And this isn't a fresh/new port but an engine: I can't modify the rough parts of the
-	# game code without cause issues with the DOS engine, and both needs to live together...
-
-	# I really love those flags :(
-
-	# Anyway, the following '-conversion' flags should cover the cases of implicit 16 bits
-	# pointers (ye'olde near pointers).
-
-	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -std=c11 -Wall -Wextra -Wint-conversion -Wpointer-to-int-cast")
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -mtune=generic")
-
-elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /utf-8")
-	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Od /Zi /D_CRT_SECURE_NO_WARNINGS")
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2 /D_CRT_SECURE_NO_WARNINGS")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-endif()
-
-set(SOURCES
+add_executable("sakurai"
 	"./source/engine-sdl/cache.c"
 	"./source/engine-sdl/draw.c"
 	"./source/engine-sdl/game-glue.c"
@@ -48,23 +30,18 @@ set(SOURCES
 	"./source/game/utilities.c"
 )
 
-add_executable("sakurai" ${SOURCES})
-
 # LibJapan
-option(JA_BUILD_SHARED OFF)
-option(JA_BUILD_TEST OFF)
+option(JAPAN_SHARED OFF)
+option(JAPAN_BUILD_TEST OFF)
 
 add_subdirectory("./source/engine-sdl/libjapan")
-target_link_libraries("sakurai" "japan-static")
-
+target_link_libraries("sakurai" PRIVATE "japan-static")
 target_include_directories("sakurai" PRIVATE "./source/engine-sdl/libjapan/include")
 
 # LibKansai
-option(KA_BUILD_SHARED OFF)
-option(KA_BUILD_SKETCHES OFF)
+option(KANSAI_SHARED OFF)
+option(KANSAI_BUILD_SKETCHES OFF)
 
 add_subdirectory("./source/engine-sdl/libkansai")
-target_link_libraries("sakurai" "kansai-static")
-
-target_include_directories("kansai-static" PRIVATE "./source/engine-sdl/libjapan/include")
+target_link_libraries("sakurai" PRIVATE "kansai-static")
 target_include_directories("sakurai" PRIVATE "./source/engine-sdl/libkansai/include")

@@ -49,7 +49,7 @@ segment seg_data
 
 	; Log
 	str_separator: db UNIX_NL, "===============================", UNIX_NL, 0x00
-	str_hello: db "Sakurai v0.3-alpha", UNIX_NL, 0x00
+	str_hello: db "Sakurai v0.4-alpha", UNIX_NL, 0x00
 
 	str_time_init: db "Initializing time module...", UNIX_NL, 0x00
 	str_keyboard_init: db "Initializing keyboard module...", UNIX_NL, 0x00

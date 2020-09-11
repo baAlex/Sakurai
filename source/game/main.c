@@ -56,7 +56,7 @@ void* StateHello()
 	   other state should return what to call in the following frame,
 	   most states returns themselves */
 
-	IntPrintText("Tanaka's magical business v0.3-alpha\n");
+	IntPrintText("Tanaka's magical business v0.4-alpha\n");
 	IntPrintText(" - Max commands: ");
 	IntPrintNumber(MAX_COMMANDS);
 	IntPrintText(" - Current milliseconds: ");
