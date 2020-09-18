@@ -249,7 +249,10 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 		if ((image = calloc(1, sizeof(struct JvnImage) + (sizeof(uint8_t*) * header.frames) +
 		                           (sizeof(uint8_t) * header.frames) +
 		                           (header.width * header.height * header.frames))) == NULL)
+		{
+			jaStatusSet(st, "JvnImageLoad", JA_STATUS_MEMORY_ERROR, NULL);
 			goto return_failure;
+		}
 
 		image->width = (uint8_t)header.width;
 		image->height = (uint8_t)header.height;
@@ -265,7 +268,10 @@ struct JvnImage* JvnImageLoad(const char* filename, struct jaBuffer* buffer, str
 
 		// Temporary screen and buffer for program data (colors)
 		if (jaBufferResizeZero(buffer, (320 * 200) + (header.file_size - header.data_offset)) == NULL)
+		{
+			jaStatusSet(st, "JvnImageLoad", JA_STATUS_MEMORY_ERROR, NULL);
 			goto return_failure;
+		}
 
 		program_data = (uint8_t*)(buffer->data) + (320 * 200);
 	}

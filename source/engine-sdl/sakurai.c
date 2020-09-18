@@ -67,11 +67,11 @@ SOFTWARE.
 
 static char* s_vertex_code = "#version 100\n"
                              "attribute vec3 vertex_position; attribute vec2 vertex_uv;"
-                             "uniform mat4 world; uniform mat4 local; uniform mat4 camera;"
+                             "uniform mat4 world; uniform mat4 camera; uniform mat4 local;"
                              "varying vec2 uv;"
 
                              "void main() { uv = vertex_uv;"
-                             "gl_Position = world * local * camera * vec4(vertex_position, 1.0); }";
+                             "gl_Position = world * camera * local * vec4(vertex_position, 1.0); }";
 
 static char* s_fragment_code = "#version 100\n"
                                "uniform sampler2D texture0;"
@@ -149,7 +149,7 @@ uintptr_t sGameInterruption(struct GameInterruption game_int, void* raw_data, st
 				break;
 			else
 			{
-				item = CacheAdd(data->cache, game_int.filename, 1, (void*)JvnImageDelete);
+				item = CacheAdd(data->cache, game_int.filename, 1, (void (*)(void *))JvnImageDelete);
 				item->ptr = sprite;
 
 				return (uintptr_t)item->ptr;
@@ -300,7 +300,10 @@ int main(int argc, char* argv[])
 	printf(" - LibKansai %i.%i.%i\n", kaVersionMajor(), kaVersionMinor(), kaVersionPatch());
 
 	if ((data = calloc(1, sizeof(struct SakuraiData))) == NULL)
+	{
+		jaStatusSet(&st, "main", JA_STATUS_MEMORY_ERROR, NULL);
 		goto return_failure;
+	}
 
 	if (kaContextStart(&st) != 0)
 		goto return_failure;

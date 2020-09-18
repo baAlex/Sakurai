@@ -248,8 +248,8 @@ int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_backgr
 
 	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX); // Imitating DOS behaviour
 
-	s_glue.psp.input_x = (ev.x == true) ? 1 : 0 | (ev.a == true) ? 1 : 0;
-	s_glue.psp.input_y = (ev.y == true) ? 1 : 0 | (ev.b == true) ? 1 : 0;
+	s_glue.psp.input_x = ((ev.x == true) ? 1 : 0) | ((ev.a == true) ? 1 : 0);
+	s_glue.psp.input_y = ((ev.y == true) ? 1 : 0) | ((ev.b == true) ? 1 : 0);
 	s_glue.psp.input_pad_l = (ev.pad_l == true) ? 1 : 0;
 	s_glue.psp.input_pad_r = (ev.pad_r == true) ? 1 : 0;
 	s_glue.psp.input_pad_u = (ev.pad_u == true) ? 1 : 0;
