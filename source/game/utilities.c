@@ -58,7 +58,8 @@ uint16_t Random()
 
 int8_t Sin(uint8_t x)
 {
-	return (x > 128) ? -(s_sin_table[x % 128]) : s_sin_table[x % 128];
+	/*return (x > 128) ? -(s_sin_table[x % 128]) : s_sin_table[x % 128];*/
+	return 0; /* FIXME! */
 }
 
 

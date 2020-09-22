@@ -41,9 +41,6 @@ segment seg_data
 	hex_table: db "0", "1", "2", "3", "4", "5", "6", "7"
 	           db "8", "9", "A", "B", "C", "D", "E", "F"
 
-	str_game_filename: db "game.dll", 0x00
-	str_palette_filename: db "assets\palette.raw", 0x00
-
 	; Console
 	str_vga_error: db "You need a VGA adapter", "$"
 
@@ -139,7 +136,6 @@ segment seg_game_data
 
 	org 256
 	game_data: file "./objects/game.com"
-	times 512 db 0x00 ; FIXME, BUG. Some code is writting/reading in this area :(
 
 GameFrame:
 	call near 256 ; Near call

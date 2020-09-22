@@ -8,6 +8,11 @@
 #define ENGINE_H
 
 
+#if defined(SAKURAI_DOS)
+	#include "engine-dos.h"
+#else
+
+
 /* Improvised Std */
 #if defined(__BCC__) && defined(__MSDOS__)
 
@@ -91,4 +96,5 @@ void CmdDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color);
 void CmdDrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color);
 void CmdHalt();
 
+#endif
 #endif

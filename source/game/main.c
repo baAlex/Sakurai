@@ -32,12 +32,15 @@ SOFTWARE.
 #include "utilities.h"
 
 
+#define TEST1
+
+
 void* StateHello();
 static void* (*s_next_state)() = StateHello;
 
 
-#if defined(__BCC__) && defined(__MSDOS__)
-int main()
+#if defined(SAKURAI_DOS)
+void __attribute__((__section__(".sakuraiboot"))) boot()
 #else
 int GameMain()
 #endif
@@ -46,7 +49,10 @@ int GameMain()
 	   entry point only has the purpose of redirect to the actual state.
 	   State already defined by the previous frame. */
 	s_next_state = (void* (*)())s_next_state();
-	return 0;
+
+#if !defined(SAKURAI_DOS)
+	return 0
+#endif
 }
 
 
