@@ -33,14 +33,14 @@ SOFTWARE.
 #include "utilities.h"
 #include "actor-traits.h"
 
-static uint8_t s_font1;
-static uint8_t s_font2;
-static uint8_t s_spr_portraits;
-static uint8_t s_spr_items;
-static uint8_t s_spr_sao;
+static uint8_t s_font1 = 0;
+static uint8_t s_font2 = 0;
+static uint8_t s_spr_portraits = 0;
+static uint8_t s_spr_items = 0;
+static uint8_t s_spr_sao = 0;
 
-static struct Actor s_actor1;
-static struct Actor s_actor2;
+static struct Actor s_actor1 = {0};
+static struct Actor s_actor2 = {0};
 
 
 static void* sFrame()

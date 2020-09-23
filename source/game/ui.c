@@ -50,10 +50,10 @@ rewrite... I'm simply throwing myself into the lazy side walk.
 #define PORTRAITS_1ROW_TEXT_Y (PORTRAITS_Y + 8)  /* TODO */
 #define PORTRAITS_2ROW_TEXT_Y (PORTRAITS_Y + 29) /* TODO */
 
-static char s_buffer1[4] = {0, 0, 0, 0};
-static char s_buffer2[4] = {0, 0, 0, 0};
-static char s_buffer3[4] = {0, 0, 0, 0};
-static char s_buffer4[4] = {0, 0, 0, 0};
+static char s_buffer1[4] = {0};
+static char s_buffer2[4] = {0};
+static char s_buffer3[4] = {0};
+static char s_buffer4[4] = {0};
 
 #define WINDOW_NORMAL 0
 #define WINDOW_TITLE 1

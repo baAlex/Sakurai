@@ -31,10 +31,9 @@ SOFTWARE.
 #include "state.h"
 #include "utilities.h"
 
-static uint8_t s_sprite1;
-static uint8_t s_sprite2;
-
-static uint8_t s_prev_back;
+static uint8_t s_sprite1 = 0;
+static uint8_t s_sprite2 = 0;
+static uint8_t s_prev_back = 0;
 
 
 static void* sFrame()

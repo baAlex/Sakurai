@@ -42,17 +42,13 @@ static void* (*s_next_state)() = StateHello;
 #if defined(SAKURAI_DOS)
 void __attribute__((__section__(".sakuraiboot"))) boot()
 #else
-int GameMain()
+void GameMain()
 #endif
 {
 	/* PROTIP: 'state-battle.c' is the file you are looking for, this
 	   entry point only has the purpose of redirect to the actual state.
 	   State already defined by the previous frame. */
 	s_next_state = (void* (*)())s_next_state();
-
-#if !defined(SAKURAI_DOS)
-	return 0;
-#endif
 }
 
 

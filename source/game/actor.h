@@ -54,9 +54,9 @@ struct Actor
 	uint8_t panel_done;
 };
 
-uint8_t g_live_heroes;                  /* ActorsInitialize() */
-uint8_t g_live_enemies;                 /* ActorsInitialize() */
-struct Actor g_actor[ON_SCREEN_ACTORS]; /* ActorsInitialize() */
+extern uint8_t g_live_heroes;  /* ActorsInitialize() */
+extern uint8_t g_live_enemies; /* ActorsInitialize() */
+extern struct Actor g_actor[]; /* ActorsInitialize() */
 
 void ActorsInitialize(uint8_t battle_no);
 void ActorsInitializeSprites();

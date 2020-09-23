@@ -42,9 +42,9 @@ SOFTWARE.
 #define KURO_X 45
 
 
-static uint16_t s_temp[ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO]; /* To keep things while iterating actors */
-struct Actor s_actor_temp;
-
+/* To keep things while iterating actors: */
+static uint16_t s_temp[ENEMIES_PERSONALITIES_NO + HEROES_PERSONALITIES_NO] = {0};
+static struct Actor s_actor_temp = {0};
 
 extern uint8_t EnemiesNumber(uint8_t battle_no);
 extern uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no);

@@ -141,8 +141,8 @@ uintptr_t g_psp_offset;        // Game code requires it, points to 's_glue.psp'
 uintptr_t g_ifd_args_offset;   // Game code requires it, points to 's_glue.psp::ifd_arg1'
 uintptr_t g_text_stack_offset; // Game code requires it, points to 's_glue.psp::text_stack'
 
-void (*g_interrupt)(); // Where game calls
-extern int GameMain(); // Where we, the engine, call
+void (*g_interrupt)();  // Where game calls
+extern void GameMain(); // Where we, the engine, call
 
 // </!!!>
 
