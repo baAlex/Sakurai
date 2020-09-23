@@ -136,6 +136,7 @@ segment seg_game_data
 
 	org 256
 	game_data: file "./objects/game.com"
+	times 512 db 0x00 ; FIXME, BUG. Some code is writting/reading in this area :(
 
 GameFrame:
 	call near 256 ; Near call

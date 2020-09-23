@@ -75,9 +75,9 @@ struct Persona
 	uint8_t generic_damage; /* ACTION_GENERIC */
 };
 
-struct Action g_action[ACTIONS_NO];                 /* TraitsInitialize() */
-struct Persona g_heroes[HEROES_PERSONALITIES_NO];   /* TraitsInitialize() */
-struct Persona g_enemies[ENEMIES_PERSONALITIES_NO]; /* TraitsInitialize() */
+extern struct Action g_action[];   /* TraitsInitialize() */
+extern struct Persona g_heroes[];  /* TraitsInitialize() */
+extern struct Persona g_enemies[]; /* TraitsInitialize() */
 
 void TraitsInitialize();
 

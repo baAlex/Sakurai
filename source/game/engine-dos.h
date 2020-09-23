@@ -20,14 +20,14 @@ typedef unsigned short uint16_t;
 #define CURRENT_FRAME (*(uint16_t*)0x0002)
 #define CURRENT_MILLISECONDS (*(uint16_t*)0x0004)
 #define MAX_COMMANDS (*(uint16_t*)0x0006)
-#define INPUT_X_OFFSET (*(uint8_t*)0x0010)
-#define INPUT_Y_OFFSET (*(uint8_t*)0x0011)
-#define INPUT_PAD_U_OFFSET (*(uint8_t*)0x0014)
-#define INPUT_PAD_D_OFFSET (*(uint8_t*)0x0015)
-#define INPUT_PAD_L_OFFSET (*(uint8_t*)0x0016)
-#define INPUT_PAD_R_OFFSET (*(uint8_t*)0x0017)
-#define INPUT_SELECT_OFFSET (*(uint8_t*)0x0018)
-#define INPUT_START_OFFSET (*(uint8_t*)0x0019)
+#define INPUT_X (*(uint8_t*)0x0010)
+#define INPUT_Y (*(uint8_t*)0x0011)
+#define INPUT_PAD_U (*(uint8_t*)0x0014)
+#define INPUT_PAD_D (*(uint8_t*)0x0015)
+#define INPUT_PAD_L (*(uint8_t*)0x0016)
+#define INPUT_PAD_R (*(uint8_t*)0x0017)
+#define INPUT_SELECT (*(uint8_t*)0x0018)
+#define INPUT_START (*(uint8_t*)0x0019)
 
 void IntPrintText(const char* text);
 void IntPrintNumber(uint16_t number);

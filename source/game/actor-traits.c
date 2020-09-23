@@ -127,6 +127,10 @@ void ActionShock(struct Action* action, struct Actor* actor)
 }
 
 
+struct Action g_action[ACTIONS_NO];
+struct Persona g_heroes[HEROES_PERSONALITIES_NO];
+struct Persona g_enemies[ENEMIES_PERSONALITIES_NO];
+
 void TraitsInitialize()
 {
 	/* Actions */

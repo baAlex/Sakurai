@@ -32,7 +32,7 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define TEST1
+#define TEST3
 
 
 void* StateHello();
@@ -51,7 +51,7 @@ int GameMain()
 	s_next_state = (void* (*)())s_next_state();
 
 #if !defined(SAKURAI_DOS)
-	return 0
+	return 0;
 #endif
 }
 
