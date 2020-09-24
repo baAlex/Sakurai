@@ -85,7 +85,7 @@ struct GamePSP
 };
 
 
-struct __attribute__((packed)) GameCommand
+struct GameCommand
 {
 	uint8_t code;
 	uint8_t a;

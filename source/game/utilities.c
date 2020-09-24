@@ -56,11 +56,14 @@ uint16_t Random()
 }
 
 
+#if defined(SAKURAI_DOS)
+/* Optimizations off because GCC reports:
+   Internal compiler error: in elimination_costs_in_insn, at reload1.c:3624 */
 int8_t __attribute__((optimize("O0"))) Sin(uint8_t x)
+#else
+int8_t Sin(uint8_t x)
+#endif
 {
-	/* Optimizations off because GCC reports:
-	   Internal compiler error: in elimination_costs_in_insn, at reload1.c:3624 */
-
 	return (x > 128) ? -(s_sin_table[x % 128]) : s_sin_table[x % 128];
 }
 
