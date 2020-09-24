@@ -93,6 +93,7 @@ uint8_t EnemiesNumber(uint8_t battle_no)
 #define BATTLES_DIV_ENEMIES 4 /* (BATTLES_NO / ENEMIES_PERSONALITIES_NO) */
 #define OFFSET 6
 
+
 ufixed_t sImaginaryLine(ufixed_t battle_no)
 {
 	ufixed_t chances;
@@ -102,6 +103,7 @@ ufixed_t sImaginaryLine(ufixed_t battle_no)
 
 	return chances;
 }
+
 
 uint8_t EnemyChances(uint8_t enemy_i, ufixed_t battle_no)
 {

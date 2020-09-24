@@ -73,6 +73,7 @@ static struct Actor* s_choreo_attacker = NULL;
 static char s_choreo_buffer[10] = {0};
 static char* s_choreo_hp_str = NULL;
 
+
 static void* sChoreographyFrame()
 {
 	if (KeyToggle(INPUT_START, &s_toggle_start) == 1)
@@ -110,6 +111,7 @@ static void* sChoreographyFrame()
 	return sPrepareBattle();
 }
 
+
 static void* sChoreographyInit()
 {
 	uint8_t i = 0;
@@ -145,6 +147,7 @@ static void* sChoreographyInit()
 	return sChoreographyFrame();
 }
 
+
 static void* sChoreographyResumeFromPause()
 {
 	s_toggle_x = 0;
@@ -156,6 +159,7 @@ static void* sChoreographyResumeFromPause()
 
 	return sChoreographyInit();
 }
+
 
 static void* sPrepareChoreography()
 {
@@ -177,6 +181,7 @@ static void* sPrepareChoreography()
 static uint8_t s_panel_screen = 0;
 static uint8_t s_panel_actor = 0;
 static uint8_t s_panel_selection = 0;
+
 
 static void* sPanelFrame()
 {
@@ -289,6 +294,7 @@ static void* sPanelFrame()
 	return next_frame;
 }
 
+
 static void* sPanelInit()
 {
 	CmdDrawBackground();
@@ -305,6 +311,7 @@ static void* sPanelInit()
 	return sPanelFrame();
 }
 
+
 static void* sPanelResumeFromPause()
 {
 	s_toggle_x = 0;
@@ -316,6 +323,7 @@ static void* sPanelResumeFromPause()
 
 	return sPanelInit();
 }
+
 
 static void* sPreparePanel(uint8_t actor_index, uint8_t screen)
 {
@@ -331,6 +339,7 @@ static void* sPreparePanel(uint8_t actor_index, uint8_t screen)
  Battle
 -----------------------------*/
 static uint16_t s_battle_banner = 0;
+
 
 static void* sBattleFrame()
 {
@@ -435,12 +444,14 @@ static void* sBattleFrame()
 	return next_frame;
 }
 
+
 static void* sBattleInit()
 {
 	CmdDrawBackground();
 	UiHUD(s_spr_portraits, s_font2, &g_actor[ACTOR_SAO], &g_actor[ACTOR_KURO]);
 	return sBattleFrame();
 }
+
 
 static void* sBattleResumeFromPause()
 {
@@ -453,6 +464,7 @@ static void* sBattleResumeFromPause()
 
 	return sBattleInit();
 }
+
 
 static void* sPrepareBattle()
 {
@@ -468,6 +480,7 @@ static void* sPrepareBattle()
 static uint16_t s_state_start = 0; /* In milliseconds */
 static uint8_t s_state_prev_bkg = 0;
 
+
 static void* sWait()
 {
 	/* We need to be sure of show the loading screen for at least 2 seconds in
@@ -482,6 +495,7 @@ static void* sWait()
 	return sPrepareBattle();
 }
 
+
 static void* sLoad()
 {
 	s_font1 = IntLoadSprite("assets/font1.jvn");
@@ -495,6 +509,7 @@ static void* sLoad()
 
 	return sWait();
 }
+
 
 static void* sInit()
 {
@@ -537,6 +552,7 @@ static void* sInit()
 	CmdHalt();
 	return (void*)sLoad;
 }
+
 
 void* StatePrepareBattle(uint8_t battle_no)
 {

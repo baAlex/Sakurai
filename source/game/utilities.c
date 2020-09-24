@@ -56,10 +56,12 @@ uint16_t Random()
 }
 
 
-int8_t Sin(uint8_t x)
+int8_t __attribute__((optimize("O0"))) Sin(uint8_t x)
 {
-	/*return (x > 128) ? -(s_sin_table[x % 128]) : s_sin_table[x % 128];*/
-	return 0; /* FIXME! */
+	/* Optimizations off because GCC reports:
+	   Internal compiler error: in elimination_costs_in_insn, at reload1.c:3624 */
+
+	return (x > 128) ? -(s_sin_table[x % 128]) : s_sin_table[x % 128];
 }
 
 
@@ -87,7 +89,7 @@ void Clear(void* dest, uint16_t size)
 }
 
 
-void Copy(void* org, void* dest, uint16_t size)
+void Copy(const void* org, void* dest, uint16_t size)
 {
 	void* end;
 

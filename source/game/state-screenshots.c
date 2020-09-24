@@ -33,15 +33,15 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-static uint8_t s_font1;
-static uint8_t s_font2;
-static uint8_t s_spr_portraits;
-static uint8_t s_spr_items;
+static uint8_t s_font1 = 0;
+static uint8_t s_font2 = 0;
+static uint8_t s_spr_portraits = 0;
+static uint8_t s_spr_items = 0;
 
 static uint8_t s_stage_no = 0;
-
 static uint8_t s_toggle_l = 0;
 static uint8_t s_toggle_r = 0;
+
 
 static void* sFrame()
 {

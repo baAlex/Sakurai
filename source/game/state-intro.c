@@ -36,32 +36,33 @@ static uint8_t s_font1 = 0;
 static uint8_t s_font2 = 0;
 static uint8_t s_spr_items = 0;
 
+
 /* Presenting the main characters */
-static char* s_intro01_kuro[] = {"Sao, your magical girl license already expired!.",
-                                 "The last time we renewed it was ten years ago!...", NULL};
-static char* s_intro02_sao[] = {"Come on!.", NULL};
-static char* s_intro03_kuro[] = {"You didn't even remember the spells!.", NULL};
-static char* s_intro04_sao[] = {"...", NULL};
-static char* s_intro05_kuro[] = {"Well...", NULL};
+static const char* s_intro01_kuro[] = {"Sao, your magical girl license already expired!.",
+                                       "The last time we renewed it was ten years ago!...", NULL};
+static const char* s_intro02_sao[] = {"Come on!.", NULL};
+static const char* s_intro03_kuro[] = {"You didn't even remember the spells!.", NULL};
+static const char* s_intro04_sao[] = {"...", NULL};
+static const char* s_intro05_kuro[] = {"Well...", NULL};
 
 
 /* Wall text here because even if this prototype is an incomplete mess, at least
 I want that the player note this core feature (this broken sentence makes any sense?) */
-static char* s_intro06_walltext[] = {"Just note that the combat being turn based, demands",
-                                     "special attention to the time of enemies turns, attacks",
-                                     "recovery, and of course our own turns.", NULL};
-static char* s_intro07_walltext[] = {"Every character has a time meter above his head, so",
-                                     "please use them to elaborate a proper strategy.", NULL};
-static char* s_intro08_walltext[] = {"And... I don't need to say that some attacks require", "magical points, right?.",
-                                     NULL};
-static char* s_intro09_sao[] = {"Right", NULL};
+static const char* s_intro06_walltext[] = {"Just note that the combat being turn based, demands",
+                                           "special attention to the time of enemies turns, attacks",
+                                           "recovery, and of course our own turns.", NULL};
+static const char* s_intro07_walltext[] = {"Every character has a time meter above his head, so",
+                                           "please use them to elaborate a proper strategy.", NULL};
+static const char* s_intro08_walltext[] = {"And... I don't need to say that some attacks require",
+                                           "magical points, right?.", NULL};
+static const char* s_intro09_sao[] = {"Right", NULL};
 
 
 /* Breaking the four wall to make really obvious that this is an alpha alpha alpha version */
-static char* s_intro10_kuro[] = {"Oh... and I got a message from the developer:",
-                                 "«I'm having fun making this game prototype, hope you", "have fun too».", NULL};
-static char* s_intro11_kuro[] = {"Ends with: «Further details following...».", NULL};
-static char* s_intro12_sao[] = {"???", NULL};
+static const char* s_intro10_kuro[] = {"Oh... and I got a message from the developer:",
+                                       "«I'm having fun making this game prototype, hope you", "have fun too».", NULL};
+static const char* s_intro11_kuro[] = {"Ends with: «Further details following...».", NULL};
+static const char* s_intro12_sao[] = {"???", NULL};
 
 /* TODO: use the Clarke Europa thing?: « All this game is yours, except runtime errors. »
    « Attempt no landing there. Enjoy it together. Play it in peace. » */
@@ -116,6 +117,7 @@ static uint8_t s_toggle_r = 0;
 static uint8_t s_toggle_u = 0;
 static uint8_t s_toggle_d = 0;
 static uint8_t s_toggle_start = 0;
+
 
 static void* sDialogsFrame()
 {
@@ -204,6 +206,7 @@ static void* sInit()
 	return sDialogsFrame();
 }
 
+
 static void* sResumeFromPause()
 {
 	CLEAN_PAUSE();
@@ -218,6 +221,7 @@ static void* sResumeFromPause()
 
 	return sDialogsFrame();
 }
+
 
 void* StatePrepareIntro()
 {

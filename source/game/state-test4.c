@@ -40,6 +40,7 @@ static uint8_t s_toggle_d = 0;
 static uint8_t s_toggle_start = 0;
 static uint8_t s_toggle_select = 0;
 
+
 static void* sFrame()
 {
 	if ((CURRENT_FRAME % 48) == 0) /* Every 2 seconds */
@@ -59,6 +60,7 @@ static void* sFrame()
 	CmdHalt();
 	return (void*)sFrame;
 }
+
 
 void* StateTest4()
 {

@@ -34,7 +34,6 @@ SOFTWARE.
 #include "draw.h"
 #include "game-glue.h"
 
-#define COMMAND_SIZE 8
 #define COMMANDS_TABLE_LEN 64   // 28 in the DOS engine
 #define COMMANDS_TABLE_SIZE 512 // 224 in the DOS engine
 #define SPRITE_INDIRECTION_LEN 32
@@ -86,38 +85,14 @@ struct GamePSP
 };
 
 
-union GameCommand
+struct __attribute__((packed)) GameCommand
 {
 	uint8_t code;
-
-	struct
-	{
-		uint8_t code;
-		uint8_t color;
-		uint8_t width;
-		uint8_t height;
-		uint16_t x;
-		uint16_t y;
-	} shape;
-
-	struct
-	{
-		uint8_t code;
-		uint8_t sprite;
-		uint8_t frame;
-		uint8_t unused;
-		uint16_t x;
-		uint16_t y;
-	} sprite;
-
-	struct
-	{
-		uint8_t code;
-		uint8_t sprite;
-		uint16_t text;
-		uint16_t x;
-		uint16_t y;
-	} text;
+	uint8_t a;
+	uint8_t b;
+	uint8_t c;
+	uint16_t d;
+	uint16_t e;
 };
 
 
@@ -243,8 +218,8 @@ void GlueStop() {}
 int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_background, struct jaImage* buffer_out,
               struct jaStatus* st)
 {
-	union GameCommand* cmd = (union GameCommand*)s_glue.psp.commands_table;
-	union GameCommand* end = cmd + COMMANDS_TABLE_LEN;
+	struct GameCommand* cmd = (struct GameCommand*)s_glue.psp.commands_table;
+	struct GameCommand* end = cmd + COMMANDS_TABLE_LEN;
 
 	s_glue.psp.ms_counter = (uint16_t)(ms % UINT16_MAX); // Imitating DOS behaviour
 
@@ -279,33 +254,29 @@ int GlueFrame(struct kaEvents ev, size_t ms, const struct jaImage* buffer_backgr
 			DrawBkg(buffer_background, buffer_out);
 			break;
 		case 0x02: // CODE_DRAW_RECTANGLE_BKG
-			DrawRectangleBkg(cmd->shape.width, cmd->shape.height, cmd->shape.x, cmd->shape.y, buffer_background,
-			                 buffer_out);
+			DrawRectangleBkg(cmd->b, cmd->c, cmd->d, cmd->e, buffer_background, buffer_out);
 			break;
 		case 0x03: // CODE_DRAW_SPRITE
-			DrawSprite((struct JvnImage*)s_glue.sprite_indirection[cmd->sprite.sprite], cmd->sprite.x, cmd->sprite.y,
-			           cmd->sprite.frame, buffer_out);
+			DrawSprite((struct JvnImage*)s_glue.sprite_indirection[cmd->a], cmd->d, cmd->e, cmd->b, buffer_out);
 			break;
 		case 0x04: // CODE_DRAW_RECTANGLE
-			DrawRectangle(cmd->shape.width, cmd->shape.height, cmd->shape.x, cmd->shape.y, cmd->shape.color,
-			              buffer_out);
+			DrawRectangle(cmd->b, cmd->c, cmd->d, cmd->e, cmd->a, buffer_out);
 			break;
 		case 0x05: // CODE_DRAW_RECTANGLE_PRECISE
-			DrawRectanglePrecise(cmd->shape.width, cmd->shape.height, cmd->shape.x, cmd->shape.y, cmd->shape.color,
-			                     buffer_out);
+			DrawRectanglePrecise(cmd->b, cmd->c, cmd->d, cmd->e, cmd->a, buffer_out);
 			break;
 		case 0x06: // CODE_DRAW_TEXT
-			DrawText((struct JvnImage*)s_glue.sprite_indirection[cmd->text.sprite], cmd->text.x, cmd->text.y,
-			         s_glue.psp.text_stack[cmd->text.text], buffer_out);
+			DrawText((struct JvnImage*)s_glue.sprite_indirection[cmd->a], cmd->d, cmd->e,
+			         s_glue.psp.text_stack[(cmd - (struct GameCommand*)s_glue.psp.commands_table)], buffer_out);
 			break;
 		case 0x07: // CODE_DRAW_H_LINE
-			DrawHLine(cmd->shape.width, cmd->shape.x, cmd->shape.y, cmd->shape.color, buffer_out);
+			DrawHLine(cmd->b, cmd->d, cmd->e, cmd->a, buffer_out);
 			break;
 		case 0x08: // CODE_DRAW_V_LINE
-			DrawVLine(cmd->shape.width, cmd->shape.x, cmd->shape.y, cmd->shape.color, buffer_out);
+			DrawVLine(cmd->b, cmd->d, cmd->e, cmd->a, buffer_out);
 			break;
 		case 0x09: // CODE_DRAW_PIXEL
-			DrawPixel(cmd->shape.x, cmd->shape.y, cmd->shape.color, buffer_out);
+			DrawPixel(cmd->d, cmd->e, cmd->a, buffer_out);
 			break;
 		default: break;
 		}

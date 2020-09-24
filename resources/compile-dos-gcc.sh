@@ -10,6 +10,7 @@ game_files="./source/game/actor-globals.c
             ./source/game/state-battle.c
             ./source/game/state-intro.c
             ./source/game/state-pause.c
+            ./source/game/state-screenshots.c
             ./source/game/state-test1.c
             ./source/game/state-test2.c
             ./source/game/state-test3.c
@@ -19,12 +20,12 @@ game_files="./source/game/actor-globals.c
 
 mkdir -p "./objects/"
 
-ia16-elf-gcc -DSAKURAI_DOS -Wall -Wextra -mno-callee-assume-ss-data-segment \
+ia16-elf-gcc -std=gnu90 -DSAKURAI_DOS -Wall -Wextra -mno-callee-assume-ss-data-segment \
              -Os -masm=intel -nostdlib -ffreestanding -T "./resources/com.ld" \
              $game_files -o "./objects/game.com" \
 && fasm "./source/engine-dos/sakurai.asm" "./sakurai.exe"
 
-ia16-elf-gcc -S -DSAKURAI_DOS -Wall -Wextra -mno-callee-assume-ss-data-segment \
+ia16-elf-gcc -S -std=gnu90 -DSAKURAI_DOS -Wall -Wextra -mno-callee-assume-ss-data-segment \
              -Os -masm=intel -nostdlib -ffreestanding \
              "./source/game/engine-dos.c" -o "./objects/game.asm"
 

@@ -49,6 +49,7 @@ void IntPrintText(const char* text)
 	             : /* Clobbers */);
 }
 
+
 void IntPrintNumber(uint16_t number)
 {
 	asm volatile("movw [0x0008], 0x02\n\
@@ -59,7 +60,8 @@ void IntPrintNumber(uint16_t number)
 	             : /* Clobbers */);
 }
 
-void IntLoadBackground(char* filename)
+
+void IntLoadBackground(const char* filename)
 {
 	asm volatile("movw [0x0008], 0x03\n\
 	              movw [0x000A], %[filename]\n\
@@ -69,7 +71,8 @@ void IntLoadBackground(char* filename)
 	             : /* Clobbers */);
 }
 
-void IntLoadPalette(char* filename)
+
+void IntLoadPalette(const char* filename)
 {
 	asm volatile("movw [0x0008], 0x04\n\
 	              movw [0x000A], %[filename]\n\
@@ -79,7 +82,8 @@ void IntLoadPalette(char* filename)
 	             : /* Clobbers */);
 }
 
-uint8_t IntLoadSprite(char* filename)
+
+uint8_t IntLoadSprite(const char* filename)
 {
 	asm volatile("movw [0x0008], 0x07\n\
 	              movw [0x000A], %[filename]\n\
@@ -91,6 +95,7 @@ uint8_t IntLoadSprite(char* filename)
 	return *((uint8_t*)0x0008);
 }
 
+
 void IntUnloadAll()
 {
 	asm volatile("movw [0x0008], 0x05\n\
@@ -99,6 +104,7 @@ void IntUnloadAll()
 	             : /* Input */
 	             : /* Clobbers */);
 }
+
 
 void IntFlushCommands()
 {
@@ -111,6 +117,7 @@ void IntFlushCommands()
 	*((uint8_t*)s_command_offset) = 0x00;
 	s_command_offset = COMMANDS_TABLE_OFFSET;
 }
+
 
 void IntExitRequest()
 {
@@ -145,6 +152,7 @@ void CmdHalt()
 		IntFlushCommands();
 }
 
+
 void CmdDrawBackground()
 {
 	*((uint8_t*)s_command_offset) = 0x01;
@@ -154,6 +162,7 @@ void CmdDrawBackground()
 		IntFlushCommands();
 }
 
+
 void CmdDrawPixel(uint16_t x, uint16_t y, uint8_t color)
 {
 	*((struct Command*)s_command_offset) = (struct Command){.code = 0x09, .a = color, .d = x, .e = y};
@@ -162,6 +171,7 @@ void CmdDrawPixel(uint16_t x, uint16_t y, uint8_t color)
 	if ((s_command_offset + COMMAND_SIZE) == (COMMANDS_TABLE_OFFSET + (MAX_COMMANDS << 3)))
 		IntFlushCommands();
 }
+
 
 void CmdDrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color)
 {
@@ -173,6 +183,7 @@ void CmdDrawRectangle(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uin
 		IntFlushCommands();
 }
 
+
 void CmdDrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y)
 {
 	*((struct Command*)s_command_offset) = (struct Command){.code = 0x02, .b = width, .c = height, .d = x, .e = y};
@@ -181,6 +192,7 @@ void CmdDrawRectangleBkg(uint8_t width, uint8_t height, uint16_t x, uint16_t y)
 	if ((s_command_offset + COMMAND_SIZE) == (COMMANDS_TABLE_OFFSET + (MAX_COMMANDS << 3)))
 		IntFlushCommands();
 }
+
 
 void CmdDrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t color)
 {
@@ -192,6 +204,7 @@ void CmdDrawRectanglePrecise(uint8_t width, uint8_t height, uint16_t x, uint16_t
 		IntFlushCommands();
 }
 
+
 void CmdDrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8_t frame)
 {
 	*((struct Command*)s_command_offset) = (struct Command){.code = 0x03, .a = sprite, .b = frame, .d = x, .e = y};
@@ -201,7 +214,8 @@ void CmdDrawSprite(uint8_t sprite, uint16_t x, uint16_t y, uint8_t frame)
 		IntFlushCommands();
 }
 
-void CmdDrawText(uint8_t sprite, uint16_t x, uint16_t y, char* text)
+
+void CmdDrawText(uint8_t sprite, uint16_t x, uint16_t y, const char* text)
 {
 	struct __attribute__((packed)) TxtCommand
 	{
@@ -220,6 +234,7 @@ void CmdDrawText(uint8_t sprite, uint16_t x, uint16_t y, char* text)
 		IntFlushCommands();
 }
 
+
 void CmdDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color)
 {
 	*((struct Command*)s_command_offset) = (struct Command){.code = 0x07, .a = color, .b = width, 0, .d = x, .e = y};
@@ -228,6 +243,7 @@ void CmdDrawHLine(uint8_t width, uint16_t x, uint16_t y, uint8_t color)
 	if ((s_command_offset + COMMAND_SIZE) == (COMMANDS_TABLE_OFFSET + (MAX_COMMANDS << 3)))
 		IntFlushCommands();
 }
+
 
 void CmdDrawVLine(uint8_t height, uint16_t x, uint16_t y, uint8_t color)
 {

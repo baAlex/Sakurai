@@ -58,6 +58,7 @@ static char s_buffer4[4] = {0};
 #define WINDOW_NORMAL 0
 #define WINDOW_TITLE 1
 
+
 static void sDrawWindow(uint8_t width, uint8_t height, uint16_t x, uint16_t y, uint8_t tags)
 {
 	CmdDrawRectangle(width, height, x, y, WINDOW_BACK_COLOR);
@@ -85,7 +86,8 @@ static void sDrawWindow(uint8_t width, uint8_t height, uint16_t x, uint16_t y, u
 }
 
 
-static void sDrawPortraits(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
+static void sDrawPortraits(uint8_t portraits_sprite, uint8_t font_sprite, const struct Actor* actor_a,
+                           const struct Actor* actor_b)
 {
 	char* c;
 
@@ -116,7 +118,8 @@ static void sDrawPortraits(uint8_t portraits_sprite, uint8_t font_sprite, struct
 #define DIALOG_Y 140
 #define DIALOG_SPACING 12
 
-void UiDialog(uint8_t font_sprite, uint16_t start_ms, char* character, char** lines)
+
+void UiDialog(uint8_t font_sprite, uint16_t start_ms, const char* character, const char* lines[])
 {
 	uint16_t current_ms = CURRENT_MILLISECONDS;
 	uint16_t y = DIALOG_Y;
@@ -157,7 +160,8 @@ void UiDialog(uint8_t font_sprite, uint16_t start_ms, char* character, char** li
 #define BANNER_TEXT_X 13
 #define BANNER_TEXT_Y 94
 
-void UiBanner(uint8_t font_sprite, char* text)
+
+void UiBanner(uint8_t font_sprite, const char* text)
 {
 	sDrawWindow(BANNER_W, BANNER_H, BANNER_X, BANNER_Y, WINDOW_NORMAL);
 	CmdDrawText(font_sprite, BANNER_TEXT_X, BANNER_TEXT_Y, text);
@@ -168,7 +172,7 @@ void UiBanner(uint8_t font_sprite, char* text)
 
  HUD
 -----------------------------*/
-void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a, struct Actor* actor_b)
+void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, const struct Actor* actor_a, const struct Actor* actor_b)
 {
 	CmdDrawRectangleBkg(5 /* 80 px */, 3 /* 48 px */, 8, 6); /* TODO */
 	sDrawPortraits(portraits_sprite, font_sprite, actor_a, actor_b);
@@ -207,8 +211,8 @@ void UiHUD(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* actor_a,
 static uint8_t s_prev_action_selection = 255;
 
 
-void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Persona* persona, struct Actor* hud_a,
-                          struct Actor* hud_b)
+void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, const struct Persona* persona,
+                          const struct Actor* hud_a, const struct Actor* hud_b)
 {
 	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y, WINDOW_NORMAL);
 	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
@@ -235,7 +239,9 @@ void UiPanelAction_static(uint8_t portraits_sprite, uint8_t font_sprite, struct 
 	}
 }
 
-uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct Persona* persona, uint8_t selection)
+
+uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, const struct Persona* persona,
+                              uint8_t selection)
 {
 	CmdDrawRectangle(1 /* 16 px */, PANEL_H, PANEL_1COL_SELECTION_X, PANEL_Y, WINDOW_BACK_COLOR);
 	CmdDrawRectangle(1 /* 16 px */, PANEL_H, PANEL_2COL_SELECTION_X, PANEL_Y, WINDOW_BACK_COLOR);
@@ -297,13 +303,16 @@ uint8_t UiPanelAction_dynamic(uint8_t arrow_sprite, uint8_t font_sprite, struct 
 -----------------------------*/
 static uint8_t s_prev_target_selection = 255;
 
-void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, struct Actor* hud_a, struct Actor* hud_b)
+
+void UiPanelTarget_static(uint8_t portraits_sprite, uint8_t font_sprite, const struct Actor* hud_a,
+                          const struct Actor* hud_b)
 {
 	sDrawWindow(PANEL_W, PANEL_H, PANEL_X, PANEL_Y, WINDOW_NORMAL);
 	sDrawPortraits(portraits_sprite, font_sprite, hud_a, hud_b);
 
 	CmdDrawText(font_sprite, 109, PANEL_2ROW_TEXT_Y, "Select a target."); /* TODO */
 }
+
 
 uint8_t UiPanelTarget_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {
@@ -385,6 +394,7 @@ void UiPanelClean()
 #define PAUSE_SELECTION_Y 89
 #define PAUSE_SELECTION_SPACING 14
 
+
 void UiMenuPause_static(uint8_t font_sprite1, uint8_t font_sprite2)
 {
 	sDrawWindow(PAUSE_W, PAUSE_H, PAUSE_X, PAUSE_Y, WINDOW_TITLE);
@@ -395,6 +405,7 @@ void UiMenuPause_static(uint8_t font_sprite1, uint8_t font_sprite2)
 	CmdDrawText(font_sprite2, PAUSE_TEXT_X, PAUSE_2ROW_TEXT_Y, "Restart game");
 	CmdDrawText(font_sprite2, PAUSE_TEXT_X, PAUSE_3ROW_TEXT_Y, "Exit to system");
 }
+
 
 uint8_t UiMenuPause_dynamic(uint8_t arrow_sprite, uint8_t selection)
 {

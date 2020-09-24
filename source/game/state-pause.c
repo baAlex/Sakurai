@@ -45,6 +45,7 @@ static uint8_t s_toggle_u = 0;
 static uint8_t s_toggle_d = 0;
 static uint8_t s_toggle_start = 0;
 
+
 static void* sFrame()
 {
 	if (KeyRepeat(INPUT_PAD_U, &s_toggle_u) == 1)
@@ -84,6 +85,7 @@ static void* sInit()
 	UiMenuPause_static(s_font1, s_font2);
 	return sFrame();
 }
+
 
 void* StatePreparePause(uint8_t spr_font1, uint8_t spr_font2, uint8_t spr_items, void* resume_to)
 {

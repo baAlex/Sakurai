@@ -28,10 +28,10 @@ SOFTWARE.
  - Alexander Brandt 2020
 -----------------------------*/
 
+#include "actor-traits.h"
 #include "state.h"
 #include "ui.h"
 #include "utilities.h"
-#include "actor-traits.h"
 
 static uint8_t s_font1 = 0;
 static uint8_t s_font2 = 0;

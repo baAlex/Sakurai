@@ -1,33 +1,30 @@
 /*-----------------------------
 
- [engine-dos.h]
+ [engine-sdl.h]
  - Alexander Brandt 2020
 -----------------------------*/
 
-#ifndef ENGINE_DOS_H
-#define ENGINE_DOS_H
+#ifndef ENGINE_SDL_H
+#define ENGINE_SDL_H
 
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
+#include <stddef.h>
+#include <stdint.h>
 
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
+extern uintptr_t g_psp_offset;
+extern uintptr_t g_ifd_args_offset;
+extern uintptr_t g_text_stack_offset;
 
-#define UINT8_MAX 255
-#define UINT16_MAX 65535
-#define NULL 0x0000
-
-#define CURRENT_FRAME (*(uint16_t*)0x0002)
-#define CURRENT_MILLISECONDS (*(uint16_t*)0x0004)
-#define MAX_COMMANDS (*(uint16_t*)0x0006)
-#define INPUT_X (*(uint8_t*)0x0010)
-#define INPUT_Y (*(uint8_t*)0x0011)
-#define INPUT_PAD_U (*(uint8_t*)0x0014)
-#define INPUT_PAD_D (*(uint8_t*)0x0015)
-#define INPUT_PAD_L (*(uint8_t*)0x0016)
-#define INPUT_PAD_R (*(uint8_t*)0x0017)
-#define INPUT_SELECT (*(uint8_t*)0x0018)
-#define INPUT_START (*(uint8_t*)0x0019)
+#define CURRENT_FRAME (*(uint16_t*)(g_psp_offset + 0x0002))
+#define CURRENT_MILLISECONDS (*(uint16_t*)(g_psp_offset + 0x0004))
+#define MAX_COMMANDS (*(uint16_t*)(g_psp_offset + 0x0006))
+#define INPUT_X (*(uint8_t*)(g_psp_offset + 0x0010))
+#define INPUT_Y (*(uint8_t*)(g_psp_offset + 0x0011))
+#define INPUT_PAD_U (*(uint8_t*)(g_psp_offset + 0x0014))
+#define INPUT_PAD_D (*(uint8_t*)(g_psp_offset + 0x0015))
+#define INPUT_PAD_L (*(uint8_t*)(g_psp_offset + 0x0016))
+#define INPUT_PAD_R (*(uint8_t*)(g_psp_offset + 0x0017))
+#define INPUT_SELECT (*(uint8_t*)(g_psp_offset + 0x0018))
+#define INPUT_START (*(uint8_t*)(g_psp_offset + 0x0019))
 
 void IntPrintText(const char* text);
 void IntPrintNumber(uint16_t number);
