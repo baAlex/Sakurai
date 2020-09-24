@@ -32,9 +32,9 @@ SOFTWARE.
 #include "ui.h"
 #include "utilities.h"
 
-static uint8_t s_font1;
-static uint8_t s_font2;
-static uint8_t s_spr_items;
+static uint8_t s_font1 = 0;
+static uint8_t s_font2 = 0;
+static uint8_t s_spr_items = 0;
 
 /* Presenting the main characters */
 static char* s_intro01_kuro[] = {"Sao, your magical girl license already expired!.",

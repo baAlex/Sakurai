@@ -30,8 +30,8 @@ SOFTWARE.
  $ clang -DLAYOUT_STANDALONE -std=c90 -Wall -Wextra -Wconversion -pedantic ./source/game/actor-layout.c
 ./source/game/utilities.c ./source/game/fixed.c -o layout
 
- $ bcc -0 -ansi -Md -DLAYOUT_STANDALONE ./source/game/actor-layout.c ./source/game/utilities.c ./source/game/fixed.c -o
-layout.exe
+ $ ia16-elf-gcc -DSAKURAI_DOS -DLAYOUT_STANDALONE -masm=intel ./source/game/actor-layout.c ./source/game/utilities.c
+./source/game/fixed.c -o layout.com
 -----------------------------*/
 
 #include "actor.h"

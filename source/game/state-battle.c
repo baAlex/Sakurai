@@ -37,13 +37,13 @@ SOFTWARE.
 
 static uint8_t s_battle_no = 0;
 
-static uint8_t s_font1;
-static uint8_t s_font1a;
-static uint8_t s_font2;
-static uint8_t s_spr_portraits;
-static uint8_t s_spr_fx1;
-static uint8_t s_spr_fx2;
-static uint8_t s_spr_items;
+static uint8_t s_font1 = 0;
+static uint8_t s_font1a = 0;
+static uint8_t s_font2 = 0;
+static uint8_t s_spr_portraits = 0;
+static uint8_t s_spr_fx1 = 0;
+static uint8_t s_spr_fx2 = 0;
+static uint8_t s_spr_items = 0;
 
 static uint8_t s_toggle_x = 0;
 static uint8_t s_toggle_l = 0;
@@ -70,7 +70,7 @@ static void* sBattleResumeFromPause();
 static uint16_t s_choreo_start = 0; /* In frames */
 static struct Actor* s_choreo_attacker = NULL;
 
-static char s_choreo_buffer[10];
+static char s_choreo_buffer[10] = {0};
 static char* s_choreo_hp_str = NULL;
 
 static void* sChoreographyFrame()
