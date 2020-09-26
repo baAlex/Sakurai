@@ -1,11 +1,12 @@
 #!/bin/bash
 
-game_files="./source/game/main.c
-            ./source/game/actor.c
+game_files="./source/game/actor-globals.c
             ./source/game/actor-layout.c
             ./source/game/actor-traits.c
-            ./source/game/engine.c
+            ./source/game/engine-dos.c
+            ./source/game/actor.c
             ./source/game/fixed.c
+            ./source/game/main.c
             ./source/game/state-battle.c
             ./source/game/state-intro.c
             ./source/game/state-pause.c
@@ -19,104 +20,33 @@ game_files="./source/game/main.c
 
 mkdir -p "./objects/"
 
-bcc -0 -O -ansi -Md -x -i -o "./objects/game.com" $game_files -I./source/game/
-fasm "./source/engine-dos/sakurai.asm" "./sakurai.exe"
+ia16-elf-gcc -std=gnu90 -DSAKURAI_DOS -Wall -Wextra -mno-callee-assume-ss-data-segment \
+             -Os -masm=intel -nostdlib -ffreestanding -T "./resources/com.ld" \
+             $game_files -o "./objects/game.com" \
+&& fasm "./source/engine-dos/sakurai.asm" "./sakurai.exe"
 
-####
+ia16-elf-gcc -S -std=gnu90 -DSAKURAI_DOS -Wall -Wextra -mno-callee-assume-ss-data-segment \
+             -Os -masm=intel -nostdlib -ffreestanding \
+             "./source/game/engine-dos.c" -o "./objects/game.asm"
 
-mkdir -p "./assets/"
+# -------------------
 
-ruby ./source/sdk/background.rb "./assets/bkg1.raw"  "./assets-dev/bkg1.bmp"
-ruby ./source/sdk/background.rb "./assets/bkg2.raw"  "./assets-dev/bkg2.bmp"
-ruby ./source/sdk/background.rb "./assets/bkg3.raw"  "./assets-dev/bkg3.bmp"
-ruby ./source/sdk/background.rb "./assets/bkg4.raw"  "./assets-dev/bkg4.bmp"
-ruby ./source/sdk/background.rb "./assets/title.raw" "./assets-dev/title.bmp"
+# « -T, use script as the linker script »
+# (gcc.gnu.org/onlinedocs/gcc/Link-Options.html)
 
-ruby ./source/sdk/palette.rb "./assets/palette.raw" "./assets-dev/palette.bmp"
+# -------------------
 
-ruby ./source/sdk/sprite.rb "linear" "./objects/fx1.asm"\
-    "./assets-dev/fx1.001.bmp"\
-    "./assets-dev/fx1.002.bmp"\
-    "./assets-dev/fx1.003.bmp"\
-    "./assets-dev/fx1.004.bmp"\
-    "./assets-dev/fx1.005.bmp"\
-    "./assets-dev/fx1.006.bmp"
+# 1) KEEP SS AND DS SEPARATED!
+# github.com/tkchia/gcc-ia16/blob/gcc-6_3_0-ia16-tkchia/gcc/config/ia16/ia16.opt
+# The engine do that, you now... memory segments :( . However GCC loves do crazy
+# optimizations under the erroneous assumption that SS and DS lives in the same
+# place.
 
-ruby ./source/sdk/sprite.rb "linear" "./objects/fx2.asm"\
-    "./assets-dev/fx2.001.bmp"\
-    "./assets-dev/fx2.002.bmp"\
-    "./assets-dev/fx2.003.bmp"\
-    "./assets-dev/fx2.004.bmp"\
-    "./assets-dev/fx2.005.bmp"\
-    "./assets-dev/fx2.006.bmp"
+# -------------------
 
-ruby ./source/sdk/sprite.rb "linear" "./objects/sprite1.asm" "./assets-dev/sprite1.bmp"
-ruby ./source/sdk/sprite.rb "linear" "./objects/sprite2.asm" "./assets-dev/sprite2.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/sayori.asm"\
-    "./assets-dev/sayori.001.bmp"\
-    "./assets-dev/sayori.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/kuro.asm"\
-    "./assets-dev/kuro.001.bmp"\
-    "./assets-dev/kuro.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/ui-ports.asm" "./assets-dev/ui-ports.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/ui-items.asm"\
-    "./assets-dev/ui-items.001.bmp"\
-    "./assets-dev/ui-items.002.bmp"\
-    "./assets-dev/ui-items.003.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/ferment.asm"\
-    "./assets-dev/ferment.001.bmp"\
-    "./assets-dev/ferment.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/windeye.asm"\
-    "./assets-dev/windeye.001.bmp"\
-    "./assets-dev/windeye.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/kingpin.asm"\
-    "./assets-dev/kingpin.001.bmp"\
-    "./assets-dev/kingpin.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/phibia.asm"\
-    "./assets-dev/phibia.001.bmp"\
-    "./assets-dev/phibia.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/destroyr.asm"\
-    "./assets-dev/destroyr.001.bmp"\
-    "./assets-dev/destroyr.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/viridi.asm"\
-    "./assets-dev/viridi.001.bmp"\
-    "./assets-dev/viridi.002.bmp"
-
-ruby ./source/sdk/sprite.rb "linear" "./objects/ni.asm"\
-    "./assets-dev/ni.001.bmp"\
-    "./assets-dev/ni.002.bmp"
-
-ruby ./source/sdk/sprite.rb "font" "./objects/font1.asm"  "./assets-dev/font1.bmp"
-ruby ./source/sdk/sprite.rb "font" "./objects/font1a.asm" "./assets-dev/font1a.bmp"
-ruby ./source/sdk/sprite.rb "font" "./objects/font2.asm"  "./assets-dev/font2.bmp"
-
-###
-
-fasm "./objects/fx1.asm" "./assets/fx1.jvn"
-fasm "./objects/fx2.asm" "./assets/fx2.jvn"
-fasm "./objects/sprite1.asm" "./assets/sprite1.jvn"
-fasm "./objects/sprite2.asm" "./assets/sprite2.jvn"
-fasm "./objects/sayori.asm" "./assets/sayori.jvn"
-fasm "./objects/kuro.asm" "./assets/kuro.jvn"
-fasm "./objects/ui-ports.asm" "./assets/ui-ports.jvn"
-fasm "./objects/ui-items.asm" "./assets/ui-items.jvn"
-fasm "./objects/ferment.asm" "./assets/ferment.jvn"
-fasm "./objects/windeye.asm" "./assets/windeye.jvn"
-fasm "./objects/kingpin.asm" "./assets/kingpin.jvn"
-fasm "./objects/phibia.asm" "./assets/phibia.jvn"
-fasm "./objects/destroyr.asm" "./assets/destroyr.jvn"
-fasm "./objects/viridi.asm" "./assets/viridi.jvn"
-fasm "./objects/ni.asm" "./assets/ni.jvn"
-fasm "./objects/font1.asm" "./assets/font1.jvn"
-fasm "./objects/font1a.asm" "./assets/font1a.jvn"
-fasm "./objects/font2.asm" "./assets/font2.jvn"
+# 2) ALWAYS INITIALIZE HEAP OBJECTS!
+# This is a custom executable format and by default the linker assumes ELF.
+# If I'm not wrong in ELF all uninitialised things are reduced to a number
+# specified in the header, allowing the OS to allocate that amount of memory.
+# Anyway, there is no OS here, all heap objects needs to be appended in
+# the executable.
