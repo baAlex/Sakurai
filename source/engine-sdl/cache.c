@@ -248,10 +248,13 @@ int CacheTest()
 
 	struct Cache* c = CacheCreate(4);
 
-	assert(((i1 = CacheAdd(c, "spr1", 1, NULL)) != NULL)); // Success
-	assert(((i2 = CacheAdd(c, "spr2", 1, NULL)) != NULL)); // Success
+	i1 = CacheAdd(c, "spr1", 1, NULL);
+	assert((i1 != NULL));                                  // Success
+	i2 = CacheAdd(c, "spr2", 1, NULL);
+	assert((i2 != NULL));                                  // Success
 	assert((CacheAdd(c, "spr3", 1, NULL) != NULL));        // Success
-	assert(((i4 = CacheAdd(c, "spr4", 1, NULL)) != NULL)); // Success
+	i4 = CacheAdd(c, "spr4", 1, NULL);
+	assert((i4 != NULL));                                 // Success
 	assert((CacheAdd(c, "spr5", 1, NULL) == NULL));        // Failure, limit of 4 reached
 	assert((CacheAdd(c, "spr4", 1, NULL) == NULL));        // Failure, already in cache
 
