@@ -149,7 +149,7 @@ uintptr_t sGameInterruption(struct GameInterruption game_int, void* raw_data, st
 				break;
 			else
 			{
-				item = CacheAdd(data->cache, game_int.filename, 1, (void (*)(void *))JvnImageDelete);
+				item = CacheAdd(data->cache, game_int.filename, 1, (void (*)(void*))JvnImageDelete);
 				item->ptr = sprite;
 
 				return (uintptr_t)item->ptr;
@@ -282,10 +282,16 @@ static void sClose(struct kaWindow* w, void* raw_data)
 }
 
 
-int main(int argc, char* argv[])
+static void sArgumentsCallback(enum jaStatusCode code, int i, const char* key, const char* value)
+{
+	printf("[Warning] %s, argument %i ['%s' = '%s']\n", jaStatusCodeMessage(code), i, key, value);
+}
+
+int main(int argc, const char* argv[])
 {
 	struct jaStatus st = {0};
 	struct SakuraiData* data = NULL;
+	struct jaConfiguration* cfg = NULL;
 
 	// Developers, developers, developers
 	if (argc > 2 && strcmp("jvn2sgi", argv[1]) == 0)
@@ -293,6 +299,22 @@ int main(int argc, char* argv[])
 
 	if (argc > 1 && strcmp("test-cache", argv[1]) == 0)
 		return CacheTest();
+
+	// Configuration
+	if ((cfg = jaConfigurationCreate()) == NULL)
+	{
+		jaStatusSet(&st, "main", JA_STATUS_MEMORY_ERROR, NULL);
+		goto return_failure;
+	}
+
+	if (jaCvarCreateInt(cfg, "render.width", 640, 320, INT_MAX, &st) == NULL ||
+	    jaCvarCreateInt(cfg, "render.height", 480, 240, INT_MAX, &st) == NULL ||
+	    jaCvarCreateInt(cfg, "render.fullscreen", 0, 0, 1, &st) == NULL ||
+	    jaCvarCreateInt(cfg, "render.vsync", 1, 0, 1, &st) == NULL ||
+	    jaCvarCreateString(cfg, "kansai.caption", NAME, NULL, NULL, &st) == NULL)
+		goto return_failure;
+
+	jaConfigurationArgumentsEx(cfg, JA_UTF8, JA_SKIP_FIRST, sArgumentsCallback, argc, argv);
 
 	// Game as normal
 	printf("%s v%s\n", NAME, VERSION);
@@ -308,7 +330,7 @@ int main(int argc, char* argv[])
 	if (kaContextStart(&st) != 0)
 		goto return_failure;
 
-	if (kaWindowCreate(CAPTION, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
+	if (kaWindowCreate(cfg, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
 		goto return_failure;
 
 	// Main loop
@@ -323,10 +345,16 @@ int main(int argc, char* argv[])
 
 	// Bye!
 	kaContextStop();
+	jaConfigurationDelete(cfg);
+	free(data);
 	return EXIT_SUCCESS;
 
 return_failure:
 	jaStatusPrint(NAME, st);
 	kaContextStop();
+	if (cfg != NULL)
+		jaConfigurationDelete(cfg);
+	if (data != NULL)
+		free(data);
 	return EXIT_FAILURE;
 }
