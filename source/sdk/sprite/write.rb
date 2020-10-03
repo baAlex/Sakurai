@@ -100,7 +100,7 @@ class IRRow
 end
 
 
-def WriteAsm(pingpong, font_sheet, frames, data_soup)
+def WriteAsm(font_sheet, frames, data_soup)
 
 	output = ""
 
@@ -118,32 +118,21 @@ def WriteAsm(pingpong, font_sheet, frames, data_soup)
 
 	# Output local-header
 	output << "\n; Load-header (8 bytes)\n"
-	output << "dw (file_end) ; File size\n"
+	output << "dw file_end ; File size\n"
 	output << "dw 0x%02X ; Width (%i)\n" % [sprite_width + 1, sprite_width + 1]
 	output << "dw 0x%02X ; Height (%i)\n" % [sprite_height + 1, sprite_height + 1]
 	output << "dw 0x00 ; Unused\n"
 
 	# Output draw-header
 	output << "\n; Draw-header:\n"
-	output << "dw (pixels - $) ; Offset to data\n"
-
-	if pingpong == true && frames.size > 1 then
-		output << "dw 0x%02X ; Frames number  (%i)\n" % [frames.size * 2 - 2, frames.size * 2 - 2]
-	else
-		output << "dw 0x%02X ; Frames number (%i)\n" % [frames.size, frames.size]
-	end
+	output << "dw pixels - $ ; Offset to data\n"
+	output << "dw 0x%02X ; Frames number (%i)\n" % [frames.size, frames.size]
 
 	# Output frame code offsets
 	output << "\n; Code offsets:\n"
 
 	for i in 0...frames.size do
-		output << "dw (code_f#{i} - $)\n"
-	end
-
-	if pingpong == true && frames.size > 1 then
-		for i in 0...(frames.size - 2) do
-			output << "dw (code_f#{frames.size - i - 2} - $)\n"
-		end
+		output << "dw code_f#{i} - $\n"
 	end
 
 	# Output code

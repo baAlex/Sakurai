@@ -36,20 +36,14 @@ require_relative "sprite/read.rb"
 require_relative "sprite/write.rb"
 
 
-TYPE_LINEAR = "linear"
-TYPE_PINGPONG = "pingpong"
-TYPE_FONT = "font"
-
 def Sprite(type, filename_output, inputs)
 
 	output = File.open(filename_output, "wb")
 
-	pingpong = false
 	font_sheet = false
 
-	if type == TYPE_LINEAR   then pingpong = false end
-	if type == TYPE_PINGPONG then pingpong = true end
-	if type == TYPE_FONT     then font_sheet = true end
+	if type == "linear" then font_sheet = false end
+	if type == "font"   then font_sheet = true end
 
 	# Read frames
 	if font_sheet == false then
@@ -62,13 +56,13 @@ def Sprite(type, filename_output, inputs)
 	data_soup = DataSoupFromFrames(list: frame_list)
 
 	# Write output
-	asm = WriteAsm(pingpong, font_sheet, frame_list, data_soup)
-	output.print("#{asm}")
+	asm = WriteAsm(font_sheet, frame_list, data_soup)
+	output.print(asm)
 
 	output.close()
 end
 
 
 if __FILE__ == $PROGRAM_NAME
-(ARGV.length > 2) ? Sprite(ARGV[0], ARGV[1], ARGV[2..]) : raise("Usage blah... blah... blah...")
+	(ARGV.length > 2) ? Sprite(ARGV[0], ARGV[1], ARGV[2..]) : raise("Usage blah... blah... blah...")
 end

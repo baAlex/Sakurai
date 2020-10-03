@@ -311,7 +311,7 @@ int main(int argc, const char* argv[])
 	    jaCvarCreateInt(cfg, "render.height", 480, 240, INT_MAX, &st) == NULL ||
 	    jaCvarCreateInt(cfg, "render.fullscreen", 0, 0, 1, &st) == NULL ||
 	    jaCvarCreateInt(cfg, "render.vsync", 1, 0, 1, &st) == NULL ||
-	    jaCvarCreateString(cfg, "kansai.caption", NAME, NULL, NULL, &st) == NULL)
+	    jaCvarCreateString(cfg, "kansai.caption", CAPTION, NULL, NULL, &st) == NULL)
 		goto return_failure;
 
 	jaConfigurationArgumentsEx(cfg, JA_UTF8, JA_SKIP_FIRST, sArgumentsCallback, argc, argv);

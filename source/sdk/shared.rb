@@ -28,6 +28,7 @@
 # https://ruby-doc.org/core-2.7.0/String.html#method-i-unpack
 # https://www.fileformat.info/format/bmp/corion-rle8.htm
 
+
 LITTLE_ENDIAN = 0
 BIG_ENDIAN = 1
 

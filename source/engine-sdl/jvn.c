@@ -133,7 +133,7 @@ again:
 	else if (op == 0xA5)
 		return (prefix == 0) ? I86_MOVSW : I86_MOVSD;
 
-	// MOV [OP, IMM8] (r8 = imm8)
+	// MOV [OP, IMM8] (al = imm8)
 	else if (op == 0xB0)
 	{
 		uint16_t imm8 = 0;

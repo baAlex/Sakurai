@@ -27,7 +27,6 @@
 
 include Math
 
-
 ENTRIES = 128
 COLUMNS = 16
 
@@ -39,9 +38,9 @@ for i in 1..ENTRIES
 	value = value.to_i()
 
 	if i != ENTRIES then
-	print(" #{value},")
+		print(" #{value},")
 	else
-	print(" #{value}")
+		print(" #{value}")
 	end
 
 	if (i % COLUMNS) == 0 then

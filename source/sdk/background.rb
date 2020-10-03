@@ -50,5 +50,5 @@ end
 
 
 if __FILE__ == $PROGRAM_NAME
-(ARGV.length > 1) ? Background(ARGV[0], ARGV[1]) : raise("Usage blah... blah... blah...")
+	(ARGV.length > 1) ? Background(ARGV[0], ARGV[1]) : raise("Usage blah... blah... blah...")
 end

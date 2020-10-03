@@ -27,6 +27,7 @@
 
 # GIMP is incredibly bad dealing with palettes
 
+
 def ProcessTxt(filename_list)
 
 	print("GIMP Palette\n")
