@@ -53,7 +53,7 @@ end
 
 def ValidateNumber(string)
 
-	if string[/[^(x)(A-F)(a-f)(0-9)]/] != nil
+	if string[/[^(0-9)]/] != nil then
 		return 1
 	end
 
@@ -61,15 +61,33 @@ def ValidateNumber(string)
 end
 
 
+def ValidateHex(string)
+
+	if string[/[^(x)(A-F)(a-f)(0-9)]/] != nil then
+		return 1
+	end
+
+	return 0
+end
+
+
+def ResolveReference(reference, symbols:)
+	return symbols[reference].offset
+end
+
+
 class Instruction
 
 	attr_accessor :tag
 	attr_accessor :op
+	attr_accessor :offset
 
 
-	def initialize(line:)
+	def initialize(line:, offset:)
 
 		tokens = tokenize_line(line)
+
+		@offset = offset;
 		@tag = nil
 		@op = nil
 
@@ -135,71 +153,58 @@ class Instruction
 end
 
 
-def Assembler(string:)
+def Assembler(string:, output_file:)
 
 	program = Array.new()
 	symbols = Hash.new()
 
 	# First pass
+	error = false
+	current_offset = 0
 	line_no = 1
+
 	string.each_line { |line|
 
 		if line.empty? == true then next end
 		if line == "\n" then next end
 
+		# Create instruction
+		instruction = nil
+
 		begin
-			instruction = Instruction.new(line: line)
-			program << instruction
-
-			if instruction.tag != nil then
-				symbols[instruction.tag] = instruction
-			end
-
+			instruction = Instruction.new(line: line, offset: current_offset)
 		rescue Exception => e
 			printf("Error in line %04i : #{e.message}\n", line_no)
+			error = true
+			line_no += 1
+			next
+		end
+
+		# Append it to program
+		program << instruction
+
+		# If has a tag, keep a reference in ::symbols[]
+		if instruction.tag != nil then
+			symbols[instruction.tag] = instruction
+		end
+
+		# If has an op, keep the offset updated
+		if instruction.op != nil then
+			current_offset += instruction.op.size()
 		end
 
 		line_no += 1
 	}
 
+	if error == true then raise() end
+
 	# Second pass
-	fp = File.open("test", "wb")
+	current_offset = 0
 
 	for instruction in program do
 		if instruction.op != nil then
-			instruction.op.write(output: fp, symbols: symbols)
+			instruction.op.write(output: output_file, symbols: symbols, offset: current_offset)
+			current_offset += instruction.op.size()
 		end
 	end
-
-	fp.close()
 end
-
-
-####
-
-
-Assembler(string: "	add di, 321 ; Row 1, x = 1
-add si, 2 ; 2
-movsw
-	ADD di, 317; Row 2, x = 0
-sub si , 2	; 2
- movsd
-add di,317 ; Row 3, x = 1
-sub si, 4 ; 2
-movsw
-add di, 317 ; Row 4, x = 0
-  sub	si	,	2 ; 2
-movsd
-add di ,317 ; Row 5, x = 1
-sub si, 4; 2
-movsw
-mov al, 4
-retf
-
-pixels:
-db 8, 8, 8, 64, 8, 8, 64, 8, 8, 64, 8, 8, 64, 8, 64, 8
-dw file_end ; File size
-dw 0x06 ; Width (6)
-dw 0x07 ; Height (7)
-dw 0x00 ; Unused
-file_end:")

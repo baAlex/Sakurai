@@ -34,6 +34,7 @@ require_relative "sprite/irpixel.rb"
 require_relative "sprite/soup.rb"
 require_relative "sprite/read.rb"
 require_relative "sprite/write.rb"
+require_relative "sprite/assembler.rb"
 
 
 def Sprite(type, filename_output, inputs)
@@ -57,7 +58,8 @@ def Sprite(type, filename_output, inputs)
 
 	# Write output
 	asm = WriteAsm(font_sheet, frame_list, data_soup)
-	output.print(asm)
+	Assembler(string: asm, output_file: output)
+	#output.print(asm)
 
 	output.close()
 end
