@@ -4,6 +4,8 @@ Sakurai
 [![Ubuntu CI](https://github.com/baAlex/sakurai/workflows/Ubuntu/badge.svg)](https://github.com/baAlex/sakurai/actions?query=workflow%3AUbuntu)
 [![Windows CI](https://github.com/baAlex/sakurai/workflows/Windows/badge.svg)](https://github.com/baAlex/sakurai/actions?query=workflow%3AWindows)
 
+> 20/10/2: Window CI fails due to a [vcpkg issue](https://github.com/microsoft/vcpkg/issues/13856)
+
 Turn based role-playing game for real mode DOS. **Currently in development**.
 
 ![](https://raw.githubusercontent.com/baAlex/Sakurai/master/resources/media/banner-gameplay.png)
