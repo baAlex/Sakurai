@@ -241,7 +241,7 @@ static void sResize(struct kaWindow* w, int width, int height, void* raw_data, s
 	kaSetCameraMatrix(w,
 	                  jaMatrix4Orthographic(-((float)width / 2.0f), ((float)width / 2.0f), -((float)height / 2.0f),
 	                                        ((float)height / 2.0f), 0.0f, 2.0f),
-	                  jaVector3Clean());
+	                  (struct jaVector3){0.0f, 0.0f, 0.0f});
 
 	// Calculate a scale respecting the aspect ratio
 	float scale =
