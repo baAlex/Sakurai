@@ -253,13 +253,13 @@ static void sResize(struct kaWindow* w, int width, int height, void* raw_data, s
 }
 
 
-static void sFunctionKey(struct kaWindow* w, int f, void* raw_data, struct jaStatus* st)
+static void sKeyboard(struct kaWindow* w, enum kaKey key, enum kaKeyMode mode, void* raw_data, struct jaStatus* st)
 {
 	(void)w;
 	(void)raw_data;
 	(void)st;
 
-	if (f == 11)
+	if (key == KA_KEY_F11 && mode == KA_RELEASED)
 		kaSwitchFullscreen(w);
 }
 
@@ -330,7 +330,7 @@ int main(int argc, const char* argv[])
 	if (kaContextStart(&st) != 0)
 		goto return_failure;
 
-	if (kaWindowCreate(cfg, sInit, sFrame, sResize, sFunctionKey, sClose, data, &st) != 0)
+	if (kaWindowCreate(cfg, sInit, sFrame, sResize, sKeyboard, sClose, data, &st) != 0)
 		goto return_failure;
 
 	// Main loop
