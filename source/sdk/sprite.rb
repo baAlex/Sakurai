@@ -59,7 +59,10 @@ def Sprite(type, filename_output, inputs)
 	# Write output
 	asm = WriteAsm(font_sheet, frame_list, data_soup)
 	Assembler(string: asm, output_file: output)
-	#output.print(asm)
+
+		asmout = File.open(filename_output + ".asm", "w")
+		asmout.print(asm)
+		asmout.close()
 
 	output.close()
 end

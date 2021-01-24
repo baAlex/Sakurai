@@ -32,9 +32,6 @@ SOFTWARE.
 #include "utilities.h"
 
 
-#define BATTLE
-
-
 void* StateHello();
 static void* (*s_next_state)() = StateHello;
 

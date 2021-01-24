@@ -210,14 +210,25 @@ class OpAdd
 	end
 
 
+	# Alignment horror
+	#def write(output:, symbols:, offset:)
+	#	output.write([(@imm > 255) ? 0x81 : 0x83].pack("c"))
+	#	output.write([(@dest == :si) ? 0xC6 : 0xC7].pack("c"))
+	#	output.write([@imm].pack((@imm > 255) ? "s" : "c"))
+	#end
+
+
+	#def size() return (@imm > 255) ? 4 : 3 end
+
+
 	def write(output:, symbols:, offset:)
-		output.write([(@imm > 255) ? 0x81 : 0x83].pack("c"))
+		output.write([0x81].pack("c"))
 		output.write([(@dest == :si) ? 0xC6 : 0xC7].pack("c"))
-		output.write([@imm].pack((@imm > 255) ? "s" : "c"))
+		output.write([@imm].pack("s"))
 	end
 
 
-	def size() return (@imm > 255) ? 4 : 3 end
+	def size() return 4 end
 end
 
 
@@ -252,14 +263,25 @@ class OpSub
 	end
 
 
+	# Alignment horror
+	#def write(output:, symbols:, offset:)
+	#	output.write([(@imm > 255) ? 0x81 : 0x83].pack("c"))
+	#	output.write([(@dest == :si) ? 0xEE : 0x0EF].pack("c"))
+	#	output.write([@imm].pack((@imm > 255) ? "s" : "c"))
+	#end
+
+
+	#def size() return (@imm > 255) ? 4 : 3 end
+
+
 	def write(output:, symbols:, offset:)
-		output.write([(@imm > 255) ? 0x81 : 0x83].pack("c"))
+		output.write([0x81].pack("c"))
 		output.write([(@dest == :si) ? 0xEE : 0x0EF].pack("c"))
-		output.write([@imm].pack((@imm > 255) ? "s" : "c"))
+		output.write([@imm].pack("s"))
 	end
 
 
-	def size() return (@imm > 255) ? 4 : 3 end
+	def size() return 4 end
 end
 
 

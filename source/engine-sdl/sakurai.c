@@ -253,13 +253,13 @@ static void sResize(struct kaWindow* w, int width, int height, void* raw_data, s
 }
 
 
-static void sKeyboard(struct kaWindow* w, enum kaKey key, enum kaKeyMode mode, void* raw_data, struct jaStatus* st)
+static void sKeyboard(struct kaWindow* w, enum kaKey key, enum kaGesture mode, void* raw_data, struct jaStatus* st)
 {
 	(void)w;
 	(void)raw_data;
 	(void)st;
 
-	if (key == KA_KEY_F11 && mode == KA_RELEASED)
+	if (key == KA_KEY_F11 && mode == KA_PRESSED)
 		kaSwitchFullscreen(w);
 }
 
@@ -311,7 +311,7 @@ int main(int argc, const char* argv[])
 	    jaCvarCreateInt(cfg, "render.height", 480, 240, INT_MAX, &st) == NULL ||
 	    jaCvarCreateInt(cfg, "render.fullscreen", 0, 0, 1, &st) == NULL ||
 	    jaCvarCreateInt(cfg, "render.vsync", 1, 0, 1, &st) == NULL ||
-	    jaCvarCreateString(cfg, "kansai.caption", CAPTION, NULL, NULL, &st) == NULL)
+	    jaCvarCreateString(cfg, "caption", CAPTION, NULL, NULL, &st) == NULL)
 		goto return_failure;
 
 	jaConfigurationArgumentsEx(cfg, JA_UTF8, JA_SKIP_FIRST, sArgumentsCallback, argc, argv);
@@ -330,7 +330,7 @@ int main(int argc, const char* argv[])
 	if (kaContextStart(&st) != 0)
 		goto return_failure;
 
-	if (kaWindowCreate(cfg, sInit, sFrame, sResize, sKeyboard, sClose, data, &st) != 0)
+	if (kaWindowCreate(cfg, sInit, sFrame, sResize, sKeyboard, NULL, sClose, data, &st) != 0)
 		goto return_failure;
 
 	// Main loop
